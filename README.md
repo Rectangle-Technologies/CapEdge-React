@@ -1,1 +1,1 @@
-# CapEdge-React
+#CapEdge

@@ -1,0 +1,2 @@
+[] - Why is the hooks file there? It's not being used anywhere
+[] - For validate-token error response, should we send 200 with valid as false or 401 response.

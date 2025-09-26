@@ -20,8 +20,9 @@ export const showGlobalSnackbar = (message, severity = 'info', options = {}) => 
     severity,
     autoHideDuration: options.autoHideDuration || 6000,
     anchorOrigin: options.anchorOrigin || {
-      vertical: 'bottom',
-      horizontal: 'left'
+      vertical: 'top',
+      horizontal: 'center',
+      autoHideDuration: 2000
     }
   }));
 };

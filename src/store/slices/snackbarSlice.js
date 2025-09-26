@@ -8,8 +8,8 @@ const initialState = {
   severity: 'info', // 'success', 'error', 'warning', 'info'
   autoHideDuration: 6000,
   anchorOrigin: {
-    vertical: 'bottom',
-    horizontal: 'left'
+    vertical: 'top',
+    horizontal: 'center'
   }
 };
 

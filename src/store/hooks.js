@@ -21,3 +21,16 @@ export const useSnackbar = () => {
   
   return { snackbar, dispatch };
 };
+
+// Specific hooks for authentication
+export const useAuth = () => {
+  const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.token);
+  const isAuthenticated = useAppSelector((state) => !!state.auth.token);
+  
+  return { 
+    token, 
+    isAuthenticated, 
+    dispatch 
+  };
+};

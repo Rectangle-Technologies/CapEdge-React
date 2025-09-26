@@ -20,9 +20,9 @@ export default function HeaderContent() {
 
   return (
     <>
-      {!downLG && <Search />}
-      {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
-      <IconButton
+      {/* {!downLG && <Search />} */}
+      {/* {downLG && <Box sx={{ width: '100%', ml: 1 }} />} */}
+      {/* <IconButton
         component={Link}
         href="https://github.com/codedthemes/mantis-free-react-admin-template"
         target="_blank"
@@ -32,9 +32,10 @@ export default function HeaderContent() {
         sx={{ color: 'text.primary', bgcolor: 'grey.100' }}
       >
         <GithubOutlined />
-      </IconButton>
+      </IconButton> */}
 
-      <Notification />
+      {/* <Notification /> */}
+      <Box sx={{ flexGrow: 1 }} />
       {!downLG && <Profile />}
       {downLG && <MobileSection />}
     </>

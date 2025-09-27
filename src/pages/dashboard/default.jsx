@@ -1,6 +1,7 @@
 // material-ui
 import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
@@ -8,28 +9,23 @@ import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
 
 // project imports
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import MonthlyBarChart from 'sections/dashboard/default/MonthlyBarChart';
-import ReportAreaChart from 'sections/dashboard/default/ReportAreaChart';
-import UniqueVisitorCard from 'sections/dashboard/default/UniqueVisitorCard';
-import SaleReportCard from 'sections/dashboard/default/SaleReportCard';
 import OrdersTable from 'sections/dashboard/default/OrdersTable';
+import ReportAreaChart from 'sections/dashboard/default/ReportAreaChart';
+import SaleReportCard from 'sections/dashboard/default/SaleReportCard';
+import UniqueVisitorCard from 'sections/dashboard/default/UniqueVisitorCard';
 
-// redux utilities
-import { 
-  setGlobalLoader, 
-  showSuccessSnackbar, 
-  showErrorSnackbar, 
-  showWarningSnackbar, 
-  showInfoSnackbar 
-} from 'store/utils';
+// redux
+import { useAppDispatch } from 'store/hooks';
+// Import actions directly from slices
+import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 
 // assets
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
@@ -61,12 +57,14 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
+  const dispatch = useAppDispatch();
+  
   // Demo functions for Redux functionality
   const handleShowLoader = () => {
-    setGlobalLoader(true);
+    dispatch(showLoader());
     // Simulate API call
     setTimeout(() => {
-      setGlobalLoader(false);
+      dispatch(hideLoader());
       showSuccessSnackbar('Data loaded successfully!');
     }, 2000);
   };

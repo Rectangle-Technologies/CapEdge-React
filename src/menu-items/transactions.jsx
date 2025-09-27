@@ -1,9 +1,9 @@
 // assets
-import { BankOutlined } from '@ant-design/icons';
+import { TransactionOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  BankOutlined
+  TransactionOutlined
 };
 
 // ==============================|| MENU ITEMS - TRANSACTIONS ||============================== //
@@ -18,7 +18,7 @@ const transactions = {
       title: 'All Transactions',
       type: 'item',
       url: '/',
-      icon: icons.BankOutlined,
+      icon: icons.TransactionOutlined,
       breadcrumbs: false
     }
   ]

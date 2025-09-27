@@ -1,17 +1,7 @@
 import store from 'store';
-import { showLoader, hideLoader } from 'store/slices/loaderSlice';
-import { showSnackbar, hideSnackbar } from 'store/slices/snackbarSlice';
+import { hideSnackbar, showSnackbar } from 'store/slices/snackbarSlice';
 
 // ==============================|| REDUX UTILITIES ||============================== //
-
-// Loader utilities
-export const setGlobalLoader = (isLoading) => {
-  if (isLoading) {
-    store.dispatch(showLoader());
-  } else {
-    store.dispatch(hideLoader());
-  }
-};
 
 // Snackbar utilities
 export const showGlobalSnackbar = (message, severity = 'info', options = {}) => {

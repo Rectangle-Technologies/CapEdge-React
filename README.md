@@ -34,11 +34,20 @@ Authenticate user with username and password.
 
 ```json
 {
-  "result": "success",
+  "success": true,
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   },
   "message": "Login successful"
+}
+```
+
+**Error Response:**
+
+```json
+{
+  "success": false,
+  "message": "string"
 }
 ```
 
@@ -59,7 +68,7 @@ Validate current authentication token.
 Authorization: Bearer <token>
 ```
 
-**Response (200):**
+**Response Valid Token:**
 
 ```json
 {
@@ -71,6 +80,14 @@ Authorization: Bearer <token>
 }
 ```
 
-**Errors:**
+**Response Invalid/Expired Token:**
 
-- `401` - Token expired or invalid
+```json
+{
+  "success": true,
+  "data": {
+    "valid": false
+  },
+  "message": "Token expired or is invalid"
+}
+```

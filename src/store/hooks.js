@@ -10,6 +10,6 @@ export const useAppSelector = (selector) => useSelector(selector);
 export const useSnackbar = () => {
   const dispatch = useAppDispatch();
   const snackbar = useAppSelector((state) => state.snackbar);
-  
+
   return { snackbar, dispatch };
 };

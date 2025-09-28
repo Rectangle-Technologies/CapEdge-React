@@ -58,7 +58,7 @@ const actionSX = {
 
 export default function DashboardDefault() {
   const dispatch = useAppDispatch();
-  
+
   // Demo functions for Redux functionality
   const handleShowLoader = () => {
     dispatch(showLoader());
@@ -91,7 +91,7 @@ export default function DashboardDefault() {
       <Grid sx={{ mb: -2.25 }} size={12}>
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
-      
+
       {/* Redux Demo Section */}
       <Grid size={12}>
         <Paper sx={{ p: 3, mb: 2 }}>

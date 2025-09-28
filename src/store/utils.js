@@ -5,16 +5,18 @@ import { hideSnackbar, showSnackbar } from 'store/slices/snackbarSlice';
 
 // Snackbar utilities
 export const showGlobalSnackbar = (message, severity = 'info', options = {}) => {
-  store.dispatch(showSnackbar({
-    message,
-    severity,
-    autoHideDuration: options.autoHideDuration || 6000,
-    anchorOrigin: options.anchorOrigin || {
-      vertical: 'top',
-      horizontal: 'center',
-      autoHideDuration: 2000
-    }
-  }));
+  store.dispatch(
+    showSnackbar({
+      message,
+      severity,
+      autoHideDuration: options.autoHideDuration || 6000,
+      anchorOrigin: options.anchorOrigin || {
+        vertical: 'top',
+        horizontal: 'center',
+        autoHideDuration: 2000
+      }
+    })
+  );
 };
 
 export const hideGlobalSnackbar = () => {

@@ -16,18 +16,8 @@ const GlobalSnackbar = () => {
   };
 
   return (
-    <Snackbar
-      open={snackbar.open}
-      autoHideDuration={snackbar.autoHideDuration}
-      onClose={handleClose}
-      anchorOrigin={snackbar.anchorOrigin}
-    >
-      <Alert
-        onClose={handleClose}
-        severity={snackbar.severity}
-        variant="filled"
-        sx={{ width: '100%' }}
-      >
+    <Snackbar open={snackbar.open} autoHideDuration={snackbar.autoHideDuration} onClose={handleClose} anchorOrigin={snackbar.anchorOrigin}>
+      <Alert onClose={handleClose} severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
         {snackbar.message}
       </Alert>
     </Snackbar>

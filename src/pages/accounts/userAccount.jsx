@@ -32,11 +32,15 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  Search as SearchIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { formatCurrency, formatCurrencyForInput } from 'utils/formatCurrency';
+import { useAppDispatch } from 'store/hooks';
+import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 
 // Validation schemas
 const userAccountValidationSchema = yup.object({
@@ -72,19 +76,21 @@ function UserAccountRow({ userAccount, brokers, onEditUser, onDeleteUser, onAddD
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell>
+        <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
           <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row">
+        <TableCell component="th" scope="row" sx={{ width: '25%', padding: '8px 16px 8px 16px' }}>
           {userAccount.name}
         </TableCell>
-        <TableCell>{userAccount.panNumber}</TableCell>
-        <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+          {userAccount.panNumber}
+        </TableCell>
+        <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px', maxWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {userAccount.address}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
           <IconButton onClick={() => onEditUser(userAccount)} size="small" color="primary">
             <EditIcon />
           </IconButton>
@@ -114,17 +120,27 @@ function UserAccountRow({ userAccount, brokers, onEditUser, onDeleteUser, onAddD
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell><strong>Broker</strong></TableCell>
-                      <TableCell><strong>Balance</strong></TableCell>
-                      <TableCell><strong>Actions</strong></TableCell>
+                      <TableCell sx={{ padding: '8px 16px' }}>
+                        <strong>Broker</strong>
+                      </TableCell>
+                      <TableCell sx={{ padding: '8px 16px' }}>
+                        <strong>Balance</strong>
+                      </TableCell>
+                      <TableCell sx={{ padding: '8px 16px' }}>
+                        <strong>Actions</strong>
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {userAccount.dematAccounts.map((dematAccount) => (
                       <TableRow key={dematAccount.id}>
-                        <TableCell>{getBrokerName(dematAccount.brokerId)}</TableCell>
-                        <TableCell>{formatCurrency(dematAccount.balance)}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>
+                          {getBrokerName(dematAccount.brokerId)}
+                        </TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>
+                          {formatCurrency(dematAccount.balance)}
+                        </TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>
                           <IconButton onClick={() => onEditDematAccount(dematAccount)} size="small" color="primary">
                             <EditIcon />
                           </IconButton>
@@ -155,7 +171,12 @@ function UserAccountRow({ userAccount, brokers, onEditUser, onDeleteUser, onAddD
 
 // Main component
 const UserAccount = () => {
+  // Redux dispatch
+  const dispatch = useAppDispatch();
+
   // State management
+  const [searchName, setSearchName] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [userAccounts, setUserAccounts] = useState([
     {
       id: 1,
@@ -230,7 +251,7 @@ const UserAccount = () => {
         resetForm();
         setOpenUserDialog(false);
         setEditingUser(null);
-      } catch (error) {
+      } catch {
         setAlertMessage('Failed to save user account. Please try again.');
         setAlertSeverity('error');
       }
@@ -279,7 +300,7 @@ const UserAccount = () => {
         setOpenDematDialog(false);
         setEditingDemat(null);
         setSelectedUserIdForDemat(null);
-      } catch (error) {
+      } catch {
         setAlertMessage('Failed to save demat account. Please try again.');
         setAlertSeverity('error');
       }
@@ -340,6 +361,131 @@ const UserAccount = () => {
     }
   };
 
+  // Filter user accounts based on search query (only when search button is clicked)
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredUserAccounts = userAccounts.filter((user) =>
+    searchQuery ? user.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
+  );
+
+  // API function to search user accounts
+  const searchUserAccounts = async () => {
+    setIsSearching(true);
+    try {
+      // Set the search query to trigger filtering
+      setSearchQuery(searchName);
+      
+      // Simulate API call - replace with actual API endpoint
+      // In real implementation, you would pass searchName as a parameter to the API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Mock API response - replace with actual API call
+      // In real implementation, the API would return filtered results based on searchName
+      const mockData = [
+        {
+          id: 1,
+          name: 'John Doe',
+          panNumber: 'ABCDE1234F',
+          address: '123 Main Street, Mumbai, Maharashtra 400001',
+          dematAccounts: [
+            { id: 1, userAccountId: '1', brokerId: '1', balance: 50000 },
+            { id: 2, userAccountId: '1', brokerId: '2', balance: 75000 }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Jane Smith',
+          panNumber: 'FGHIJ5678K',
+          address: '456 Park Avenue, Delhi, Delhi 110001',
+          dematAccounts: [{ id: 3, userAccountId: '2', brokerId: '1', balance: 100000 }]
+        },
+        {
+          id: 3,
+          name: 'Rajesh Kumar',
+          panNumber: 'KLMNO9876P',
+          address: '789 Gandhi Road, Bangalore, Karnataka 560001',
+          dematAccounts: []
+        }
+      ];
+      
+      setUserAccounts(mockData);
+      setAlertMessage(searchName ? `Search completed for "${searchName}"!` : 'All data loaded successfully!');
+      setAlertSeverity('success');
+    } catch (error) {
+      setAlertMessage('Failed to search data. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Export to Excel function
+  const exportToExcel = async () => {
+    dispatch(showLoader());
+    try {
+      // Simulate processing time for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Prepare data for export
+      const exportData = [];
+      
+      filteredUserAccounts.forEach((user) => {
+        if (user.dematAccounts && user.dematAccounts.length > 0) {
+          user.dematAccounts.forEach((demat) => {
+            const broker = brokers.find((b) => b.id === demat.brokerId);
+            exportData.push({
+              'User Name': user.name,
+              'PAN Number': user.panNumber,
+              Address: user.address,
+              Broker: broker ? broker.name : 'Unknown Broker',
+              Balance: demat.balance.toFixed(2)
+            });
+          });
+        } else {
+          exportData.push({
+            'User Name': user.name,
+            'PAN Number': user.panNumber,
+            Address: user.address,
+            Broker: 'No Demat Account',
+            Balance: '0.00'
+          });
+        }
+      });
+
+      // Convert to CSV format
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(header => {
+              const value = row[header];
+              // Wrap in quotes if contains comma or newline
+              return typeof value === 'string' && (value.includes(',') || value.includes('\n')) ? `"${value.replace(/"/g, '""')}"` : value;
+            })
+            .join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `user_accounts_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setAlertMessage('Data exported successfully!');
+      setAlertSeverity('success');
+    } catch {
+      setAlertMessage('Failed to export data. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   // Auto-hide alert
   useEffect(() => {
     if (alertMessage) {
@@ -363,9 +509,56 @@ const UserAccount = () => {
           title="User Account Management"
           subheader="Manage user accounts and their associated demat accounts"
           action={
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddUser}>
-              Add User Account
-            </Button>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                placeholder="Search by name..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{ 
+                  minWidth: 250,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'background.paper',
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    </Box>
+                  ),
+                }}
+              />
+              
+              <Button
+                variant="outlined"
+                startIcon={<SearchIcon />}
+                onClick={searchUserAccounts}
+                disabled={isSearching}
+                size="small"
+                sx={{ minWidth: 100 }}
+              >
+                {isSearching ? 'Searching...' : 'Search'}
+              </Button>
+              
+              <IconButton
+                onClick={exportToExcel}
+                color="primary"
+                title="Export to Excel"
+                sx={{ 
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+              
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddUser}>
+                Add User Account
+              </Button>
+            </Stack>
           }
         />
         <Divider />
@@ -374,16 +567,24 @@ const UserAccount = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell />
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>PAN Number</strong></TableCell>
-                <TableCell><strong>Address</strong></TableCell>
-                <TableCell><strong>Actions</strong></TableCell>
+                <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }} />
+                <TableCell sx={{ width: '25%', padding: '8px 16px 8px 24px' }}>
+                  <strong>Name</strong>
+                </TableCell>
+                <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+                  <strong>PAN Number</strong>
+                </TableCell>
+                <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
+                  <strong>Address</strong>
+                </TableCell>
+                <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+                  <strong>Actions</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {userAccounts.length > 0 ? (
-                userAccounts.map((userAccount) => (
+              {filteredUserAccounts.length > 0 ? (
+                filteredUserAccounts.map((userAccount) => (
                   <UserAccountRow
                     key={userAccount.id}
                     userAccount={userAccount}
@@ -397,9 +598,11 @@ const UserAccount = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4, padding: '32px 16px' }}>
                     <Typography variant="body1" color="textSecondary">
-                      No user accounts found. Click "Add User Account" to create one.
+                      {searchQuery
+                        ? `No user accounts found matching "${searchQuery}".`
+                        : 'No user accounts found. Click "Add User Account" to create one.'}
                     </Typography>
                   </TableCell>
                 </TableRow>

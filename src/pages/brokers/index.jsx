@@ -25,10 +25,14 @@ import {
 import {
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { useAppDispatch } from 'store/hooks';
+import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 
 // Validation schema
 const brokerValidationSchema = yup.object({
@@ -42,7 +46,12 @@ const brokerValidationSchema = yup.object({
 
 // Main component
 const BrokerManagement = () => {
+  // Redux dispatch
+  const dispatch = useAppDispatch();
+
   // State management
+  const [searchName, setSearchName] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [brokers, setBrokers] = useState([
     { id: 1, name: 'Zerodha', address: 'Bangalore, Karnataka', panNumber: 'AAAAA0000A' },
     { id: 2, name: 'Angel Broking', address: 'Mumbai, Maharashtra', panNumber: 'BBBBB1111B' },
@@ -69,9 +78,7 @@ const BrokerManagement = () => {
       try {
         if (editingBroker) {
           // Update existing broker
-          setBrokers((prev) =>
-            prev.map((broker) => (broker.id === editingBroker.id ? { ...broker, ...values } : broker))
-          );
+          setBrokers((prev) => prev.map((broker) => (broker.id === editingBroker.id ? { ...broker, ...values } : broker)));
           setAlertMessage('Broker updated successfully!');
         } else {
           // Create new broker
@@ -86,7 +93,7 @@ const BrokerManagement = () => {
         resetForm();
         setOpenDialog(false);
         setEditingBroker(null);
-      } catch (error) {
+      } catch {
         setAlertMessage('Failed to save broker. Please try again.');
         setAlertSeverity('error');
       }
@@ -118,6 +125,86 @@ const BrokerManagement = () => {
     }
   };
 
+  // Filter brokers based on search query (only when search button is clicked)
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredBrokers = brokers.filter((broker) => (searchQuery ? broker.name.toLowerCase().includes(searchQuery.toLowerCase()) : true));
+
+  // API function to search brokers
+  const searchBrokers = async () => {
+    setIsSearching(true);
+    try {
+      // Set the search query to trigger filtering
+      setSearchQuery(searchName);
+
+      // Simulate API call - replace with actual API endpoint
+      // In real implementation, you would pass searchName as a parameter to the API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock API response - replace with actual API call
+      // const response = await fetch(`/api/brokers/search?name=${searchName}`);
+      // const data = await response.json();
+      // setBrokers(data);
+
+      setAlertMessage(searchName ? `Search completed for "${searchName}"` : 'All brokers loaded');
+      setAlertSeverity('success');
+    } catch {
+      setAlertMessage('Search failed. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Export to Excel function
+  const exportToExcel = async () => {
+    dispatch(showLoader());
+    try {
+      // Simulate processing time for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Prepare data for export
+      const exportData = filteredBrokers.map((broker) => ({
+        'Broker Name': broker.name,
+        'PAN Number': broker.panNumber,
+        Address: broker.address
+      }));
+
+      // Create CSV content
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map((row) =>
+          headers
+            .map((header) => {
+              const value = row[header] || '';
+              // Escape commas and quotes in CSV
+              return value.includes(',') || value.includes('"') ? `"${value.replace(/"/g, '""')}"` : value;
+            })
+            .join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `brokers_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setAlertMessage('Brokers data exported successfully!');
+      setAlertSeverity('success');
+    } catch {
+      setAlertMessage('Export failed. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   // Auto-hide alert
   useEffect(() => {
     if (alertMessage) {
@@ -141,9 +228,56 @@ const BrokerManagement = () => {
           title="Broker Management"
           subheader="Manage broker information and details"
           action={
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
-              Add Broker
-            </Button>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                placeholder="Search by name..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 250,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'background.paper'
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    </Box>
+                  )
+                }}
+              />
+
+              <Button
+                variant="outlined"
+                startIcon={<SearchIcon />}
+                onClick={searchBrokers}
+                disabled={isSearching}
+                size="small"
+                sx={{ minWidth: 100 }}
+              >
+                {isSearching ? 'Searching...' : 'Search'}
+              </Button>
+
+              <IconButton
+                onClick={exportToExcel}
+                color="primary"
+                title="Export to Excel"
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+                Add Broker
+              </Button>
+            </Stack>
           }
         />
         <Divider />
@@ -152,15 +286,23 @@ const BrokerManagement = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell><strong>Name</strong></TableCell>
-                <TableCell><strong>PAN Number</strong></TableCell>
-                <TableCell><strong>Address</strong></TableCell>
-                <TableCell><strong>Actions</strong></TableCell>
+                <TableCell>
+                  <strong>Name</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>PAN Number</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Address</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Actions</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {brokers.length > 0 ? (
-                brokers.map((broker) => (
+              {filteredBrokers.length > 0 ? (
+                filteredBrokers.map((broker) => (
                   <TableRow key={broker.id}>
                     <TableCell component="th" scope="row">
                       {broker.name}
@@ -183,7 +325,7 @@ const BrokerManagement = () => {
                 <TableRow>
                   <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
-                      No brokers found. Click "Add Broker" to create one.
+                      {searchQuery ? `No brokers found matching "${searchQuery}".` : 'No brokers found. Click "Add Broker" to create one.'}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -195,9 +337,7 @@ const BrokerManagement = () => {
 
       {/* Broker Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingBroker ? 'Edit Broker' : 'Add New Broker'}
-        </DialogTitle>
+        <DialogTitle>{editingBroker ? 'Edit Broker' : 'Add New Broker'}</DialogTitle>
         <form onSubmit={formik.handleSubmit}>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
@@ -225,7 +365,7 @@ const BrokerManagement = () => {
                 onBlur={formik.handleBlur}
                 error={formik.touched.panNumber && Boolean(formik.errors.panNumber)}
                 helperText={formik.touched.panNumber && formik.errors.panNumber}
-                inputProps={{ 
+                inputProps={{
                   style: { textTransform: 'uppercase' },
                   maxLength: 10
                 }}

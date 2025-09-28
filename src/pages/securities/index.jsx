@@ -27,10 +27,18 @@ import {
   Stack,
   Chip
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Download as DownloadIcon
+} from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { formatCurrency, formatCurrencyForInput } from 'utils/formatCurrency';
+import { useAppDispatch } from 'store/hooks';
+import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 
 // Security types enum
 const SECURITY_TYPES = [
@@ -102,7 +110,12 @@ const getTypeColor = (type) => {
 
 // Main component
 const Security = () => {
+  // Redux dispatch
+  const dispatch = useAppDispatch();
+
   // State management
+  const [searchName, setSearchName] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [securities, setSecurities] = useState([
     {
       id: 1,
@@ -236,6 +249,12 @@ const Security = () => {
     return typeObj ? typeObj.label : type;
   };
 
+  // Filter securities based on search query (only when search button is clicked)
+  const [searchQuery, setSearchQuery] = useState('');
+  const filteredSecurities = securities.filter((security) =>
+    searchQuery ? security.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
+  );
+
   // Auto-hide alert
   useEffect(() => {
     if (alertMessage) {
@@ -245,6 +264,84 @@ const Security = () => {
       return () => clearTimeout(timer);
     }
   }, [alertMessage]);
+
+  // API function to search securities
+  const searchSecurities = async () => {
+    setIsSearching(true);
+    try {
+      // Set the search query to trigger filtering
+      setSearchQuery(searchName);
+      
+      // Simulate API call - replace with actual API endpoint
+      // In real implementation, you would pass searchName as a parameter to the API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Mock API response - replace with actual API call
+      // const response = await fetch(`/api/securities/search?name=${searchName}`);
+      // const data = await response.json();
+      // setSecurities(data);
+      
+      setAlertMessage(searchName ? `Search completed for "${searchName}"` : 'All securities loaded');
+      setAlertSeverity('success');
+    } catch {
+      setAlertMessage('Search failed. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Export to Excel function
+  const exportToExcel = async () => {
+    dispatch(showLoader());
+    try {
+      // Simulate processing time for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Prepare data for export
+      const exportData = filteredSecurities.map((security) => ({
+        'Security Name': security.name,
+        Type: getTypeLabel(security.type),
+        'Strike Price': security.strikePrice ? security.strikePrice.toFixed(2) : '-',
+        'Expiry Date': security.expiry ? new Date(security.expiry).toLocaleDateString('en-IN') : '-',
+        Exchange: getExchangeName(security.stockExchangeId)
+      }));
+
+      // Create CSV content
+      const headers = Object.keys(exportData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map((row) =>
+          headers
+            .map((header) => {
+              const value = row[header] || '';
+              // Escape commas and quotes in CSV
+              return value.includes(',') || value.includes('"') ? `"${value.replace(/"/g, '""')}"` : value;
+            })
+            .join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `securities_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setAlertMessage('Securities data exported successfully!');
+      setAlertSeverity('success');
+    } catch {
+      setAlertMessage('Export failed. Please try again.');
+      setAlertSeverity('error');
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
 
   // Check if derivative type
   const isDerivative = (type) => type === 'OPTIONS' || type === 'FUTURES';
@@ -262,9 +359,56 @@ const Security = () => {
           title="Security Management"
           subheader="Manage securities across different exchanges and types"
           action={
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
-              Add Security
-            </Button>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                placeholder="Search by name..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  minWidth: 250,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'background.paper'
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                    </Box>
+                  )
+                }}
+              />
+              
+              <Button
+                variant="outlined"
+                startIcon={<SearchIcon />}
+                onClick={searchSecurities}
+                disabled={isSearching}
+                size="small"
+                sx={{ minWidth: 100 }}
+              >
+                {isSearching ? 'Searching...' : 'Search'}
+              </Button>
+              
+              <IconButton
+                onClick={exportToExcel}
+                color="primary"
+                title="Export to Excel"
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 1
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+              
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+                Add Security
+              </Button>
+            </Stack>
           }
         />
         <Divider />
@@ -294,8 +438,8 @@ const Security = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {securities.length > 0 ? (
-                securities.map((security) => (
+              {filteredSecurities.length > 0 ? (
+                filteredSecurities.map((security) => (
                   <TableRow key={security.id} hover>
                     <TableCell component="th" scope="row">
                       {security.name}
@@ -322,7 +466,9 @@ const Security = () => {
                 <TableRow>
                   <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
-                      No securities found. Click "Add Security" to create one.
+                      {searchQuery
+                        ? `No securities found matching "${searchQuery}".`
+                        : 'No securities found. Click "Add Security" to create one.'}
                     </Typography>
                   </TableCell>
                 </TableRow>

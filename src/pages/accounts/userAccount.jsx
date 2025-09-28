@@ -529,6 +529,12 @@ const UserAccount = () => {
                     </Box>
                   ),
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchUserAccounts();
+                  }
+                }}
               />
               
               <Button

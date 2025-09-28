@@ -379,6 +379,12 @@ const Security = () => {
                     </Box>
                   )
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchSecurities();
+                  }
+                }}
               />
               
               <Button

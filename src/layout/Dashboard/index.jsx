@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
@@ -19,10 +19,12 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 export default function DashboardLayout() {
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+  const navigate = useNavigate();
 
   // set media wise responsive drawer
   useEffect(() => {
     handlerDrawerOpen(!downXL);
+    navigate('/transactions');
   }, [downXL]);
 
   if (menuMasterLoading) return <Loader />;

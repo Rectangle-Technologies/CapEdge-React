@@ -248,6 +248,12 @@ const BrokerManagement = () => {
                     </Box>
                   )
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchBrokers();
+                  }
+                }}
               />
 
               <Button

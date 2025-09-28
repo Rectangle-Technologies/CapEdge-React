@@ -1,2 +1,5 @@
-[] - Why is the hooks file there? It's not being used anywhere
-[] - For validate-token error response, should we send 200 with valid as false or 401 response.
+[ ] - There is a delay on clicking Search and display of message. Also message is not needed as data is being changed.
+[ ] - We have gloabl loaders, why not use them?
+[ ] - Data is changing before API Simulation loading
+[ ] - Date format D/M/YYYY or DD/MM/YYYY?
+[ ] - The line loader comes only once. So is data being cached?

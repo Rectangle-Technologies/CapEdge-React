@@ -33,6 +33,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
+import { formatDateForFileName } from 'utils/formatDate';
 
 // Validation schema
 const brokerValidationSchema = yup.object({
@@ -189,7 +190,7 @@ const BrokerManagement = () => {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `brokers_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `brokers_${formatDateForFileName()}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();

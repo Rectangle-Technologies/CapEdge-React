@@ -37,6 +37,7 @@ import {
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { formatCurrency, formatCurrencyForInput } from 'utils/formatCurrency';
+import { formatDate, formatDateForFileName } from 'utils/formatDate';
 import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 
@@ -303,7 +304,7 @@ const Security = () => {
         'Security Name': security.name,
         Type: getTypeLabel(security.type),
         'Strike Price': security.strikePrice ? security.strikePrice.toFixed(2) : '-',
-        'Expiry Date': security.expiry ? new Date(security.expiry).toLocaleDateString('en-IN') : '-',
+        'Expiry Date': formatDate(security.expiry),
         Exchange: getExchangeName(security.stockExchangeId)
       }));
 
@@ -327,7 +328,7 @@ const Security = () => {
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `securities_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `securities_${formatDateForFileName()}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -454,7 +455,7 @@ const Security = () => {
                       <Chip label={getTypeLabel(security.type)} color={getTypeColor(security.type)} size="small" />
                     </TableCell>
                     <TableCell>{security.strikePrice ? formatCurrency(security.strikePrice) : '-'}</TableCell>
-                    <TableCell>{security.expiry ? new Date(security.expiry).toLocaleDateString('en-IN') : '-'}</TableCell>
+                    <TableCell>{formatDate(security.expiry)}</TableCell>
                     <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {getExchangeName(security.stockExchangeId)}
                     </TableCell>

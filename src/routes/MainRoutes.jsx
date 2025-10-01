@@ -24,6 +24,13 @@ const BrokerManagement = Loadable(lazy(() => import('pages/brokers')));
 // render - security management
 const SecurityManagement = Loadable(lazy(() => import('pages/securities')));
 
+// render - reports
+const ProfitAndLoss = Loadable(lazy(() => import('pages/reports/pnl')));
+const Holdings = Loadable(lazy(() => import('pages/holdings')));
+
+// render - ledger
+const Ledger = Loadable(lazy(() => import('pages/ledger')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -45,6 +52,18 @@ const MainRoutes = {
     {
       path: 'master-data/security',
       element: <SecurityManagement />
+    },
+    {
+      path: 'report/pnl',
+      element: <ProfitAndLoss />
+    },
+    {
+      path: 'report/holdings',
+      element: <Holdings />
+    },
+    {
+      path: 'ledger',
+      element: <Ledger />
     },
     {
       path: 'typography',

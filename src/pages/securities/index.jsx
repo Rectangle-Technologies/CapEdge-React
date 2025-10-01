@@ -116,7 +116,6 @@ const Security = () => {
 
   // State management
   const [searchName, setSearchName] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [securities, setSecurities] = useState([
     {
       id: 1,
@@ -268,7 +267,7 @@ const Security = () => {
 
   // API function to search securities
   const searchSecurities = async () => {
-    setIsSearching(true);
+    dispatch(showLoader());
     try {
       // Set the search query to trigger filtering
       setSearchQuery(searchName);
@@ -281,14 +280,11 @@ const Security = () => {
       // const response = await fetch(`/api/securities/search?name=${searchName}`);
       // const data = await response.json();
       // setSecurities(data);
-      
-      setAlertMessage(searchName ? `Search completed for "${searchName}"` : 'All securities loaded');
-      setAlertSeverity('success');
     } catch {
       setAlertMessage('Search failed. Please try again.');
       setAlertSeverity('error');
     } finally {
-      setIsSearching(false);
+      dispatch(hideLoader());
     }
   };
 
@@ -392,11 +388,10 @@ const Security = () => {
                 variant="outlined"
                 startIcon={<SearchIcon />}
                 onClick={searchSecurities}
-                disabled={isSearching}
                 size="small"
                 sx={{ minWidth: 100 }}
               >
-                {isSearching ? 'Searching...' : 'Search'}
+                Search
               </Button>
               
               <IconButton

@@ -177,7 +177,6 @@ const UserAccount = () => {
 
   // State management
   const [searchName, setSearchName] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [userAccounts, setUserAccounts] = useState([
     {
       id: 1,
@@ -370,7 +369,7 @@ const UserAccount = () => {
 
   // API function to search user accounts
   const searchUserAccounts = async () => {
-    setIsSearching(true);
+    dispatch(showLoader());
     try {
       // Set the search query to trigger filtering
       setSearchQuery(searchName);
@@ -409,13 +408,11 @@ const UserAccount = () => {
       ];
       
       setUserAccounts(mockData);
-      setAlertMessage(searchName ? `Search completed for "${searchName}"!` : 'All data loaded successfully!');
-      setAlertSeverity('success');
     } catch (error) {
       setAlertMessage('Failed to search data. Please try again.');
       setAlertSeverity('error');
     } finally {
-      setIsSearching(false);
+      dispatch(hideLoader());
     }
   };
 
@@ -542,11 +539,10 @@ const UserAccount = () => {
                 variant="outlined"
                 startIcon={<SearchIcon />}
                 onClick={searchUserAccounts}
-                disabled={isSearching}
                 size="small"
                 sx={{ minWidth: 100 }}
               >
-                {isSearching ? 'Searching...' : 'Search'}
+                Search
               </Button>
               
               <IconButton

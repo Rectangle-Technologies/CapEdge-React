@@ -1,7 +1,7 @@
-[ ] - There is a delay on clicking Search and display of message. Also message is not needed as data is being changed.
-[ ] - Data is changing before API Simulation loading
 [ ] - The line loader comes only once. So is data being cached?
 
 
+[x] - Data is changing before API Simulation loading
+[x] - There is a delay on clicking Search and display of message. Also message is not needed as data is being changed.
 [x] - We have gloabl loaders, why not use them? - We have used global loaders only
 [x] - Date format D/M/YYYY or DD/MM/YYYY?

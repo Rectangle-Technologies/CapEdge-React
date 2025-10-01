@@ -52,7 +52,6 @@ const BrokerManagement = () => {
 
   // State management
   const [searchName, setSearchName] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [brokers, setBrokers] = useState([
     { id: 1, name: 'Zerodha', address: 'Bangalore, Karnataka', panNumber: 'AAAAA0000A' },
     { id: 2, name: 'Angel Broking', address: 'Mumbai, Maharashtra', panNumber: 'BBBBB1111B' },
@@ -132,7 +131,7 @@ const BrokerManagement = () => {
 
   // API function to search brokers
   const searchBrokers = async () => {
-    setIsSearching(true);
+    dispatch(showLoader());
     try {
       // Set the search query to trigger filtering
       setSearchQuery(searchName);
@@ -145,14 +144,11 @@ const BrokerManagement = () => {
       // const response = await fetch(`/api/brokers/search?name=${searchName}`);
       // const data = await response.json();
       // setBrokers(data);
-
-      setAlertMessage(searchName ? `Search completed for "${searchName}"` : 'All brokers loaded');
-      setAlertSeverity('success');
     } catch {
       setAlertMessage('Search failed. Please try again.');
       setAlertSeverity('error');
     } finally {
-      setIsSearching(false);
+      dispatch(hideLoader());
     }
   };
 
@@ -261,11 +257,10 @@ const BrokerManagement = () => {
                 variant="outlined"
                 startIcon={<SearchIcon />}
                 onClick={searchBrokers}
-                disabled={isSearching}
                 size="small"
                 sx={{ minWidth: 100 }}
               >
-                {isSearching ? 'Searching...' : 'Search'}
+                Search
               </Button>
 
               <IconButton

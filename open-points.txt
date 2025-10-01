@@ -1,4 +1,5 @@
 [ ] - The line loader comes only once. So is data being cached?
+[ ] - Update routing when page is refreshed
 
 
 [x] - Data is changing before API Simulation loading

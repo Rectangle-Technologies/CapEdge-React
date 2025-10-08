@@ -20,12 +20,12 @@ function UserAccountDialog({
 }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
+      <DialogTitle fontSize={20} fontWeight="bold">
         {editingUser ? 'Edit User Account' : 'Add New User Account'}
       </DialogTitle>
       <form onSubmit={userFormik.handleSubmit}>
         <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
+          <Stack spacing={3}>
             <TextField
               fullWidth
               name="name"

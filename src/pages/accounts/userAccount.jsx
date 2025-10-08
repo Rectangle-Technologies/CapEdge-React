@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch } from 'store/hooks';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
-import { get, post } from '../../utils/apiUtil';
+import { get, post, put } from '../../utils/apiUtil';
 
 // Import extracted modules
 import DematAccountDialog from './components/DematAccountDialog';
@@ -52,16 +52,14 @@ const UserAccount = () => {
       try {
         if (editingUser) {
           // Update existing user
-          setUserAccounts((prev) =>
-            prev.map((user) => (user.id === editingUser.id ? { ...user, ...values } : user))
-          );
+          await put(`/user-account/update/${editingUser._id}`, values);
+          
         } else {
           // Create new user
           await post('/user-account/create', values);
-          // Fetch the updated list from the server
-          await searchUserAccounts();
-          showSuccessSnackbar('User account created successfully.');
         }
+        await searchUserAccounts();
+        showSuccessSnackbar(`User account ${editingUser ? 'updated' : 'created'} successfully.`);
         resetForm();
         setOpenUserDialog(false);
         setEditingUser(null);

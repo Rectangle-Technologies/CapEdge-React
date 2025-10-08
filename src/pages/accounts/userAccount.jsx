@@ -7,7 +7,6 @@ import {
   Button,
   Typography,
   Divider,
-  Alert,
   MenuItem,
   FormControl,
   InputLabel,
@@ -42,6 +41,7 @@ import { formatCurrency, formatCurrencyForInput } from 'utils/formatCurrency';
 import { formatDateForFileName } from 'utils/formatDate';
 import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
+import { get } from '../../utils/apiUtil';
 
 // Validation schemas
 const userAccountValidationSchema = yup.object({
@@ -177,32 +177,10 @@ const UserAccount = () => {
 
   // State management
   const [searchName, setSearchName] = useState('');
-  const [userAccounts, setUserAccounts] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      panNumber: 'ABCDE1234F',
-      address: '123 Main Street, Mumbai, Maharashtra 400001',
-      dematAccounts: [
-        { id: 1, userAccountId: '1', brokerId: '1', balance: 50000 },
-        { id: 2, userAccountId: '1', brokerId: '2', balance: 75000 }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      panNumber: 'FGHIJ5678K',
-      address: '456 Park Avenue, Delhi, Delhi 110001',
-      dematAccounts: [{ id: 3, userAccountId: '2', brokerId: '1', balance: 100000 }]
-    },
-    {
-      id: 3,
-      name: 'Rajesh Kumar',
-      panNumber: 'KLMNO9876P',
-      address: '789 Gandhi Road, Bangalore, Karnataka 560001',
-      dematAccounts: []
-    }
-  ]);
+  const [userAccounts, setUserAccounts] = useState();
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ROWS_PER_PAGE = 50;
 
   const [brokers] = useState([
     { id: '1', name: 'Zerodha', address: 'Bangalore, Karnataka', panNumber: 'AAAAA0000A' },
@@ -217,8 +195,6 @@ const UserAccount = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [editingDemat, setEditingDemat] = useState(null);
   const [selectedUserIdForDemat, setSelectedUserIdForDemat] = useState(null);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertSeverity, setAlertSeverity] = useState('success');
 
   // Form handlers
   const userFormik = useFormik({
@@ -236,7 +212,6 @@ const UserAccount = () => {
           setUserAccounts((prev) =>
             prev.map((user) => (user.id === editingUser.id ? { ...user, ...values } : user))
           );
-          setAlertMessage('User account updated successfully!');
         } else {
           // Create new user
           const newUser = {
@@ -245,15 +220,12 @@ const UserAccount = () => {
             dematAccounts: []
           };
           setUserAccounts((prev) => [...prev, newUser]);
-          setAlertMessage('User account created successfully!');
         }
-        setAlertSeverity('success');
         resetForm();
         setOpenUserDialog(false);
         setEditingUser(null);
       } catch {
-        setAlertMessage('Failed to save user account. Please try again.');
-        setAlertSeverity('error');
+        // Handle error silently or add your preferred error handling
       }
     }
   });
@@ -277,7 +249,6 @@ const UserAccount = () => {
               )
             }))
           );
-          setAlertMessage('Demat account updated successfully!');
         } else {
           // Create new demat account
           const newDematAccount = {
@@ -293,16 +264,13 @@ const UserAccount = () => {
                 : user
             )
           );
-          setAlertMessage('Demat account created successfully!');
         }
-        setAlertSeverity('success');
         resetForm();
         setOpenDematDialog(false);
         setEditingDemat(null);
         setSelectedUserIdForDemat(null);
       } catch {
-        setAlertMessage('Failed to save demat account. Please try again.');
-        setAlertSeverity('error');
+        // Handle error silently or add your preferred error handling
       }
     }
   });
@@ -327,8 +295,6 @@ const UserAccount = () => {
   const handleDeleteUser = (userId) => {
     if (window.confirm('Are you sure you want to delete this user account? This will also delete all associated demat accounts.')) {
       setUserAccounts((prev) => prev.filter((user) => user.id !== userId));
-      setAlertMessage('User account deleted successfully!');
-      setAlertSeverity('success');
     }
   };
 
@@ -356,61 +322,19 @@ const UserAccount = () => {
           dematAccounts: user.dematAccounts?.filter((demat) => demat.id !== dematAccountId)
         }))
       );
-      setAlertMessage('Demat account deleted successfully!');
-      setAlertSeverity('success');
     }
   };
-
-  // Filter user accounts based on search query (only when search button is clicked)
-  const [searchQuery, setSearchQuery] = useState('');
-  const filteredUserAccounts = userAccounts.filter((user) =>
-    searchQuery ? user.name.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  );
 
   // API function to search user accounts
   const searchUserAccounts = async () => {
     dispatch(showLoader());
     try {
-      // Set the search query to trigger filtering
-      setSearchQuery(searchName);
+      const data = await get(`/user-account/get-all?pageNo=${page}&limit=${ROWS_PER_PAGE}`);
       
-      // Simulate API call - replace with actual API endpoint
-      // In real implementation, you would pass searchName as a parameter to the API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Mock API response - replace with actual API call
-      // In real implementation, the API would return filtered results based on searchName
-      const mockData = [
-        {
-          id: 1,
-          name: 'John Doe',
-          panNumber: 'ABCDE1234F',
-          address: '123 Main Street, Mumbai, Maharashtra 400001',
-          dematAccounts: [
-            { id: 1, userAccountId: '1', brokerId: '1', balance: 50000 },
-            { id: 2, userAccountId: '1', brokerId: '2', balance: 75000 }
-          ]
-        },
-        {
-          id: 2,
-          name: 'Jane Smith',
-          panNumber: 'FGHIJ5678K',
-          address: '456 Park Avenue, Delhi, Delhi 110001',
-          dematAccounts: [{ id: 3, userAccountId: '2', brokerId: '1', balance: 100000 }]
-        },
-        {
-          id: 3,
-          name: 'Rajesh Kumar',
-          panNumber: 'KLMNO9876P',
-          address: '789 Gandhi Road, Bangalore, Karnataka 560001',
-          dematAccounts: []
-        }
-      ];
-      
-      setUserAccounts(mockData);
+      setUserAccounts(data.userAccounts || []);
+      setTotalPages(Math.ceil((data.pagination.count) / ROWS_PER_PAGE));
     } catch (error) {
-      setAlertMessage('Failed to search data. Please try again.');
-      setAlertSeverity('error');
+      // Handle error silently or add your preferred error handling
     } finally {
       dispatch(hideLoader());
     }
@@ -426,7 +350,7 @@ const UserAccount = () => {
       // Prepare data for export
       const exportData = [];
       
-      filteredUserAccounts.forEach((user) => {
+      userAccounts.forEach((user) => {
         if (user.dematAccounts && user.dematAccounts.length > 0) {
           user.dematAccounts.forEach((demat) => {
             const broker = brokers.find((b) => b.id === demat.brokerId);
@@ -473,35 +397,20 @@ const UserAccount = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setAlertMessage('Data exported successfully!');
-      setAlertSeverity('success');
     } catch {
-      setAlertMessage('Failed to export data. Please try again.');
-      setAlertSeverity('error');
+      // Handle error silently or add your preferred error handling
     } finally {
       dispatch(hideLoader());
     }
   };
 
-  // Auto-hide alert
   useEffect(() => {
-    if (alertMessage) {
-      const timer = setTimeout(() => {
-        setAlertMessage('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [alertMessage]);
+    // Initial fetch of user accounts
+    searchUserAccounts();
+  }, []);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-      {alertMessage && (
-        <Alert severity={alertSeverity} sx={{ mb: 2 }} onClose={() => setAlertMessage('')}>
-          {alertMessage}
-        </Alert>
-      )}
-
       <Card>
         <CardHeader
           title="User Account Management"
@@ -586,10 +495,10 @@ const UserAccount = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredUserAccounts.length > 0 ? (
-                filteredUserAccounts.map((userAccount) => (
+              {userAccounts && userAccounts.length > 0 ? (
+                userAccounts.map((userAccount) => (
                   <UserAccountRow
-                    key={userAccount.id}
+                    key={userAccount._id}
                     userAccount={userAccount}
                     brokers={brokers}
                     onEditUser={handleEditUser}
@@ -603,8 +512,8 @@ const UserAccount = () => {
                 <TableRow>
                   <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4, padding: '32px 16px' }}>
                     <Typography variant="body1" color="textSecondary">
-                      {searchQuery
-                        ? `No user accounts found matching "${searchQuery}".`
+                      {searchName
+                        ? `No user accounts found matching "${searchName}".`
                         : 'No user accounts found. Click "Add User Account" to create one.'}
                     </Typography>
                   </TableCell>

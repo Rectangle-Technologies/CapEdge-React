@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch } from 'store/hooks';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
-import { get } from '../../utils/apiUtil';
+import { get, post } from '../../utils/apiUtil';
 
 // Import extracted modules
 import DematAccountDialog from './components/DematAccountDialog';
@@ -19,6 +19,7 @@ import UserAccountTable from './components/UserAccountTable';
 import { UserAccountExportService } from './services/userAccountExportService';
 import { brokers, ROWS_PER_PAGE } from './utils/constants';
 import { dematAccountValidationSchema, userAccountValidationSchema } from './utils/validation';
+import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 
 // Main component
 const UserAccount = () => {
@@ -47,6 +48,7 @@ const UserAccount = () => {
     validationSchema: userAccountValidationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
+      dispatch(showLoader());
       try {
         if (editingUser) {
           // Update existing user
@@ -55,18 +57,16 @@ const UserAccount = () => {
           );
         } else {
           // Create new user
-          const newUser = {
-            id: Math.max(...(userAccounts.length > 0 ? userAccounts.map((u) => u.id) : [0]), 0) + 1,
-            ...values,
-            dematAccounts: []
-          };
-          setUserAccounts((prev) => [...prev, newUser]);
+          await post('/user-account/create', values);
+          // Fetch the updated list from the server
+          await searchUserAccounts();
+          showSuccessSnackbar('User account created successfully.');
         }
         resetForm();
         setOpenUserDialog(false);
         setEditingUser(null);
-      } catch {
-        // Handle error silently or add your preferred error handling
+      } catch (error) {
+        showErrorSnackbar(error.message || 'An error occurred. Please try again.');
       }
     }
   });

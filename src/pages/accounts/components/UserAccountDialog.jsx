@@ -54,6 +54,7 @@ function UserAccountDialog({
                 style: { textTransform: 'uppercase' },
                 maxLength: 10
               }}
+              disabled={!!editingUser}
             />
             <TextField
               fullWidth

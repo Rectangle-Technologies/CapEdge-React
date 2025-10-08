@@ -13,18 +13,47 @@ import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { useDispatch, useSelector } from 'react-redux';
+import { hideLoader, showLoader } from '../../store/slices/loaderSlice';
+import { logout, validateToken } from '../../store/slices/authSlice';
 
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
   const { menuMasterLoading } = useGetMenuMaster();
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const token = useSelector(state => state.auth.token);
   // set media wise responsive drawer
   useEffect(() => {
-    handlerDrawerOpen(!downXL);
-    navigate('/transactions');
+    const handleAuth = async () => {
+      dispatch(showLoader());
+      handlerDrawerOpen(!downXL);
+      if (!token) {
+        navigate('/login');
+        dispatch(hideLoader());
+        return;
+      }
+
+      try {
+        // Check if token has not expired
+        await dispatch(validateToken()).unwrap();
+      } catch (error) {
+        dispatch(logout());
+        navigate('/login');
+        dispatch(hideLoader());
+        return;
+      }
+      var currentPath = window.location.pathname;
+      if (currentPath === '/') {
+        currentPath = '/transactions';
+      }
+      navigate(currentPath);
+      dispatch(hideLoader());
+    };
+
+    handleAuth();
   }, [downXL]);
 
   if (menuMasterLoading) return <Loader />;
@@ -47,7 +76,7 @@ export default function DashboardLayout() {
         >
           <Breadcrumbs />
           <Outlet />
-          <Footer />
+          {/* <Footer /> */}
         </Box>
       </Box>
     </Box>

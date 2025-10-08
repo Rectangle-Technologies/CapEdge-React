@@ -1,28 +1,25 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 // ==============================|| AUTH SLICE ||============================== //
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Async thunk for login API call
 export const login = createAsyncThunk('auth/login', async ({ username, password }, { rejectWithValue }) => {
   try {
-    //TODO: Replace this with your actual API endpoint
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      username,
+      password
+    }, {
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return rejectWithValue(errorData.message || 'Login failed');
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
-    return rejectWithValue(error.message || 'Network error');
+    const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -36,27 +33,20 @@ export const validateToken = createAsyncThunk('auth/validateToken', async (_, { 
       return rejectWithValue('No token found');
     }
 
-    //TODO: Replace this with your actual token validation endpoint
-    const response = await fetch('/api/auth/validate-token', {
-      method: 'POST',
+    const response = await axios.post(`${API_BASE_URL}/auth/validate-token`, {}, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       }
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        return rejectWithValue('Token expired');
-      }
-      const errorData = await response.json();
-      return rejectWithValue(errorData.message || 'Token validation failed');
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
-    return rejectWithValue(error.message || 'Network error');
+    if (error.response?.status === 401) {
+      return rejectWithValue('Token expired');
+    }
+    const errorMessage = error.response?.data?.message || error.message || 'Token validation failed';
+    return rejectWithValue(errorMessage);
   }
 });
 
@@ -93,16 +83,16 @@ const authSlice = createSlice({
     builder
       // Handle login success
       .addCase(login.fulfilled, (state, action) => {
-        state.token = action.payload.token;
+        state.token = action.payload.data.token;
 
         try {
-          localStorage.setItem('authToken', action.payload.token);
+          localStorage.setItem('authToken', action.payload.data.token);
         } catch (error) {
           console.error('Failed to save login token to localStorage:', error);
         }
       })
       // Handle login error
-      .addCase(login.rejected, (state) => {
+      .addCase(login.rejected, (state, action) => {
         state.token = null;
 
         try {
@@ -125,9 +115,5 @@ const authSlice = createSlice({
 });
 
 export const { logout } = authSlice.actions;
-
-// Selector helpers
-export const selectToken = (state) => state.auth.token;
-export const selectIsAuthenticated = (state) => !!state.auth.token;
 
 export default authSlice.reducer;

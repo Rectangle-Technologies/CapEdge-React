@@ -19,7 +19,7 @@ export default function AuthWrapper({ children }) {
     <Box sx={{ minHeight: '100vh' }}>
       <AuthBackground />
       <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
-        <Grid sx={{ px: 3, mt: 3 }} size={12}>
+        <Grid sx={{ px: 3 }} size={12}>
           <Logo to="/" />
         </Grid>
         <Grid size={12}>
@@ -35,7 +35,7 @@ export default function AuthWrapper({ children }) {
           </Grid>
         </Grid>
         <Grid sx={{ p: 3 }} size={12}>
-          <AuthFooter />
+          {/* <AuthFooter /> */}
         </Grid>
       </Grid>
     </Box>

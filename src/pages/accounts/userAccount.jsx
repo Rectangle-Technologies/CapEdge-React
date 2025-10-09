@@ -2,7 +2,8 @@ import {
   Box,
   Card,
   CardHeader,
-  Divider
+  Divider,
+  Pagination
 } from '@mui/material';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
@@ -12,14 +13,14 @@ import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { get, post, put } from '../../utils/apiUtil';
 
 // Import extracted modules
+import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 import DematAccountDialog from './components/DematAccountDialog';
 import SearchAndActions from './components/SearchAndActions';
 import UserAccountDialog from './components/UserAccountDialog';
 import UserAccountTable from './components/UserAccountTable';
 import { UserAccountExportService } from './services/userAccountExportService';
-import { brokers, ROWS_PER_PAGE } from './utils/constants';
+import { ROWS_PER_PAGE } from './utils/constants';
 import { dematAccountValidationSchema, userAccountValidationSchema } from './utils/validation';
-import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 
 // Main component
 const UserAccount = () => {
@@ -29,6 +30,7 @@ const UserAccount = () => {
   // State management
   const [searchName, setSearchName] = useState('');
   const [userAccounts, setUserAccounts] = useState([]);
+  const [brokers, setBrokers] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -53,7 +55,7 @@ const UserAccount = () => {
         if (editingUser) {
           // Update existing user
           await put(`/user-account/update/${editingUser._id}`, values);
-          
+
         } else {
           // Create new user
           await post('/user-account/create', values);
@@ -168,11 +170,14 @@ const UserAccount = () => {
   const searchUserAccounts = async () => {
     dispatch(showLoader());
     try {
-      const data = await get(`/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
-      setUserAccounts(data.userAccounts || []);
-      setTotalPages(Math.ceil((data.pagination.count) / ROWS_PER_PAGE));
+      const userAccountData = await get(`/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
+      const brokerData = await get(`/broker/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
+      setBrokers(brokerData.brokers);
+      setUserAccounts(userAccountData.userAccounts || []);
+      setTotalPages(Math.ceil((userAccountData.pagination.total) / ROWS_PER_PAGE));
     } catch (error) {
       // Handle error silently or add your preferred error handling
+      showErrorSnackbar(error.message || 'Failed to fetch user accounts. Please try again.');
     } finally {
       dispatch(hideLoader());
     }
@@ -185,6 +190,7 @@ const UserAccount = () => {
       await UserAccountExportService.exportToCSV(userAccounts, brokers);
     } catch (error) {
       // Handle error silently or add your preferred error handling
+      showErrorSnackbar('Export failed. Please try again.');
       console.error('Export failed:', error);
     } finally {
       dispatch(hideLoader());
@@ -194,7 +200,7 @@ const UserAccount = () => {
   useEffect(() => {
     // Initial fetch of user accounts
     searchUserAccounts();
-  }, []);
+  }, [page]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -225,6 +231,15 @@ const UserAccount = () => {
           onDeleteDematAccount={handleDeleteDematAccount}
         />
       </Card>
+
+      <Box width='100%' sx={{
+        mt: 4,
+        display: { xs: 'none', md: 'flex' },
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Pagination count={totalPages} onChange={(event, value) => setPage(value)} />
+      </Box>
 
       {/* User Account Dialog */}
       <UserAccountDialog

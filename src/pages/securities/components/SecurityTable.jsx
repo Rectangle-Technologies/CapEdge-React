@@ -27,23 +27,23 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
   return (
     <>
       <Divider />
-      <TableContainer component={Paper} sx={{ maxHeight: TABLE_CONFIG.maxHeight }}>
+      <TableContainer component={Paper}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell>
+              <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.name.label}</strong>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ width: '15%', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.type.label}</strong>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.strikePrice.label}</strong>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.expiry.label}</strong>
               </TableCell>
-              <TableCell>
+              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.actions.label}</strong>
               </TableCell>
             </TableRow>
@@ -52,23 +52,23 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
             {securities.length > 0 ? (
               securities.map((security) => (
                 <TableRow key={security.id} hover>
-                  <TableCell component="th" scope="row">
+                  <TableCell component="th" scope="row" sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
                     {security.name}
                   </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={getTypeLabel(security.type, securityTypes)} 
+                  <TableCell sx={{ width: '15%', padding: '8px 16px 8px 16px' }}>
+                    <Chip
+                      label={getTypeLabel(security.type, securityTypes)}
                       color={getTypeColor(security.type)} 
                       size="small" 
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
                     {security.strikePrice ? formatCurrency(security.strikePrice) : '-'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
                     {formatDate(security.expiry)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>
                     <IconButton onClick={() => onEdit(security)} size="small" color="primary">
                       <EditIcon />
                     </IconButton>

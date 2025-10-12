@@ -9,8 +9,8 @@ import { useFormik } from 'formik';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
-import { get } from '../../utils/apiUtil';
-import { showErrorSnackbar } from '../../store/utils';
+import { get, post, put } from '../../utils/apiUtil';
+import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 
 // Import extracted modules
 import SecurityDialog from './components/SecurityDialog';
@@ -42,33 +42,34 @@ const Security = () => {
     initialValues: {
       name: '',
       type: '',
-      strikePrice: '',
-      expiry: ''
+      strikePrice: null,
+      expiry: null
     },
     validationSchema: createSecurityValidationSchema(securityTypes),
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
+      dispatch(showLoader());
       try {
         const processedValues = processFormValues(values);
 
         if (editingSecurity) {
           // Update existing security
-          setSecurities((prev) =>
-            prev.map((security) => (security.id === editingSecurity.id ? { ...security, ...processedValues } : security))
-          );
+          await put(`/security/update/${editingSecurity._id}`, processedValues);
         } else {
           // Create new security
-          const newSecurity = {
-            id: generateNewSecurityId(securities),
-            ...processedValues
-          };
-          setSecurities((prev) => [...prev, newSecurity]);
+          await post('/security/create', processedValues);
         }
+        await searchSecurities();
+        showSuccessSnackbar(`Security ${editingSecurity ? 'updated' : 'added'} successfully.`);
         resetForm();
         setOpenDialog(false);
         setEditingSecurity(null);
       } catch (error) {
         // Handle error silently or add your preferred error handling
+        console.error(error);
+        showErrorSnackbar(error.message || 'Failed to save security. Please try again.');
+      } finally {
+        dispatch(hideLoader());
       }
     }
   });
@@ -85,8 +86,8 @@ const Security = () => {
     formik.setValues({
       name: security.name,
       type: security.type,
-      strikePrice: security.strikePrice ? formatCurrencyForInput(security.strikePrice) : '',
-      expiry: security.expiry || ''
+      strikePrice: formatCurrencyForInput(security.strikePrice) || null,
+      expiry: security.expiry || null
     });
     setOpenDialog(true);
   };

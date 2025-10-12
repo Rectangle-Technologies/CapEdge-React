@@ -23,7 +23,7 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
   return (
     <>
       <Divider />
-      <TableContainer component={Paper} sx={{ maxHeight: TABLE_CONFIG.maxHeight }}>
+      <TableContainer component={Paper}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>

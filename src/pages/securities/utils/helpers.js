@@ -32,9 +32,10 @@ export const getTypeLabel = (type, securityTypes) => {
  */
 export const processFormValues = (values) => {
   return {
-    ...values,
-    strikePrice: values.strikePrice ? parseFloat(values.strikePrice) : null,
-    expiry: values.expiry || null
+    name: values.name,
+    type: values.type,
+    ...(values.strikePrice !== null && { strikePrice: parseFloat(values.strikePrice) }),
+    ...(values.expiry !== null && { expiry: values.expiry })
   };
 };
 

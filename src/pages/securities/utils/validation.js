@@ -10,17 +10,13 @@ export const createSecurityValidationSchema = (securityTypes) => {
     type: yup
       .string()
       .required('Security type is required')
-      .oneOf(
-        securityTypes.map((type) => type.value),
-        'Invalid security type'
-      ),
+      .oneOf(securityTypes, 'Invalid security type'),
     strikePrice: yup
       .number()
       .nullable()
       .when('type', {
         is: (val) => val === 'OPTIONS' || val === 'FUTURES',
-        then: (schema) => schema.required('Strike price is required for Options/Futures').min(0, 'Strike price cannot be negative'),
-        otherwise: (schema) => schema.min(0, 'Strike price cannot be negative')
+        then: (schema) => schema.required('Strike price is required for Options/Futures').min(0, 'Strike price cannot be negative')
       })
       .test('decimal', 'Strike price can have maximum 2 decimal places', (value) => {
         if (value === undefined || value === null || value === '') return true;

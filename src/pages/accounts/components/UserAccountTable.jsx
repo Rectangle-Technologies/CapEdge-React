@@ -32,7 +32,7 @@ function UserAccountTable({
     setExpandedRowId(expandedRowId === userId ? null : userId);
   };
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+    <TableContainer component={Paper}>
       <Table stickyHeader>
         <TableHead>
           <TableRow>

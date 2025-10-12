@@ -101,25 +101,6 @@ const SecurityDialog = ({
                 />
               </>
             )}
-
-            {!isDerivative(formik.values.type) && formik.values.type && (
-              <TextField
-                fullWidth
-                name="strikePrice"
-                label="Strike Price (Optional)"
-                type="number"
-                value={formik.values.strikePrice}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.strikePrice && Boolean(formik.errors.strikePrice)}
-                helperText={formik.touched.strikePrice && formik.errors.strikePrice}
-                InputProps={{
-                  startAdornment: '₹'
-                }}
-                placeholder="0.00"
-                inputProps={{ min: 0, step: FORM_CONFIG.strikePriceStep }}
-              />
-            )}
           </Stack>
         </DialogContent>
         <DialogActions>

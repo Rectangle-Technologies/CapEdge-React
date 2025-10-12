@@ -1,0 +1,97 @@
+import {
+  Chip,
+  Divider,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
+import { formatCurrency } from '../../../utils/formatCurrency';
+import { formatDate } from '../../../utils/formatDate';
+import { getTypeColor, getTypeLabel } from '../utils/helpers';
+import { TABLE_CONFIG } from '../utils/constants';
+
+/**
+ * SecurityTable Component - Handles security table display
+ */
+const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
+  return (
+    <>
+      <Divider />
+      <TableContainer component={Paper} sx={{ maxHeight: TABLE_CONFIG.maxHeight }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <strong>{TABLE_CONFIG.columns.name.label}</strong>
+              </TableCell>
+              <TableCell>
+                <strong>{TABLE_CONFIG.columns.type.label}</strong>
+              </TableCell>
+              <TableCell>
+                <strong>{TABLE_CONFIG.columns.strikePrice.label}</strong>
+              </TableCell>
+              <TableCell>
+                <strong>{TABLE_CONFIG.columns.expiry.label}</strong>
+              </TableCell>
+              <TableCell>
+                <strong>{TABLE_CONFIG.columns.actions.label}</strong>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {securities.length > 0 ? (
+              securities.map((security) => (
+                <TableRow key={security.id} hover>
+                  <TableCell component="th" scope="row">
+                    {security.name}
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={getTypeLabel(security.type, securityTypes)} 
+                      color={getTypeColor(security.type)} 
+                      size="small" 
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {security.strikePrice ? formatCurrency(security.strikePrice) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(security.expiry)}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => onEdit(security)} size="small" color="primary">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => onDelete(security.id)} size="small" color="error">
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="body1" color="textSecondary">
+                    No securities found. Click "Add Security" to create one.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+};
+
+export default SecurityTable;

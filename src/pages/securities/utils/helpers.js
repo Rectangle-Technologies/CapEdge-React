@@ -1,0 +1,46 @@
+/**
+ * Helper functions for security management
+ */
+
+/**
+ * Get type color for chip based on security type
+ */
+export const getTypeColor = (type) => {
+  const colorMap = {
+    EQUITY: 'primary',
+    FUTURES: 'secondary',
+    OPTIONS: 'warning',
+    COMMODITY: 'info',
+    CURRENCY: 'success',
+    BOND: 'default',
+    ETF: 'primary',
+    MUTUAL_FUND: 'secondary'
+  };
+  return colorMap[type] || 'default';
+};
+
+/**
+ * Get type label from security types array
+ */
+export const getTypeLabel = (type, securityTypes) => {
+  const typeObj = securityTypes.find((t) => t.value === type);
+  return typeObj ? typeObj.label : type;
+};
+
+/**
+ * Process form values for API submission
+ */
+export const processFormValues = (values) => {
+  return {
+    ...values,
+    strikePrice: values.strikePrice ? parseFloat(values.strikePrice) : null,
+    expiry: values.expiry || null
+  };
+};
+
+/**
+ * Generate new security ID
+ */
+export const generateNewSecurityId = (securities) => {
+  return Math.max(...securities.map((s) => s.id), 0) + 1;
+};

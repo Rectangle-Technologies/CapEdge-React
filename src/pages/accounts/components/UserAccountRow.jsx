@@ -17,7 +17,6 @@ import {
     TableRow,
     Typography
 } from '@mui/material';
-import { useState } from 'react';
 import { formatCurrency } from '../../../utils/formatCurrency';
 
 /**
@@ -26,20 +25,25 @@ import { formatCurrency } from '../../../utils/formatCurrency';
  */
 function UserAccountRow({ 
   userAccount,
+  isExpanded,
+  onToggleExpand,
   onEditUser, 
   onDeleteUser, 
   onAddDematAccount, 
   onEditDematAccount, 
   onDeleteDematAccount 
 }) {
-  const [open, setOpen] = useState(false);
 
   return (
     <>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
-          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          <IconButton 
+            aria-label="expand row" 
+            size="small" 
+            onClick={() => onToggleExpand(userAccount.id || userAccount._id)}
+          >
+            {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row" sx={{ width: '25%', padding: '8px 16px 8px 16px' }}>
@@ -62,7 +66,7 @@ function UserAccountRow({
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
+          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" gutterBottom component="div">

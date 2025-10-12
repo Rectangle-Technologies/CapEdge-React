@@ -8,6 +8,7 @@ import {
   Paper,
   Typography
 } from '@mui/material';
+import { useState } from 'react';
 import UserAccountRow from './UserAccountRow';
 
 /**
@@ -23,6 +24,13 @@ function UserAccountTable({
   onEditDematAccount, 
   onDeleteDematAccount 
 }) {
+  // State to track which row is expanded (only one at a time)
+  const [expandedRowId, setExpandedRowId] = useState(null);
+
+  // Handle row toggle - close current if same row, otherwise open new row
+  const handleRowToggle = (userId) => {
+    setExpandedRowId(expandedRowId === userId ? null : userId);
+  };
   return (
     <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
       <Table stickyHeader>
@@ -49,6 +57,8 @@ function UserAccountTable({
               <UserAccountRow
                 key={userAccount.id || userAccount._id}
                 userAccount={userAccount}
+                isExpanded={expandedRowId === (userAccount.id || userAccount._id)}
+                onToggleExpand={handleRowToggle}
                 onEditUser={onEditUser}
                 onDeleteUser={onDeleteUser}
                 onAddDematAccount={onAddDematAccount}

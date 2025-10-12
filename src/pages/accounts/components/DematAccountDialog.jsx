@@ -41,9 +41,10 @@ function DematAccountDialog({
                 onBlur={dematFormik.handleBlur}
                 error={dematFormik.touched.brokerId && Boolean(dematFormik.errors.brokerId)}
                 label="Broker"
+                disabled={!!editingDemat}
               >
                 {brokers.map((broker) => (
-                  <MenuItem key={broker.id} value={broker.id}>
+                  <MenuItem key={broker._id} value={broker._id}>
                     {broker.name}
                   </MenuItem>
                 ))}

@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch } from 'store/hooks';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
-import { get, post, put } from '../../utils/apiUtil';
+import { del, get, post, put } from '../../utils/apiUtil';
 
 // Import extracted modules
 import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
@@ -67,6 +67,8 @@ const UserAccount = () => {
         setEditingUser(null);
       } catch (error) {
         showErrorSnackbar(error.message || 'An error occurred. Please try again.');
+      } finally {
+        dispatch(hideLoader());
       }
     }
   });
@@ -79,39 +81,34 @@ const UserAccount = () => {
     validationSchema: dematAccountValidationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
+      dispatch(showLoader());
       try {
         if (editingDemat) {
           // Update existing demat account
-          setUserAccounts((prev) =>
-            prev.map((user) => ({
-              ...user,
-              dematAccounts: user.dematAccounts?.map((demat) =>
-                demat.id === editingDemat.id ? { ...demat, ...values, balance: parseFloat(values.balance) } : demat
-              )
-            }))
-          );
+          await put(`/demat-account/update/${editingDemat._id}`, {
+              userAccountId: selectedUserIdForDemat.toString(),
+              brokerId: editingDemat.brokerId,
+              balance: parseFloat(values.balance)
+            });
         } else {
           // Create new demat account
-          const newDematAccount = {
-            id: Math.max(...(userAccounts.flatMap((u) => u.dematAccounts?.map((d) => d.id) || []).length > 0 ? userAccounts.flatMap((u) => u.dematAccounts?.map((d) => d.id) || []) : [0]), 0) + 1,
-            userAccountId: selectedUserIdForDemat.toString(),
-            brokerId: values.brokerId,
-            balance: parseFloat(values.balance)
-          };
-          setUserAccounts((prev) =>
-            prev.map((user) =>
-              user.id === selectedUserIdForDemat
-                ? { ...user, dematAccounts: [...(user.dematAccounts || []), newDematAccount] }
-                : user
-            )
-          );
+          await post('/demat-account/create', {
+              userAccountId: selectedUserIdForDemat.toString(),
+              brokerId: values.brokerId,
+              balance: parseFloat(values.balance)
+            });
         }
+        await searchUserAccounts();
+        showSuccessSnackbar(`Demat account ${editingDemat ? 'updated' : 'created'} successfully.`);
         resetForm();
         setOpenDematDialog(false);
         setEditingDemat(null);
         setSelectedUserIdForDemat(null);
       } catch {
         // Handle error silently or add your preferred error handling
+        showErrorSnackbar('An error occurred. Please try again.');
+      } finally {
+        dispatch(hideLoader());
       }
     }
   });
@@ -155,14 +152,18 @@ const UserAccount = () => {
     setOpenDematDialog(true);
   };
 
-  const handleDeleteDematAccount = (dematAccountId) => {
+  const handleDeleteDematAccount = async (dematAccountId) => {
     if (window.confirm('Are you sure you want to delete this demat account?')) {
-      setUserAccounts((prev) =>
-        prev.map((user) => ({
-          ...user,
-          dematAccounts: user.dematAccounts?.filter((demat) => demat.id !== dematAccountId)
-        }))
-      );
+      dispatch(showLoader());
+      try {
+        await del(`/demat-account/delete/${dematAccountId}`);
+        await searchUserAccounts();
+        showSuccessSnackbar('Demat account deleted successfully.');
+      } catch (error) {
+        showErrorSnackbar(error.message || 'Failed to delete demat account. Please try again.');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 
@@ -170,7 +171,7 @@ const UserAccount = () => {
   const searchUserAccounts = async () => {
     dispatch(showLoader());
     try {
-      const userAccountData = await get(`/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
+      const userAccountData = await get(`/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}&includeDematAccounts=true`);
       const brokerData = await get(`/broker/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
       setBrokers(brokerData.brokers);
       setUserAccounts(userAccountData.userAccounts || []);
@@ -222,7 +223,6 @@ const UserAccount = () => {
 
         <UserAccountTable
           userAccounts={userAccounts}
-          brokers={brokers}
           searchName={searchName}
           onEditUser={handleEditUser}
           onDeleteUser={handleDeleteUser}

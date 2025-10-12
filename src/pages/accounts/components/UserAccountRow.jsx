@@ -25,8 +25,7 @@ import { formatCurrency } from '../../../utils/formatCurrency';
  * Shows user details and their associated demat accounts
  */
 function UserAccountRow({ 
-  userAccount, 
-  brokers, 
+  userAccount,
   onEditUser, 
   onDeleteUser, 
   onAddDematAccount, 
@@ -34,11 +33,6 @@ function UserAccountRow({
   onDeleteDematAccount 
 }) {
   const [open, setOpen] = useState(false);
-
-  const getBrokerName = (brokerId) => {
-    const broker = brokers.find((b) => b.id === brokerId);
-    return broker ? broker.name : 'Unknown Broker';
-  };
 
   return (
     <>
@@ -78,7 +72,7 @@ function UserAccountRow({
                   size="small"
                   variant="contained"
                   startIcon={<AddIcon />}
-                  onClick={() => onAddDematAccount(userAccount.id)}
+                  onClick={() => onAddDematAccount(userAccount._id)}
                 >
                   Add Demat Account
                 </Button>
@@ -100,9 +94,9 @@ function UserAccountRow({
                   </TableHead>
                   <TableBody>
                     {userAccount.dematAccounts.map((dematAccount) => (
-                      <TableRow key={dematAccount.id}>
+                      <TableRow key={dematAccount._id}>
                         <TableCell sx={{ padding: '8px 16px' }}>
-                          {getBrokerName(dematAccount.brokerId)}
+                          {dematAccount.broker.name}
                         </TableCell>
                         <TableCell sx={{ padding: '8px 16px' }}>
                           {formatCurrency(dematAccount.balance)}
@@ -112,7 +106,7 @@ function UserAccountRow({
                             <EditIcon />
                           </IconButton>
                           <IconButton
-                            onClick={() => onDeleteDematAccount(dematAccount.id)}
+                            onClick={() => onDeleteDematAccount(dematAccount._id)}
                             size="small"
                             color="error"
                           >

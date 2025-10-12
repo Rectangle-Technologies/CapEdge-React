@@ -16,7 +16,6 @@ import UserAccountRow from './UserAccountRow';
  */
 function UserAccountTable({ 
   userAccounts, 
-  brokers, 
   searchName,
   onEditUser, 
   onDeleteUser, 
@@ -50,7 +49,6 @@ function UserAccountTable({
               <UserAccountRow
                 key={userAccount.id || userAccount._id}
                 userAccount={userAccount}
-                brokers={brokers}
                 onEditUser={onEditUser}
                 onDeleteUser={onDeleteUser}
                 onAddDematAccount={onAddDematAccount}

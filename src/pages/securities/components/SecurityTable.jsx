@@ -51,7 +51,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
           <TableBody>
             {securities.length > 0 ? (
               securities.map((security) => (
-                <TableRow key={security.id} hover>
+                <TableRow key={security._id} hover>
                   <TableCell component="th" scope="row" sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
                     {security.name}
                   </TableCell>

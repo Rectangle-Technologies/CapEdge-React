@@ -6,7 +6,6 @@ import {
   Pagination
 } from '@mui/material';
 import { useFormik } from 'formik';
-import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { get, post, put } from '../../utils/apiUtil';
 
@@ -18,11 +17,12 @@ import { brokerValidationSchema } from './utils/validation';
 import { ROWS_PER_PAGE } from './utils/constants';
 import { BrokerExportService } from './services/brokerExportService';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
+import { useDispatch } from 'react-redux';
 
 // Main component
 const BrokerManagement = () => {
   // Redux dispatch
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
 
   // State management
   const [searchName, setSearchName] = useState('');

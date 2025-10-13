@@ -7,7 +7,6 @@ import {
 } from '@mui/material';
 import { useFormik } from 'formik';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
-import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { get, post, put } from '../../utils/apiUtil';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
@@ -20,11 +19,12 @@ import { createSecurityValidationSchema } from './utils/validation';
 import { ROWS_PER_PAGE, API_ENDPOINTS } from './utils/constants';
 import { processFormValues, generateNewSecurityId } from './utils/helpers';
 import { SecurityExportService } from './services/securityExportService';
+import { useDispatch } from 'react-redux';
 
 // Main component
 const Security = () => {
   // Redux dispatch
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
 
   // State management
   const [searchName, setSearchName] = useState('');

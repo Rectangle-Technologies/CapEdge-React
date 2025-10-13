@@ -4,6 +4,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import loaderSlice from './slices/loaderSlice';
 import snackbarSlice from './slices/snackbarSlice';
 import authSlice from './slices/authSlice';
+import appSlice from './slices/appSlice';
 
 // ==============================|| REDUX TOOLKIT - STORE ||============================== //
 
@@ -11,7 +12,8 @@ const store = configureStore({
   reducer: {
     loader: loaderSlice,
     snackbar: snackbarSlice,
-    auth: authSlice
+    auth: authSlice,
+    app: appSlice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

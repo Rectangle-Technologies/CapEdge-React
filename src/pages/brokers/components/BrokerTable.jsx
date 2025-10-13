@@ -44,7 +44,7 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
           <TableBody>
             {brokers.length > 0 ? (
               brokers.map((broker) => (
-                <TableRow key={broker.id}>
+                <TableRow key={broker._id}>
                   <TableCell 
                     component="th" 
                     scope="row" 

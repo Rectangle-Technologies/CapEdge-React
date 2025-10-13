@@ -1,22 +1,42 @@
 // material-ui
-import useMediaQuery from '@mui/material/useMediaQuery';
-import IconButton from '@mui/material/IconButton';
-import Link from '@mui/material/Link';
 import Box from '@mui/material/Box';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 // project imports
-import Search from './Search';
-import Profile from './Profile';
-import Notification from './Notification';
 import MobileSection from './MobileSection';
+import Profile from './Profile';
 
 // project import
-import { GithubOutlined } from '@ant-design/icons';
+import { useEffect, useState } from 'react';
+import { useAppDispatch } from 'store/hooks';
+import { hideLoader, showLoader } from 'store/slices/loaderSlice';
+import { showErrorSnackbar } from '../../../../store/utils';
+import { get } from '../../../../utils/apiUtil';
+import UserAccountDropwdown from './UserAccountDropwdown';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
 export default function HeaderContent() {
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
+  const [userAccounts, setUserAccounts] = useState([]);
+  const dispatch = useAppDispatch();
+
+  const fetchUserAccounts = async () => {
+    dispatch(showLoader());
+    try {
+      const data = await get('/user-account/get-all');
+      setUserAccounts(data.userAccounts);
+    } catch (error) {
+      console.error('Error fetching user accounts:', error);
+      showErrorSnackbar(error.message || 'Failed to fetch user accounts');
+    } finally {
+      dispatch(hideLoader());
+    }
+  }
+
+  useEffect(() => {
+    fetchUserAccounts();
+  }, []);
 
   return (
     <>
@@ -36,6 +56,7 @@ export default function HeaderContent() {
 
       {/* <Notification /> */}
       <Box sx={{ flexGrow: 1 }} />
+      {!downLG && <UserAccountDropwdown userAccounts={userAccounts} />}
       {!downLG && <Profile />}
       {downLG && <MobileSection />}
     </>

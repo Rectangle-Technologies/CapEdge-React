@@ -7,7 +7,6 @@ import {
 } from '@mui/material';
 import { useFormik } from 'formik';
 import { useEffect, useState } from 'react';
-import { useAppDispatch } from 'store/hooks';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { del, get, post, put } from '../../utils/apiUtil';
@@ -21,11 +20,12 @@ import UserAccountTable from './components/UserAccountTable';
 import { UserAccountExportService } from './services/userAccountExportService';
 import { ROWS_PER_PAGE } from './utils/constants';
 import { dematAccountValidationSchema, userAccountValidationSchema } from './utils/validation';
+import { useDispatch } from 'react-redux';
 
 // Main component
 const UserAccount = () => {
   // Redux dispatch
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch();
 
   // State management
   const [searchName, setSearchName] = useState('');

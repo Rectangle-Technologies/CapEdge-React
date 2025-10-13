@@ -61,6 +61,8 @@ const UserAccount = () => {
           await post('/user-account/create', values);
         }
         await searchUserAccounts();
+        // Trigger custom event to notify UserAccountDropdown to refresh
+        window.dispatchEvent(new CustomEvent('userAccountsUpdated'));
         showSuccessSnackbar(`User account ${editingUser ? 'updated' : 'created'} successfully.`);
         resetForm();
         setOpenUserDialog(false);
@@ -99,6 +101,8 @@ const UserAccount = () => {
             });
         }
         await searchUserAccounts();
+        // Trigger custom event to notify UserAccountDropdown to refresh
+        window.dispatchEvent(new CustomEvent('userAccountsUpdated'));
         showSuccessSnackbar(`Demat account ${editingDemat ? 'updated' : 'created'} successfully.`);
         resetForm();
         setOpenDematDialog(false);
@@ -158,6 +162,8 @@ const UserAccount = () => {
       try {
         await del(`/demat-account/delete/${dematAccountId}`);
         await searchUserAccounts();
+        // Trigger custom event to notify UserAccountDropdown to refresh
+        window.dispatchEvent(new CustomEvent('userAccountsUpdated'));
         showSuccessSnackbar('Demat account deleted successfully.');
       } catch (error) {
         showErrorSnackbar(error.message || 'Failed to delete demat account. Please try again.');

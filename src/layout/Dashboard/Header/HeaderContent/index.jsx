@@ -8,6 +8,7 @@ import Profile from './Profile';
 
 // project import
 import UserAccountDropwdown from './UserAccountDropwdown';
+import FinancialYearDropdown from './FinancialYearDropdown';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -32,6 +33,7 @@ export default function HeaderContent() {
 
       {/* <Notification /> */}
       <Box sx={{ flexGrow: 1 }} />
+      {!downLG && <FinancialYearDropdown />}
       {!downLG && <UserAccountDropwdown />}
       {!downLG && <Profile />}
       {downLG && <MobileSection />}

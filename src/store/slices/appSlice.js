@@ -8,8 +8,9 @@ const initialState = {
     },
     allUserAccounts: [], // Non-paginated list for dropdown
     financialYear: {
-        start: null,
-        end: null,
+        _id: null,
+        startDate: null,
+        endDate: null,
         title: null
     }
 }

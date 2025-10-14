@@ -57,6 +57,7 @@ const FinancialYearDropdown = () => {
                     value={financialYear?._id || ''}
                     label="Financial Year"
                     onChange={handleChange}
+                    size="small"
                 >
                     {financialYears.map((year) => (
                         <MenuItem key={year._id} value={year._id}>

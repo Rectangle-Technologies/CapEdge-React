@@ -85,6 +85,7 @@ const UserAccountDropwdown = () => {
     return (
         <Box sx={{ width: 200, m: 2 }}>
             <Autocomplete
+                size="small"
                 disablePortal
                 disableClearable
                 options={userAccounts.map(account => account.name)}

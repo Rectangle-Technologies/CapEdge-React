@@ -27,7 +27,21 @@ const SecurityDialog = ({
   onClose 
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          position: 'fixed',
+          top: '30%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          margin: 0
+        }
+      }}
+    >
       <DialogTitle>{editingSecurity ? 'Edit Security' : 'Add New Security'}</DialogTitle>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>

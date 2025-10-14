@@ -25,7 +25,21 @@ function DematAccountDialog({
   brokers 
 }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          position: 'fixed',
+          top: '30%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          margin: 0
+        }
+      }}
+    >
       <DialogTitle>
         {editingDemat ? 'Edit Demat Account' : 'Add New Demat Account'}
       </DialogTitle>

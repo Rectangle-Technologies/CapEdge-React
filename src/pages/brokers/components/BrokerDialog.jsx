@@ -19,7 +19,21 @@ const BrokerDialog = ({
   onClose 
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          position: 'fixed',
+          top: '30%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          margin: 0
+        }
+      }}
+    >
       <DialogTitle>{editingBroker ? 'Edit Broker' : 'Add New Broker'}</DialogTitle>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>

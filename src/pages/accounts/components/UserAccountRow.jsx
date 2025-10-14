@@ -46,16 +46,16 @@ function UserAccountRow({
             {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell component="th" scope="row" sx={{ width: '25%', padding: '8px 16px 8px 16px' }}>
+        <TableCell component="th" scope="row" sx={{ width: '25%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
           {userAccount.name}
         </TableCell>
-        <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+        <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
           {userAccount.panNumber}
         </TableCell>
-        <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px', maxWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <TableCell sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px', maxWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {userAccount.address}
         </TableCell>
-        <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+        <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
           <IconButton onClick={() => onEditUser(userAccount)} size="small" color="primary">
             <EditIcon />
           </IconButton>

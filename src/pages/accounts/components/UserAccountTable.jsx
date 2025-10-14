@@ -37,16 +37,16 @@ function UserAccountTable({
         <TableHead>
           <TableRow>
             <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }} />
-            <TableCell sx={{ width: '25%', padding: '8px 16px 8px 24px' }}>
+            <TableCell sx={{ width: '25%', minWidth: '200px', padding: '8px 16px 8px 24px' }}>
               <strong>Name</strong>
             </TableCell>
-            <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+            <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
               <strong>PAN Number</strong>
             </TableCell>
-            <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
+            <TableCell sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
               <strong>Address</strong>
             </TableCell>
-            <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+            <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
               <strong>Actions</strong>
             </TableCell>
           </TableRow>

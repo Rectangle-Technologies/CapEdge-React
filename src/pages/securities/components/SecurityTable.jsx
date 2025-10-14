@@ -31,16 +31,16 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.name.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '15%', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '15%', minWidth: '120px', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.type.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.strikePrice.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.expiry.label}</strong>
               </TableCell>
               <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>
@@ -52,20 +52,20 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
             {securities.length > 0 ? (
               securities.map((security) => (
                 <TableRow key={security._id} hover>
-                  <TableCell component="th" scope="row" sx={{ width: '35%', padding: '8px 16px 8px 16px' }}>
+                  <TableCell component="th" scope="row" sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
                     {security.name}
                   </TableCell>
-                  <TableCell sx={{ width: '15%', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '15%', minWidth: '120px', padding: '8px 16px 8px 16px' }}>
                     <Chip
                       label={getTypeLabel(security.type, securityTypes)}
                       color={getTypeColor(security.type)} 
                       size="small" 
                     />
                   </TableCell>
-                  <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
                     {security.strikePrice ? formatCurrency(security.strikePrice) : '-'}
                   </TableCell>
-                  <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
                     {formatDate(security.expiry)}
                   </TableCell>
                   <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>

@@ -27,16 +27,16 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: TABLE_CONFIG.columns.name.width, padding: TABLE_CONFIG.cellPadding }}>
+              <TableCell sx={{ width: TABLE_CONFIG.columns.name.width, minWidth: '200px', padding: TABLE_CONFIG.cellPadding }}>
                 <strong>{TABLE_CONFIG.columns.name.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: TABLE_CONFIG.columns.panNumber.width, padding: TABLE_CONFIG.cellPadding }}>
+              <TableCell sx={{ width: TABLE_CONFIG.columns.panNumber.width, minWidth: '150px', padding: TABLE_CONFIG.cellPadding }}>
                 <strong>{TABLE_CONFIG.columns.panNumber.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: TABLE_CONFIG.columns.address.width, padding: TABLE_CONFIG.cellPadding }}>
+              <TableCell sx={{ width: TABLE_CONFIG.columns.address.width, minWidth: '200px', padding: TABLE_CONFIG.cellPadding }}>
                 <strong>{TABLE_CONFIG.columns.address.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: TABLE_CONFIG.columns.actions.width, padding: TABLE_CONFIG.cellPadding }}>
+              <TableCell sx={{ width: TABLE_CONFIG.columns.actions.width, minWidth: '150px', padding: TABLE_CONFIG.cellPadding }}>
                 <strong>{TABLE_CONFIG.columns.actions.label}</strong>
               </TableCell>
             </TableRow>
@@ -49,7 +49,8 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
                     component="th" 
                     scope="row" 
                     sx={{ 
-                      width: TABLE_CONFIG.columns.name.width, 
+                      width: TABLE_CONFIG.columns.name.width,
+                      minWidth: '200px', 
                       padding: '8px 16px 8px 16px', 
                       maxWidth: 0, 
                       overflow: 'hidden', 
@@ -59,12 +60,13 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
                   >
                     {broker.name}
                   </TableCell>
-                  <TableCell sx={{ width: TABLE_CONFIG.columns.panNumber.width, padding: TABLE_CONFIG.cellPadding }}>
+                  <TableCell sx={{ width: TABLE_CONFIG.columns.panNumber.width, minWidth: '150px', padding: TABLE_CONFIG.cellPadding }}>
                     {broker.panNumber}
                   </TableCell>
                   <TableCell 
                     sx={{ 
                       width: TABLE_CONFIG.columns.address.width, 
+                      minWidth: '200px',
                       padding: TABLE_CONFIG.cellPadding, 
                       overflow: 'hidden', 
                       textOverflow: 'ellipsis', 
@@ -73,7 +75,7 @@ const BrokerTable = ({ brokers, onEdit, onDelete }) => {
                   >
                     {broker.address}
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: TABLE_CONFIG.columns.actions.width, minWidth: '150px', padding: TABLE_CONFIG.cellPadding }}>
                     <IconButton onClick={() => onEdit(broker)} size="small" color="primary">
                       <EditIcon />
                     </IconButton>

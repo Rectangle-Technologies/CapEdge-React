@@ -7,7 +7,7 @@ import transactions from './transactions';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [transactions, masterData, report, ledger]
+  items: [transactions, report, ledger, masterData]
 };
 
 export default menuItems;

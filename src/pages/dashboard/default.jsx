@@ -9,7 +9,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -21,11 +20,6 @@ import OrdersTable from 'sections/dashboard/default/OrdersTable';
 import ReportAreaChart from 'sections/dashboard/default/ReportAreaChart';
 import SaleReportCard from 'sections/dashboard/default/SaleReportCard';
 import UniqueVisitorCard from 'sections/dashboard/default/UniqueVisitorCard';
-
-// redux
-import { useAppDispatch } from 'store/hooks';
-// Import actions directly from slices
-import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 
 // assets
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
@@ -57,33 +51,6 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
-  const dispatch = useAppDispatch();
-
-  // Demo functions for Redux functionality
-  const handleShowLoader = () => {
-    dispatch(showLoader());
-    // Simulate API call
-    setTimeout(() => {
-      dispatch(hideLoader());
-      showSuccessSnackbar('Data loaded successfully!');
-    }, 2000);
-  };
-
-  const handleShowSuccess = () => {
-    showSuccessSnackbar('This is a success message!');
-  };
-
-  const handleShowError = () => {
-    showErrorSnackbar('This is an error message!');
-  };
-
-  const handleShowWarning = () => {
-    showWarningSnackbar('This is a warning message!');
-  };
-
-  const handleShowInfo = () => {
-    showInfoSnackbar('This is an info message!');
-  };
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
@@ -92,31 +59,6 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
 
-      {/* Redux Demo Section */}
-      <Grid size={12}>
-        <Paper sx={{ p: 3, mb: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Redux Demo - Global Loader & Snackbar
-          </Typography>
-          <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: 1 }}>
-            <Button variant="contained" onClick={handleShowLoader}>
-              Show Loader (2s)
-            </Button>
-            <Button variant="contained" color="success" onClick={handleShowSuccess}>
-              Success Snackbar
-            </Button>
-            <Button variant="contained" color="error" onClick={handleShowError}>
-              Error Snackbar
-            </Button>
-            <Button variant="contained" color="warning" onClick={handleShowWarning}>
-              Warning Snackbar
-            </Button>
-            <Button variant="contained" color="info" onClick={handleShowInfo}>
-              Info Snackbar
-            </Button>
-          </Stack>
-        </Paper>
-      </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
         <AnalyticEcommerce title="Total Page Views" count="4,42,236" percentage={59.3} extra="35,000" />
       </Grid>

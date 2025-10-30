@@ -45,3 +45,11 @@ export const processFormValues = (values) => {
 export const generateNewSecurityId = (securities) => {
   return Math.max(...securities.map((s) => s.id), 0) + 1;
 };
+
+export const getTransactionTypeColor = (type) => {
+  const colorMap = {
+    BUY: 'primary',
+    SELL: 'success'
+  };
+  return colorMap[type] || 'primary';
+}

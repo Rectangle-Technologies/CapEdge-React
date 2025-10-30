@@ -30,6 +30,7 @@ import avatar1 from 'assets/images/users/avatar-1.png';
 import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
 import avatar4 from 'assets/images/users/avatar-4.png';
+import TransactionsTable from './components/TransactionsTable';
 
 // avatar style
 const avatarSX = {
@@ -53,13 +54,13 @@ const actionSX = {
 export default function DashboardDefault() {
 
   return (
-    <Grid container rowSpacing={4.5} columnSpacing={2.75}>
-      {/* row 1 */}
-      <Grid sx={{ mb: -2.25 }} size={12}>
-        <Typography variant="h5">Dashboard</Typography>
+    <Grid container rowSpacing={4.5} columnSpacing={2}>
+      <Grid sx={{ mt: 4 }} size={12}>
+        <Typography variant="h4">All Transactions</Typography>
       </Grid>
+      <TransactionsTable />
 
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+      {/* <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
         <AnalyticEcommerce title="Total Page Views" count="4,42,236" percentage={59.3} extra="35,000" />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
@@ -72,7 +73,7 @@ export default function DashboardDefault() {
         <AnalyticEcommerce title="Total Sales" count="35,078" percentage={27.4} isLoss color="warning" extra="20,395" />
       </Grid>
       <Grid sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} size={{ md: 8 }} />
-      {/* row 2 */}
+
       <Grid size={{ xs: 12, md: 7, lg: 8 }}>
         <UniqueVisitorCard />
       </Grid>
@@ -95,7 +96,7 @@ export default function DashboardDefault() {
           <MonthlyBarChart />
         </MainCard>
       </Grid>
-      {/* row 3 */}
+      
       <Grid size={{ xs: 12, md: 7, lg: 8 }}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid>
@@ -132,7 +133,7 @@ export default function DashboardDefault() {
           <ReportAreaChart />
         </MainCard>
       </Grid>
-      {/* row 4 */}
+      
       <Grid size={{ xs: 12, md: 7, lg: 8 }}>
         <SaleReportCard />
       </Grid>
@@ -248,7 +249,7 @@ export default function DashboardDefault() {
             </Button>
           </Stack>
         </MainCard>
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }

@@ -1,8 +1,9 @@
-import { Box, Chip, Grid, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
+import { Box, Chip, Grid, Pagination, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
 import MainCard from 'components/MainCard';
 import TransactionsTableHead from './TransactionsTableHead';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { getTransactionTypeColor } from '../../securities/utils/helpers';
+import { useState } from 'react';
 
 // TODO: Fetch transactions data from backend
 const transactions = [
@@ -90,6 +91,8 @@ const transactions = [
 ]
 
 const TransactionsTable = () => {
+  const totalPages = 5; // TODO: Calculate based on total transactions
+  const [page, setPage] = useState(1);
   return (
     <Grid size={12}>
       <MainCard content={false}>
@@ -133,7 +136,7 @@ const TransactionsTable = () => {
                       <TableCell align='center'>{new Date(transaction.date).toLocaleDateString('en-GB')}</TableCell>
                       <TableCell align='center'>
                         <Chip
-                      label={transaction.type}
+                          label={transaction.type}
                           color={getTransactionTypeColor(transaction.type)}
                           size="small"
                         />
@@ -143,13 +146,21 @@ const TransactionsTable = () => {
                       <TableCell align='right'>{formatCurrency(price)}</TableCell>
                       <TableCell align='right'>{formatCurrency(amount)}</TableCell>
                     </TableRow>
-                    )
+                  )
                 })}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
       </MainCard>
+      <Box width='100%' sx={{
+        mt: 4,
+        display: { xs: 'none', md: 'flex' },
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Pagination count={totalPages} onChange={(event, value) => setPage(value)} />
+      </Box>
     </Grid>
   )
 }

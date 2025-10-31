@@ -29,7 +29,9 @@ export const showSuccessSnackbar = (message, options = {}) => {
 };
 
 export const showErrorSnackbar = (message, options = {}) => {
-  showGlobalSnackbar(message, 'error', options);
+  if (message !== 'Token expired') {
+    showGlobalSnackbar(message, 'error', options);
+  }
 };
 
 export const showWarningSnackbar = (message, options = {}) => {

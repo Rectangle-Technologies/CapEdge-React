@@ -31,6 +31,8 @@ import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
 import avatar4 from 'assets/images/users/avatar-4.png';
 import TransactionsTable from './components/TransactionsTable';
+import { Add } from '@mui/icons-material';
+import { useNavigate } from 'react-router';
 
 // avatar style
 const avatarSX = {
@@ -52,11 +54,19 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
+  const navigate = useNavigate();
 
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2}>
-      <Grid sx={{ mt: 4 }} size={12}>
-        <Typography variant="h4">All Transactions</Typography>
+      <Grid container size={12} justifyContent="space-between" alignItems="center" sx={{ mt: 4 }}>
+        <Grid sx={{ alignItems: 'center' }} size={{ xs: 12, md: 6 }}>
+          <Typography variant="h4">All Transactions</Typography>
+        </Grid>
+        <Grid sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }} size={{ xs: 12, md: 6 }}>
+          <Button variant="contained" startIcon={<Add />} onClick={() => { navigate('/add-transaction') }}>
+            Add Transaction
+          </Button>
+        </Grid>
       </Grid>
       <TransactionsTable />
 

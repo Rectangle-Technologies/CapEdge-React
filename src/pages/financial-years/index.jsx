@@ -1,12 +1,15 @@
-import { Box, Button, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { Box, Button, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
 import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils'
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import * as Yup from 'yup';
 import { hideLoader, showLoader } from '../../store/slices/loaderSlice';
+import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 import { get, put } from '../../utils/apiUtil';
-import { formatDate } from '../../utils/formatDate';
 
 // Validation schema
 const ratesValidationSchema = Yup.object({
@@ -34,8 +37,8 @@ const FinancialYears = () => {
     // Form handler with Formik
     const formik = useFormik({
         initialValues: {
-            startDate: '',
-            endDate: '',
+            startDate: null,
+            endDate: null,
             stcgRate: '',
             ltcgRate: ''
         },
@@ -51,8 +54,8 @@ const FinancialYears = () => {
             dispatch(showLoader());
             try {
                 const payload = {
-                    startDate: values.startDate,
-                    endDate: values.endDate,
+                    startDate: formik.values.startDate?.format('YYYY-MM-DD'),
+                    endDate: formik.values.endDate?.format('YYYY-MM-DD'),
                     stcgRate: parseFloat(values.stcgRate),
                     ltcgRate: parseFloat(values.ltcgRate)
                 };
@@ -84,8 +87,8 @@ const FinancialYears = () => {
                     if (selectedYear) {
                         setFinancialYear(selectedYear);
                         formik.setValues({
-                            startDate: formatDate(selectedYear.startDate, 'input'),
-                            endDate: formatDate(selectedYear.endDate, 'input'),
+                            startDate: dayjs(selectedYear.startDate.split('T')[0]),
+                            endDate: dayjs(selectedYear.endDate.split('T')[0]),
                             stcgRate: (selectedYear.stcgRate * 100) || '',
                             ltcgRate: (selectedYear.ltcgRate * 100) || ''
                         });
@@ -97,8 +100,8 @@ const FinancialYears = () => {
                 const firstYear = data.financialYears[0];
                 setFinancialYear(firstYear);
                 formik.setValues({
-                    startDate: formatDate(firstYear.startDate, 'input'),
-                    endDate: formatDate(firstYear.endDate, 'input'),
+                    startDate: dayjs(firstYear.startDate.split('T')[0]),
+                    endDate: dayjs(firstYear.endDate.split('T')[0]),
                     stcgRate: (firstYear.stcgRate * 100) || '',
                     ltcgRate: (firstYear.ltcgRate * 100) || ''
                 });
@@ -120,8 +123,8 @@ const FinancialYears = () => {
         if (selectedYear) {
             setFinancialYear(selectedYear);
             formik.setValues({
-                startDate: formatDate(selectedYear.startDate, 'input'),
-                endDate: formatDate(selectedYear.endDate, 'input'),
+                startDate: dayjs(selectedYear.startDate.split('T')[0]),
+                endDate: dayjs(selectedYear.endDate.split('T')[0]),
                 stcgRate: (selectedYear.stcgRate * 100) || '',
                 ltcgRate: (selectedYear.ltcgRate * 100) || ''
             });
@@ -132,7 +135,7 @@ const FinancialYears = () => {
 
     useEffect(() => {
         fetchFinancialYears();
-    }, [dispatch])
+    }, [])
 
     return (
         <Grid container rowSpacing={4.5} columnSpacing={3}>
@@ -161,34 +164,50 @@ const FinancialYears = () => {
                     </Box>
                 </Grid>
                 <form onSubmit={formik.handleSubmit} style={{ display: 'contents' }}>
-                    <Grid item size={{ xs: 12, md: 3 }}>
-                        <TextField
-                            fullWidth
-                            name='startDate'
-                            type="date"
-                            label="Start Date"
-                            value={formik.values.startDate}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.startDate && Boolean(formik.errors.startDate)}
-                            helperText={formik.touched.startDate && formik.errors.startDate}
-                            slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                    </Grid>
-                    <Grid item size={{ xs: 12, md: 3 }}>
-                        <TextField
-                            fullWidth
-                            name='endDate'
-                            type="date"
-                            label="End Date"
-                            value={formik.values.endDate}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.endDate && Boolean(formik.errors.endDate)}
-                            helperText={formik.touched.endDate && formik.errors.endDate}
-                            slotProps={{ inputLabel: { shrink: true } }}
-                        />
-                    </Grid>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <Grid item size={{ xs: 12, md: 3 }}>
+                            <DatePicker
+                                label="Start Date"
+                                value={formik.values.startDate}
+                                format="DD/MM/YYYY"
+                                onChange={(newValue) => {
+                                    formik.setFieldValue('startDate', newValue);
+                                    formik.setFieldTouched('startDate', true, false);
+                                }}
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        required: true,
+                                        error: formik.touched.startDate && Boolean(formik.errors.startDate),
+                                        helperText: formik.touched.startDate && formik.errors.startDate,
+                                        onBlur: () => formik.setFieldTouched('startDate', true),
+                                        name: 'startDate'
+                                    }
+                                }}
+                            />
+                        </Grid>
+                        <Grid item size={{ xs: 12, md: 3 }}>
+                            <DatePicker
+                                label="End Date"
+                                value={formik.values.endDate}
+                                format="DD/MM/YYYY"
+                                onChange={(newValue) => {
+                                    formik.setFieldValue('endDate', newValue);
+                                    formik.setFieldTouched('endDate', true, false);
+                                }}
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        required: true,
+                                        error: formik.touched.endDate && Boolean(formik.errors.endDate),
+                                        helperText: formik.touched.endDate && formik.errors.endDate,
+                                        onBlur: () => formik.setFieldTouched('endDate', true),
+                                        name: 'endDate'
+                                    }
+                                }}
+                            />
+                        </Grid>
+                    </LocalizationProvider>
                     <Grid item size={{ xs: 12, md: 3 }}>
                         <TextField
                             fullWidth

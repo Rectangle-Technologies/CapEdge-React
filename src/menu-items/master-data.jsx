@@ -1,11 +1,12 @@
 // assets
-import { UserOutlined, StockOutlined, BankOutlined } from '@ant-design/icons';
+import { UserOutlined, StockOutlined, BankOutlined, CalendarOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
   UserOutlined,
   StockOutlined,
-  BankOutlined
+  BankOutlined,
+  CalendarOutlined
 };
 
 // ==============================|| MENU ITEMS - MASTER DATA ||============================== //
@@ -38,7 +39,15 @@ const masterData = {
       url: 'master-data/user-account',
       icon: icons.UserOutlined,
       breadcrumbs: false
-    }
+    },
+    {
+      id: 'master-data-financial-years',
+      title: 'Financial Years',
+      type: 'item',
+      url: 'master-data/financial-years',
+      icon: icons.CalendarOutlined,
+      breadcrumbs: false
+    },
   ]
 };
 

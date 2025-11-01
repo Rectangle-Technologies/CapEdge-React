@@ -4,6 +4,7 @@ import { lazy } from 'react';
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 import AddTransaction from '../pages/transactions/AddTransaction';
+import FinancialYears from '../pages/financial-years';
 
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -55,6 +56,10 @@ const MainRoutes = {
       element: <SecurityManagement />
     },
     {
+      path: 'master-data/financial-years',
+      element: <FinancialYears />
+    },
+    {
       path: 'report/pnl',
       element: <ProfitAndLoss />
     },
@@ -77,10 +82,6 @@ const MainRoutes = {
     {
       path: 'shadow',
       element: <Shadow />
-    },
-    {
-      path: 'sample-page',
-      element: <SamplePage />
     },
     {
       path: 'add-transaction',

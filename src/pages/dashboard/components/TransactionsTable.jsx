@@ -80,17 +80,7 @@ const TransactionsTable = () => {
                   </TableRow>
                 ) : (
                   transactions.map((transaction, index) => {
-                  var price;
-                  if (transaction.deliveryType === 'Delivery') {
-                    price = transaction.price;
-                  } else {
-                    if (transaction.type === 'BUY') {
-                      price = transaction.buyPrice;
-                    } else {
-                      price = transaction.sellPrice;
-                    }
-                  }
-                  const amount = transaction.quantity * price;
+                  const amount = transaction.quantity * (transaction.price || 0);
                   return (
                     <TableRow
                       hover
@@ -114,7 +104,7 @@ const TransactionsTable = () => {
                       </TableCell>
                       <TableCell align='center'>{transaction.deliveryType}</TableCell>
                       <TableCell align='right'>{transaction.quantity}</TableCell>
-                      <TableCell align='right'>{formatCurrency(price)}</TableCell>
+                      <TableCell align='right'>{formatCurrency(transaction.price)}</TableCell>
                       <TableCell align='right'>{formatCurrency(amount)}</TableCell>
                     </TableRow>
                   )

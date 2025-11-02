@@ -260,7 +260,7 @@ const Holdings = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={6}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -276,39 +276,13 @@ const Holdings = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={6}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" color="text.secondary">
                 Total Holdings
               </Typography>
               <Typography variant="h4">{summary.totalHoldings}</Typography>
-            </Box>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <Card>
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" color="success.main">
-                Profitable
-              </Typography>
-              <Typography variant="h4" color="success.main">
-                {summary.profitableHoldings}
-              </Typography>
-            </Box>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <Card>
-            <Box sx={{ p: 2 }}>
-              <Typography variant="h6" color="error.main">
-                Losing
-              </Typography>
-              <Typography variant="h4" color="error.main">
-                {summary.losingHoldings}
-              </Typography>
             </Box>
           </Card>
         </Grid>

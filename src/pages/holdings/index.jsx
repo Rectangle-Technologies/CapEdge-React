@@ -34,6 +34,8 @@ import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate, formatDateForFileName } from 'utils/formatDate';
 import { useAppDispatch } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
+import { fetchHoldings, transformHoldingData } from './services/holdingsService';
+import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 
 // Main component
 const Holdings = () => {
@@ -45,91 +47,17 @@ const Holdings = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
+  
+  // Pagination state
+  const [limit, setLimit] = useState(50);
+  const [offset, setOffset] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
 
-  // Mock data - Replace with API call (UnMatchedRecords from DB)
-  const [holdings, setHoldings] = useState([
-    {
-      id: 1,
-      buyDate: '2024-01-15',
-      securityName: 'Reliance Industries',
-      securityType: 'EQUITY',
-      quantity: 50,
-      buyPrice: 2450.5,
-      currentPrice: 2890.75,
-      totalInvestment: 122525,
-      currentValue: 144537.5,
-      unrealizedPnL: 22012.5,
-      pnlPercentage: 17.96
-    },
-    {
-      id: 2,
-      buyDate: '2023-11-22',
-      securityName: 'TCS',
-      securityType: 'EQUITY',
-      quantity: 30,
-      buyPrice: 3500.0,
-      currentPrice: 4100.5,
-      totalInvestment: 105000,
-      currentValue: 123015,
-      unrealizedPnL: 18015,
-      pnlPercentage: 17.16
-    },
-    {
-      id: 3,
-      buyDate: '2024-03-10',
-      securityName: 'Infosys',
-      securityType: 'EQUITY',
-      quantity: 100,
-      buyPrice: 1450.25,
-      currentPrice: 1380.0,
-      totalInvestment: 145025,
-      currentValue: 138000,
-      unrealizedPnL: -7025,
-      pnlPercentage: -4.84
-    },
-    {
-      id: 4,
-      buyDate: '2023-08-05',
-      securityName: 'HDFC Bank',
-      securityType: 'EQUITY',
-      quantity: 75,
-      buyPrice: 1580.5,
-      currentPrice: 1720.75,
-      totalInvestment: 118537.5,
-      currentValue: 129056.25,
-      unrealizedPnL: 10518.75,
-      pnlPercentage: 8.87
-    },
-    {
-      id: 5,
-      buyDate: '2024-05-18',
-      securityName: 'Wipro',
-      securityType: 'EQUITY',
-      quantity: 150,
-      buyPrice: 420.25,
-      currentPrice: 395.5,
-      totalInvestment: 63037.5,
-      currentValue: 59325,
-      unrealizedPnL: -3712.5,
-      pnlPercentage: -5.89
-    },
-    {
-      id: 6,
-      buyDate: '2024-02-28',
-      securityName: 'NIFTY 50 CALL Option',
-      securityType: 'OPTIONS',
-      quantity: 500,
-      buyPrice: 125.5,
-      currentPrice: 185.75,
-      totalInvestment: 62750,
-      currentValue: 92875,
-      unrealizedPnL: 30125,
-      pnlPercentage: 48.01
-    }
-  ]);
+  // Holdings data from API
+  const [holdings, setHoldings] = useState([]);
 
   // Filtered holdings
-  const [filteredHoldings, setFilteredHoldings] = useState(holdings);
+  const [filteredHoldings, setFilteredHoldings] = useState([]);
 
   // Calculate summary statistics
   const calculateSummary = (records) => {
@@ -153,6 +81,38 @@ const Holdings = () => {
 
   const summary = calculateSummary(filteredHoldings);
 
+  // Load holdings from API
+  const loadHoldings = async () => {
+    dispatch(showLoader());
+    try {
+      const data = await fetchHoldings(limit, offset);
+      
+      if (data && data.holdings) {
+        // Transform API data to component format
+        const transformedHoldings = data.holdings.map(transformHoldingData);
+        setHoldings(transformedHoldings);
+        setFilteredHoldings(transformedHoldings);
+        
+        // Update pagination info
+        if (data.pagination) {
+          setTotalRecords(data.pagination.total);
+        }
+        
+        showSuccessSnackbar('Holdings loaded successfully');
+      }
+    } catch (error) {
+      showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+  // Load holdings on component mount
+  useEffect(() => {
+    loadHoldings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit, offset]);
+
   // Search function
   const handleSearch = async () => {
     setIsSearching(true);
@@ -168,7 +128,7 @@ const Holdings = () => {
         setAlertMessage('All holdings loaded');
       }
       setAlertSeverity('success');
-    } catch (error) {
+    } catch (err) {
       setAlertMessage('Search failed. Please try again.');
       setAlertSeverity('error');
     } finally {
@@ -220,9 +180,10 @@ const Holdings = () => {
 
       setAlertMessage('Holdings exported successfully!');
       setAlertSeverity('success');
-    } catch (error) {
+    } catch (err) {
       setAlertMessage('Export failed. Please try again.');
       setAlertSeverity('error');
+      console.error('Export error:', err);
     } finally {
       dispatch(hideLoader());
     }

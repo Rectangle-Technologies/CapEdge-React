@@ -1,98 +1,58 @@
-import { Box, Chip, Grid, Pagination, Table, TableBody, TableCell, TableContainer, TableRow } from '@mui/material';
+import { Box, Chip, Grid, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@mui/material';
 import MainCard from 'components/MainCard';
 import TransactionsTableHead from './TransactionsTableHead';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { getTransactionTypeColor } from '../../securities/utils/helpers';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { getAllTransactions } from '../../transactions/services/transactionService';
+import Loader from 'components/Loader';
 
-// TODO: Fetch transactions data from backend
-const transactions = [
-  {
-    "_id": "6723a1b2c3d4e5f6a7b8c9d9",
-    "date": "2024-10-15T09:30:00.000Z",
-    "type": "BUY",
-    "quantity": 100,
-    "price": 1250.75,
-    "securityId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d0",
-      "symbol": "RELIANCE",
-      "companyName": "Reliance Industries Limited",
-      "isin": "INE002A01018",
-      "exchange": "NSE"
-    },
-    "deliveryType": "Delivery",
-    "referenceNumber": "ORD2024101500123",
-    "dematAccountId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d1",
-      "userAccountId": "6723a1b2c3d4e5f6a7b8c9d5",
-      "brokerId": {
-        "_id": "6723a1b2c3d4e5f6a7b8c9d6",
-        "name": "Zerodha",
-        "code": "ZERODHA"
-      },
-      "balance": 150000.50
-    },
-    "financialYearId": "6723a1b2c3d4e5f6a7b8c9d2"
-  },
-  {
-    "_id": "6723a1b2c3d4e5f6a7b8c9d9",
-    "date": "2024-10-20T14:15:00.000Z",
-    "type": "BUY",
-    "quantity": 50,
-    "buyPrice": 2850.50,
-    "deliveryType": "Intraday",
-    "referenceNumber": "ORD2024102000456",
-    "securityId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d3",
-      "symbol": "TCS",
-      "companyName": "Tata Consultancy Services Limited",
-      "isin": "INE467B01029",
-      "exchange": "BSE"
-    },
-    "dematAccountId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d1",
-      "userAccountId": "6723a1b2c3d4e5f6a7b8c9d5",
-      "brokerId": {
-        "_id": "6723a1b2c3d4e5f6a7b8c9d7",
-        "name": "Upstox",
-        "code": "UPSTOX"
-      },
-      "balance": 200000.00
-    },
-    "financialYearId": "6723a1b2c3d4e5f6a7b8c9d2"
-  },
-  {
-    "_id": "6723a1b2c3d4e5f6a7b8c9d9",
-    "date": "2024-10-25T11:45:00.000Z",
-    "type": "SELL",
-    "quantity": 75,
-    "price": 1580.25,
-    "securityId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d4",
-      "symbol": "HDFCBANK",
-      "companyName": "HDFC Bank Limited",
-      "isin": "INE040A01034",
-      "exchange": "NSE"
-    },
-    "deliveryType": "Delivery",
-    "referenceNumber": "ORD2024102500789",
-    "dematAccountId": {
-      "_id": "6723a1b2c3d4e5f6a7b8c9d1",
-      "userAccountId": "6723a1b2c3d4e5f6a7b8c9d5",
-      "brokerId": {
-        "_id": "6723a1b2c3d4e5f6a7b8c9d8",
-        "name": "ICICI Direct",
-        "code": "ICICI"
-      },
-      "balance": 175000.75
-    },
-    "financialYearId": "6723a1b2c3d4e5f6a7b8c9d2"
-  }
-]
+const ITEMS_PER_PAGE = 50;
 
 const TransactionsTable = () => {
-  const totalPages = 5; // TODO: Calculate based on total transactions
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    count: 0,
+    limit: ITEMS_PER_PAGE,
+    pageNo: 1
+  });
+
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true);
+    try {
+      const offset = (page - 1) * ITEMS_PER_PAGE;
+      const data = await getAllTransactions(ITEMS_PER_PAGE, offset);
+      setTransactions(data.transactions || []);
+      setPagination((prev) => data.pagination || prev);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      // Keep existing data on error
+    } finally {
+      setLoading(false);
+    }
+  }, [page]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  const totalPages = Math.ceil(pagination.total / pagination.limit) || 1;
+
+  if (loading && transactions.length === 0) {
+    return (
+      <Grid size={12}>
+        <MainCard>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+            <Loader />
+          </Box>
+        </MainCard>
+      </Grid>
+    );
+  }
+
   return (
     <Grid size={12}>
       <MainCard content={false}>
@@ -110,7 +70,16 @@ const TransactionsTable = () => {
             <Table aria-labelledby="tableTitle">
               <TransactionsTableHead />
               <TableBody>
-                {transactions.map((transaction, index) => {
+                {transactions.length === 0 && !loading ? (
+                  <TableRow>
+                    <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
+                      <Typography variant="h6" color="text.secondary">
+                        No transactions found
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  transactions.map((transaction, index) => {
                   var price;
                   if (transaction.deliveryType === 'Delivery') {
                     price = transaction.price;
@@ -127,12 +96,14 @@ const TransactionsTable = () => {
                       hover
                       role="checkbox"
                       sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                      key={index}
+                      key={transaction._id}
                     >
                       <TableCell>{transaction._id}</TableCell>
-                      <TableCell>{transaction.referenceNumber}</TableCell>
-                      <TableCell>{transaction.securityId.symbol}</TableCell>
-                      <TableCell>{transaction.dematAccountId.brokerId.name}</TableCell>
+                      <TableCell>{transaction.referenceNumber || '-'}</TableCell>
+                      <TableCell>
+                        {transaction.securityId?.name || transaction.securityId?.symbol || '-'}
+                      </TableCell>
+                      <TableCell>{transaction.dematAccountId?.brokerId?.name || '-'}</TableCell>
                       <TableCell align='center'>{new Date(transaction.date).toLocaleDateString('en-GB')}</TableCell>
                       <TableCell align='center'>
                         <Chip
@@ -147,7 +118,8 @@ const TransactionsTable = () => {
                       <TableCell align='right'>{formatCurrency(amount)}</TableCell>
                     </TableRow>
                   )
-                })}
+                })
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -159,7 +131,7 @@ const TransactionsTable = () => {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Pagination count={totalPages} onChange={(event, value) => setPage(value)} />
+        <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
     </Grid>
   )

@@ -35,6 +35,7 @@ export const transformHoldingData = (holding) => {
   return {
     id: holding._id,
     buyDate: holding.buyDate,
+    securityId: holding.securityId?._id || '',
     securityName: holding.securityId?.name || 'N/A',
     securityType: holding.securityId?.type || 'EQUITY',
     symbol: holding.securityId?.symbol || '',
@@ -53,6 +54,7 @@ export const transformHoldingData = (holding) => {
     deliveryType: holding.transactionId?.deliveryType,
     referenceNumber: holding.transactionId?.referenceNumber,
     dematAccountId: holding.dematAccountId?._id,
+    broker: holding.dematAccountId?.brokerId?.name || 'N/A',
     brokerName: holding.dematAccountId?.brokerId?.name || 'N/A',
     brokerPan: holding.dematAccountId?.brokerId?.panNumber,
     dematBalance: holding.dematAccountId?.balance,

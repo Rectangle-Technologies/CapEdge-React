@@ -153,14 +153,27 @@ const AddTransaction = () => {
         return false;
       }
 
-      if (t.type === 'BUY' && (!t.buyPrice || t.buyPrice <= 0)) {
-        showErrorSnackbar(`Transaction ${i + 1}: Valid buy price is required`);
-        return false;
-      }
+      // For Intraday: both buy and sell prices are required
+      if (t.deliveryType === 'Intraday') {
+        if (!t.buyPrice || t.buyPrice <= 0) {
+          showErrorSnackbar(`Transaction ${i + 1}: Valid buy price is required for Intraday`);
+          return false;
+        }
+        if (!t.sellPrice || t.sellPrice <= 0) {
+          showErrorSnackbar(`Transaction ${i + 1}: Valid sell price is required for Intraday`);
+          return false;
+        }
+      } else {
+        // For Delivery: only validate the price based on transaction type
+        if (t.type === 'BUY' && (!t.buyPrice || t.buyPrice <= 0)) {
+          showErrorSnackbar(`Transaction ${i + 1}: Valid buy price is required`);
+          return false;
+        }
 
-      if (t.type === 'SELL' && (!t.sellPrice || t.sellPrice <= 0)) {
-        showErrorSnackbar(`Transaction ${i + 1}: Valid sell price is required`);
-        return false;
+        if (t.type === 'SELL' && (!t.sellPrice || t.sellPrice <= 0)) {
+          showErrorSnackbar(`Transaction ${i + 1}: Valid sell price is required`);
+          return false;
+        }
       }
 
       if (!t.security) {
@@ -290,13 +303,13 @@ const AddTransaction = () => {
           <Table sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'primary.lighter' }}>
+                <TableCell sx={{ fontWeight: 'bold' }}>Delivery Type *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Type *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Security *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Demat Account *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Quantity *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Buy Price *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Sell Price *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Delivery Type *</TableCell>
                 <TableCell align="center" sx={{ fontWeight: 'bold' }}>
                   Action
                 </TableCell>
@@ -309,10 +322,27 @@ const AddTransaction = () => {
                     <TextField
                       select
                       size="small"
+                      value={transaction.deliveryType}
+                      onChange={(e) => handleTransactionChange(transaction.id, 'deliveryType', e.target.value)}
+                      fullWidth
+                      required
+                    >
+                      {deliveryTypes.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      select
+                      size="small"
                       value={transaction.type}
                       onChange={(e) => handleTransactionChange(transaction.id, 'type', e.target.value)}
                       fullWidth
                       required
+                      disabled={transaction.deliveryType === 'Intraday'}
                     >
                       {transactionTypes.map((type) => (
                         <MenuItem key={type} value={type}>
@@ -399,8 +429,8 @@ const AddTransaction = () => {
                       value={transaction.buyPrice}
                       onChange={(e) => handleTransactionChange(transaction.id, 'buyPrice', e.target.value)}
                       fullWidth
-                      required={transaction.type === 'BUY'}
-                      disabled={transaction.type === 'SELL'}
+                      required={transaction.deliveryType === 'Intraday' || transaction.type === 'BUY'}
+                      disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'SELL'}
                       placeholder="0.00"
                       inputProps={{ min: 0, step: 0.01 }}
                     />
@@ -412,27 +442,11 @@ const AddTransaction = () => {
                       value={transaction.sellPrice}
                       onChange={(e) => handleTransactionChange(transaction.id, 'sellPrice', e.target.value)}
                       fullWidth
-                      required={transaction.type === 'SELL'}
-                      disabled={transaction.type === 'BUY'}
+                      required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
+                      disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
                       placeholder="0.00"
                       inputProps={{ min: 0, step: 0.01 }}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      select
-                      size="small"
-                      value={transaction.deliveryType}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'deliveryType', e.target.value)}
-                      fullWidth
-                      required
-                    >
-                      {deliveryTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </TextField>
                   </TableCell>
                   <TableCell align="center">
                     <IconButton

@@ -28,7 +28,6 @@ import {
 import {
   Search as SearchIcon,
   Download as DownloadIcon,
-  TrendingUp as TrendingUpIcon,
   ShowChart as ShowChartIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon
@@ -190,7 +189,7 @@ const Holdings = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Flatten all holdings from grouped data
-      const allHoldings = groupedHoldings.flatMap(group => group.holdings);
+      const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
       
       const exportData = allHoldings.map((holding) => ({
         'Buy Date': formatDate(holding.buyDate),
@@ -203,7 +202,7 @@ const Holdings = () => {
         'Current Value': holding.currentValue.toFixed(2),
         'Unrealized P&L': holding.unrealizedPnL.toFixed(2),
         'P&L %': holding.pnlPercentage.toFixed(2),
-        'Broker': holding.broker || 'N/A',
+        Broker: holding.broker || 'N/A',
         'Demat Account': holding.dematAccountId || 'N/A'
       }));
 
@@ -251,13 +250,6 @@ const Holdings = () => {
     }
   }, [alertMessage]);
 
-  // Get color based on P&L value
-  const getPnLColor = (value) => {
-    if (value > 0) return 'success.main';
-    if (value < 0) return 'error.main';
-    return 'text.secondary';
-  };
-
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       {alertMessage && (
@@ -279,43 +271,6 @@ const Holdings = () => {
                   <Typography variant="h4">{formatCurrency(summary.totalInvestment)}</Typography>
                 </Box>
                 <ShowChartIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Stack>
-            </Box>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <Card>
-            <Box sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h6" color="text.secondary">
-                    Current Value
-                  </Typography>
-                  <Typography variant="h4">{formatCurrency(summary.currentValue)}</Typography>
-                </Box>
-                <TrendingUpIcon sx={{ fontSize: 40, color: 'success.main' }} />
-              </Stack>
-            </Box>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ bgcolor: summary.unrealizedPnL >= 0 ? 'success.lighter' : 'error.lighter' }}>
-            <Box sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h6" color={summary.unrealizedPnL >= 0 ? 'success.darker' : 'error.darker'}>
-                    Unrealized P&L
-                  </Typography>
-                  <Typography variant="h4" color={summary.unrealizedPnL >= 0 ? 'success.darker' : 'error.darker'}>
-                    {formatCurrency(summary.unrealizedPnL)}
-                  </Typography>
-                  <Typography variant="body2" color={summary.unrealizedPnL >= 0 ? 'success.dark' : 'error.dark'}>
-                    {summary.pnlPercentage >= 0 ? '+' : ''}
-                    {summary.pnlPercentage.toFixed(2)}%
-                  </Typography>
-                </Box>
               </Stack>
             </Box>
           </Card>
@@ -439,19 +394,7 @@ const Holdings = () => {
                   <strong>Avg Buy Price</strong>
                 </TableCell>
                 <TableCell align="right">
-                  <strong>Current Price</strong>
-                </TableCell>
-                <TableCell align="right">
                   <strong>Total Investment</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>Current Value</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>Unrealized P&L</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>P&L %</strong>
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -481,35 +424,15 @@ const Holdings = () => {
                       </TableCell>
                       <TableCell align="right">{formatCurrency(group.avgBuyPrice)}</TableCell>
                       <TableCell align="right">
-                        {group.holdings.length > 0 ? formatCurrency(group.holdings[0].currentPrice) : '-'}
-                      </TableCell>
-                      <TableCell align="right">
                         <Typography variant="body2" fontWeight="medium">
                           {formatCurrency(group.totalInvestment)}
                         </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight="medium">
-                          {formatCurrency(group.currentValue)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight="bold" sx={{ color: getPnLColor(group.unrealizedPnL) }}>
-                          {formatCurrency(group.unrealizedPnL)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Chip
-                          label={`${group.pnlPercentage >= 0 ? '+' : ''}${group.pnlPercentage.toFixed(2)}%`}
-                          size="small"
-                          color={group.pnlPercentage >= 0 ? 'success' : 'error'}
-                        />
                       </TableCell>
                     </TableRow>
 
                     {/* Expanded rows - Individual holdings */}
                     <TableRow>
-                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
                         <Collapse in={expandedSecurities[group.securityId]} timeout="auto" unmountOnExit>
                           <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>
@@ -522,11 +445,7 @@ const Holdings = () => {
                                   <TableCell>Broker</TableCell>
                                   <TableCell align="right">Quantity</TableCell>
                                   <TableCell align="right">Buy Price</TableCell>
-                                  <TableCell align="right">Current Price</TableCell>
                                   <TableCell align="right">Investment</TableCell>
-                                  <TableCell align="right">Current Value</TableCell>
-                                  <TableCell align="right">Unrealized P&L</TableCell>
-                                  <TableCell align="right">P&L %</TableCell>
                                 </TableRow>
                               </TableHead>
                               <TableBody>
@@ -536,22 +455,7 @@ const Holdings = () => {
                                     <TableCell>{holding.broker || 'N/A'}</TableCell>
                                     <TableCell align="right">{holding.quantity}</TableCell>
                                     <TableCell align="right">{formatCurrency(holding.buyPrice)}</TableCell>
-                                    <TableCell align="right">{formatCurrency(holding.currentPrice)}</TableCell>
                                     <TableCell align="right">{formatCurrency(holding.totalInvestment)}</TableCell>
-                                    <TableCell align="right">{formatCurrency(holding.currentValue)}</TableCell>
-                                    <TableCell align="right">
-                                      <Typography variant="body2" sx={{ color: getPnLColor(holding.unrealizedPnL) }}>
-                                        {formatCurrency(holding.unrealizedPnL)}
-                                      </Typography>
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      <Chip
-                                        label={`${holding.pnlPercentage >= 0 ? '+' : ''}${holding.pnlPercentage.toFixed(2)}%`}
-                                        size="small"
-                                        color={holding.pnlPercentage >= 0 ? 'success' : 'error'}
-                                        variant="outlined"
-                                      />
-                                    </TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -564,7 +468,7 @@ const Holdings = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       {searchSecurity
                         ? `No holdings found matching "${searchSecurity}"`

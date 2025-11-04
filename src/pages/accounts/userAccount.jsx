@@ -108,9 +108,10 @@ const UserAccount = () => {
         setOpenDematDialog(false);
         setEditingDemat(null);
         setSelectedUserIdForDemat(null);
-      } catch {
+      } catch (error) {
         // Handle error silently or add your preferred error handling
-        showErrorSnackbar('An error occurred. Please try again.');
+        console.error(error);
+        showErrorSnackbar(error.message || 'An error occurred. Please try again.');
       } finally {
         dispatch(hideLoader());
       }
@@ -147,8 +148,9 @@ const UserAccount = () => {
     setOpenDematDialog(true);
   };
 
-  const handleEditDematAccount = (dematAccount) => {
+  const handleEditDematAccount = (dematAccount, userAccount) => {
     setEditingDemat(dematAccount);
+    setSelectedUserIdForDemat(userAccount._id);
     dematFormik.setValues({
       brokerId: dematAccount.brokerId,
       balance: formatCurrencyForInput(dematAccount.balance)

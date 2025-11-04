@@ -106,7 +106,7 @@ function UserAccountRow({
                           {formatCurrency(dematAccount.balance)}
                         </TableCell>
                         <TableCell sx={{ padding: '8px 16px' }}>
-                          <IconButton onClick={() => onEditDematAccount(dematAccount)} size="small" color="primary">
+                          <IconButton onClick={() => onEditDematAccount(dematAccount, userAccount)} size="small" color="primary">
                             <EditIcon />
                           </IconButton>
                           <IconButton

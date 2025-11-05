@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -14,7 +14,6 @@ import {
   Paper,
   Grid,
   Typography,
-  Card,
   CardContent,
   CardHeader,
   Divider,
@@ -28,7 +27,7 @@ import dayjs from 'dayjs';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post } from 'utils/apiUtil';
@@ -37,18 +36,27 @@ import MainCard from 'components/MainCard';
 // Constants
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
+const SECURITY_SEARCH_MIN_CHARS = 3;
+const SECURITY_SEARCH_DEBOUNCE_MS = 750;
 
 const AddTransaction = () => {
   const dispatch = useDispatch();
+  
+  // Get userAccount from Redux
+  const userAccount = useSelector((state) => state.app.currentUserAccount);
 
   // Common fields (shared across all transactions)
   const [transactionDate, setTransactionDate] = useState(dayjs());
   const [referenceNumber, setReferenceNumber] = useState('');
+  const [selectedDematAccount, setSelectedDematAccount] = useState('');
 
   // Dropdown data
   const [securities, setSecurities] = useState([]);
   const [securitiesLoading, setSecuritiesLoading] = useState({});
   const [dematAccounts, setDematAccounts] = useState([]);
+
+  // Debounce timer ref for security search
+  const debounceTimerRef = useRef(null);
 
   // Transaction rows
   const [transactions, setTransactions] = useState([
@@ -59,16 +67,18 @@ const AddTransaction = () => {
       buyPrice: '',
       sellPrice: '',
       security: null,
-      deliveryType: 'Delivery',
-      dematAccountId: ''
+      deliveryType: 'Delivery'
     }
   ]);
 
   const fetchDematAccounts = async () => {
     try {
       dispatch(showLoader());
-      const response = await get('/demat-account/get-all?pageNo=1&limit=1000');
+      const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       setDematAccounts(response.dematAccounts || []);
+      if (response.dematAccounts && response.dematAccounts.length > 0) {
+        setSelectedDematAccount(response.dematAccounts[0]._id);
+      }
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
       showErrorSnackbar('Failed to fetch demat accounts');
@@ -78,23 +88,52 @@ const AddTransaction = () => {
   };
 
   const fetchSecuritiesForDropdown = async (searchTerm = '', transactionId) => {
-    try {
-      setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: true }));
-      const response = await get(`/security/get-all?name=&pageNo=1&limit=20&search=${encodeURIComponent(searchTerm)}`);
-      return response.securities || [];
-    } catch (error) {
-      console.error('Error fetching securities:', error);
-      showErrorSnackbar('Failed to fetch securities');
+    // Check minimum character requirement
+    if (searchTerm && searchTerm.length < SECURITY_SEARCH_MIN_CHARS) {
+      setSecurities([]);
       return [];
-    } finally {
-      setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: false }));
     }
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Return a promise that resolves after debounce
+    return new Promise((resolve) => {
+      debounceTimerRef.current = setTimeout(async () => {
+        try {
+          setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: true }));
+          const response = await get(`/security/get-all?name=&pageNo=1&limit=20&search=${encodeURIComponent(searchTerm)}`);
+          const fetchedSecurities = response.securities || [];
+          setSecurities(fetchedSecurities);
+          resolve(fetchedSecurities);
+        } catch (error) {
+          console.error('Error fetching securities:', error);
+          showErrorSnackbar('Failed to fetch securities');
+          resolve([]);
+        } finally {
+          setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: false }));
+        }
+      }, SECURITY_SEARCH_DEBOUNCE_MS);
+    });
   };
 
   // Fetch demat accounts on component mount
   useEffect(() => {
-    fetchDematAccounts();
+    if (userAccount && userAccount._id) {
+      fetchDematAccounts();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userAccount]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, []);
 
   // Add new transaction row
@@ -108,8 +147,7 @@ const AddTransaction = () => {
         buyPrice: '',
         sellPrice: '',
         security: null,
-        deliveryType: 'Delivery',
-        dematAccountId: ''
+        deliveryType: 'Delivery'
       }
     ]);
   };
@@ -137,6 +175,11 @@ const AddTransaction = () => {
 
     if (!transactionDate) {
       showErrorSnackbar('Transaction Date is required');
+      return false;
+    }
+
+    if (!selectedDematAccount) {
+      showErrorSnackbar('Demat Account is required');
       return false;
     }
 
@@ -185,11 +228,6 @@ const AddTransaction = () => {
         showErrorSnackbar(`Transaction ${i + 1}: Delivery type is required`);
         return false;
       }
-
-      if (!t.dematAccountId) {
-        showErrorSnackbar(`Transaction ${i + 1}: Demat Account is required`);
-        return false;
-      }
     }
 
     return true;
@@ -205,21 +243,32 @@ const AddTransaction = () => {
       dispatch(showLoader());
 
       // Prepare payload with common fields
-      const payload = transactions.map((t) => ({
-        date: transactionDate.format('YYYY-MM-DD'),
-        type: t.type,
-        quantity: Number(t.quantity),
-        buyPrice: Number(t.buyPrice),
-        sellPrice: Number(t.sellPrice),
-        securityId: t.security._id,
-        deliveryType: t.deliveryType,
-        referenceNumber: referenceNumber,
-        dematAccountId: t.dematAccountId
-      }));
+      const payload = transactions.map((t) => {
+        // Determine the price based on transaction type and delivery type
+        let price;
+        if (t.deliveryType === 'Intraday') {
+          // For Intraday, use buyPrice (or you could calculate average or use both)
+          price = Number(t.buyPrice);
+        } else {
+          // For Delivery, use the appropriate price based on type
+          price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
+        }
 
-      await post('/transaction/create', payload);
+        return {
+          date: transactionDate.format('YYYY-MM-DD'),
+          type: t.type,
+          quantity: Number(t.quantity),
+          price: price,
+          securityId: t.security._id,
+          deliveryType: t.deliveryType,
+          referenceNumber: referenceNumber,
+          dematAccountId: selectedDematAccount
+        };
+      });
 
-      showSuccessSnackbar(`${transactions.length} transaction(s) added successfully`);
+      const response = await post('/transaction/create', payload);
+
+      showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
 
       // Reset form
       setReferenceNumber('');
@@ -232,8 +281,7 @@ const AddTransaction = () => {
           buyPrice: '',
           sellPrice: '',
           security: null,
-          deliveryType: 'Delivery',
-          dematAccountId: ''
+          deliveryType: 'Delivery'
         }
       ]);
     } catch (error) {
@@ -256,40 +304,59 @@ const AddTransaction = () => {
       <Divider />
       <CardContent>
         {/* Common Fields Section */}
-        <Card variant="outlined" sx={{ mb: 3, bgcolor: 'grey.50' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom color="primary">
-              Common Transaction Details
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DatePicker
-                    label="Transaction Date *"
-                    value={transactionDate}
-                    onChange={(newValue) => setTransactionDate(newValue)}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        required: true
-                      }
-                    }}
-                  />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Reference Number"
-                  value={referenceNumber}
-                  onChange={(e) => setReferenceNumber(e.target.value)}
-                  required
-                  placeholder="e.g., REF001"
-                />
-              </Grid>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Common Transaction Details
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item size={{ xs: 12, md: 4 }}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Demat Account *"
+                value={selectedDematAccount}
+                onChange={(e) => setSelectedDematAccount(e.target.value)}
+                required
+                placeholder="Select Account"
+              >
+                {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
+                {dematAccounts.map((account) => (
+                  <MenuItem key={account._id} value={account._id}>
+                    {account.brokerId?.name || account.accountNumber || account._id}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
-          </CardContent>
-        </Card>
+            <Grid item size={{ xs: 12, md: 4 }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Transaction Date *"
+                  value={transactionDate}
+                  onChange={(newValue) => setTransactionDate(newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      size: 'small'
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Reference Number *"
+                value={referenceNumber}
+                onChange={(e) => setReferenceNumber(e.target.value)}
+                required
+                placeholder="e.g., REF001"
+              />
+            </Grid>
+          </Grid>
+        </Box>
 
         {/* Transactions Table */}
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -303,14 +370,13 @@ const AddTransaction = () => {
           <Table sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'primary.lighter' }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Delivery Type *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Type *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Security *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Demat Account *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Quantity *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Buy Price *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Sell Price *</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>
+                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Delivery Type *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Type *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Security *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Quantity *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Buy Price *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Sell Price *</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', width: '12%' }}>
                   Action
                 </TableCell>
               </TableRow>
@@ -318,7 +384,7 @@ const AddTransaction = () => {
             <TableBody>
               {transactions.map((transaction, index) => (
                 <TableRow key={transaction.id} hover>
-                  <TableCell>
+                  <TableCell sx={{ width: '12%' }}>
                     <TextField
                       select
                       size="small"
@@ -334,7 +400,7 @@ const AddTransaction = () => {
                       ))}
                     </TextField>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '10%' }}>
                     <TextField
                       select
                       size="small"
@@ -351,7 +417,7 @@ const AddTransaction = () => {
                       ))}
                     </TextField>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '30%' }}>
                     <Autocomplete
                       size="small"
                       value={transaction.security}
@@ -360,14 +426,13 @@ const AddTransaction = () => {
                       }}
                       onOpen={async () => {
                         if (securities.length === 0) {
-                          const fetchedSecurities = await fetchSecuritiesForDropdown('', transaction.id);
-                          setSecurities(fetchedSecurities);
+                          // Load initial securities with empty search
+                          await fetchSecuritiesForDropdown('', transaction.id);
                         }
                       }}
                       onInputChange={async (event, newInputValue, reason) => {
                         if (reason === 'input') {
-                          const fetchedSecurities = await fetchSecuritiesForDropdown(newInputValue, transaction.id);
-                          setSecurities(fetchedSecurities);
+                          await fetchSecuritiesForDropdown(newInputValue, transaction.id);
                         }
                       }}
                       options={securities}
@@ -377,7 +442,7 @@ const AddTransaction = () => {
                       renderInput={(params) => (
                         <TextField
                           {...params}
-                          placeholder="Search Security"
+                          placeholder="Type at least 3 characters to search"
                           required
                           InputProps={{
                             ...params.InputProps,
@@ -390,27 +455,10 @@ const AddTransaction = () => {
                           }}
                         />
                       )}
-                      noOptionsText="Type to search securities"
+                      noOptionsText="Type at least 3 characters to search securities"
                     />
                   </TableCell>
-                  <TableCell>
-                    <TextField
-                      select
-                      size="small"
-                      value={transaction.dematAccountId}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'dematAccountId', e.target.value)}
-                      fullWidth
-                      required
-                      placeholder="Select Account"
-                    >
-                      {dematAccounts.map((account) => (
-                        <MenuItem key={account._id} value={account._id}>
-                          {account.accountNumber || account._id}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '12%' }}>
                     <TextField
                       size="small"
                       type="number"
@@ -422,7 +470,7 @@ const AddTransaction = () => {
                       inputProps={{ min: 0, step: 1 }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '12%' }}>
                     <TextField
                       size="small"
                       type="number"
@@ -435,7 +483,7 @@ const AddTransaction = () => {
                       inputProps={{ min: 0, step: 0.01 }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ width: '12%' }}>
                     <TextField
                       size="small"
                       type="number"
@@ -448,7 +496,7 @@ const AddTransaction = () => {
                       inputProps={{ min: 0, step: 0.01 }}
                     />
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ width: '12%' }}>
                     <IconButton
                       color="error"
                       size="small"

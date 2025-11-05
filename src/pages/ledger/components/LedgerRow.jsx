@@ -72,7 +72,6 @@ function LedgerRow({
             {entry.transactionAmount < 0 ? formatCurrency(entry.transactionAmount) : '-'}
           </Typography>
         </TableCell>
-
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>

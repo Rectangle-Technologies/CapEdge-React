@@ -2,7 +2,6 @@ import {
   Card,
   CardHeader,
   Divider,
-  Button,
   Typography,
   Table,
   TableBody,
@@ -20,7 +19,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { Search as SearchIcon, Download as DownloadIcon } from '@mui/icons-material';
+import { Download as DownloadIcon } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -118,7 +117,7 @@ const LedgerTable = ({
                 value={startDate ? dayjs(startDate) : null}
                 format="DD/MM/YYYY"
                 onChange={(newValue) => {
-                  setStartDate(newValue ? newValue.format('YYYY-MM-DD') : '');
+                  setStartDate(newValue);
                 }}
                 slotProps={{
                   textField: {
@@ -134,7 +133,7 @@ const LedgerTable = ({
                 value={endDate ? dayjs(endDate) : null}
                 format="DD/MM/YYYY"
                 onChange={(newValue) => {
-                  setEndDate(newValue ? newValue.format('YYYY-MM-DD') : '');
+                  setEndDate(newValue);
                 }}
                 slotProps={{
                   textField: {
@@ -143,12 +142,6 @@ const LedgerTable = ({
                   }
                 }}
               />
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Button variant="outlined" startIcon={<SearchIcon />} onClick={() => {}} size="small">
-                Search
-              </Button>
             </Grid>
           </Grid>
         </LocalizationProvider>

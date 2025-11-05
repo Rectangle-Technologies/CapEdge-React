@@ -20,12 +20,6 @@ const headCells = [
     label: 'Security'
   },
   {
-    id: 'demat_account',
-    align: 'left',
-    disablePadding: false,
-    label: 'Demat Account'
-  },
-  {
     id: 'date',
     align: 'center',
     disablePadding: false,

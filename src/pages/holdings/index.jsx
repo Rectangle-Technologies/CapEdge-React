@@ -4,10 +4,8 @@ import {
   Card,
   CardHeader,
   TextField,
-  Button,
   Typography,
   Divider,
-  Alert,
   MenuItem,
   Table,
   TableBody,
@@ -16,38 +14,31 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
-  Stack,
   Chip,
   Grid,
-  Collapse
+  Collapse,
+  IconButton
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  Download as DownloadIcon,
   ShowChart as ShowChartIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate, formatDateForFileName } from 'utils/formatDate';
-import { useAppDispatch, useAppSelector } from 'store/hooks';
+import { useDispatch, useSelector } from 'react-redux';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { fetchHoldings, transformHoldingData } from './services/holdingsService';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get } from 'utils/apiUtil';
+import SecurityAutocomplete from 'components/SecurityAutocomplete';
+import ExportToExcelButton from 'components/ExportToExcelButton';
 
 // Main component
 const Holdings = () => {
   // Redux dispatch and selectors
-  const dispatch = useAppDispatch();
-  const userAccount = useAppSelector((state) => state.app.currentUserAccount);
-
-  // State management
-  const [searchSecurity, setSearchSecurity] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertSeverity, setAlertSeverity] = useState('success');
+  const dispatch = useDispatch();
+  const userAccount = useSelector((state) => state.app.currentUserAccount);
   
   // Pagination state
   const [limit] = useState(50);
@@ -65,6 +56,9 @@ const Holdings = () => {
   // Demat account state
   const [dematAccounts, setDematAccounts] = useState([]);
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
+  
+  // Security filter state
+  const [selectedSecurity, setSelectedSecurity] = useState(null);
 
   // Toggle expand/collapse for a security
   const toggleExpand = (securityId) => {
@@ -157,7 +151,8 @@ const Holdings = () => {
     
     dispatch(showLoader());
     try {
-      const data = await fetchHoldings(limit, offset, selectedDematAccount);
+      const securityId = selectedSecurity?._id || null;
+      const data = await fetchHoldings(limit, offset, selectedDematAccount, securityId);
       
       if (data && data.holdings) {
         // Transform API data to component format
@@ -182,119 +177,39 @@ const Holdings = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
 
-  // Load holdings when demat account or pagination changes
+  // Load holdings when demat account, security or pagination changes
   useEffect(() => {
     if (selectedDematAccount) {
       loadHoldings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, limit, offset]);
+  }, [selectedDematAccount, selectedSecurity, limit, offset]);
 
-  // Search function
-  const handleSearch = async () => {
-    setIsSearching(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      if (searchSecurity) {
-        const filtered = holdings.filter((holding) => holding.securityName.toLowerCase().includes(searchSecurity.toLowerCase()));
-        setFilteredHoldings(filtered);
-        setAlertMessage(`Found ${filtered.length} holdings matching "${searchSecurity}"`);
-      } else {
-        setFilteredHoldings(holdings);
-        setAlertMessage('All holdings loaded');
-      }
-      setAlertSeverity('success');
-    } catch {
-      setAlertMessage('Search failed. Please try again.');
-      setAlertSeverity('error');
-    } finally {
-      setIsSearching(false);
-    }
+  // Prepare export data
+  const getExportData = () => {
+    // Flatten all holdings from grouped data
+    const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
+    
+    return allHoldings.map((holding) => ({
+      'Buy Date': formatDate(holding.buyDate),
+      Security: holding.securityName,
+      Type: holding.securityType,
+      Quantity: holding.quantity,
+      'Buy Price': holding.buyPrice.toFixed(2),
+      Investment: holding.totalInvestment.toFixed(2),
+      Broker: holding.broker || 'N/A'
+    }));
   };
-
-  // Export to Excel function
-  const exportToExcel = async () => {
-    dispatch(showLoader());
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Flatten all holdings from grouped data
-      const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
-      
-      const exportData = allHoldings.map((holding) => ({
-        'Buy Date': formatDate(holding.buyDate),
-        Security: holding.securityName,
-        Type: holding.securityType,
-        Quantity: holding.quantity,
-        'Buy Price': holding.buyPrice.toFixed(2),
-        'Current Price': holding.currentPrice.toFixed(2),
-        Investment: holding.totalInvestment.toFixed(2),
-        'Current Value': holding.currentValue.toFixed(2),
-        'Unrealized P&L': holding.unrealizedPnL.toFixed(2),
-        'P&L %': holding.pnlPercentage.toFixed(2),
-        Broker: holding.broker || 'N/A',
-        'Demat Account': holding.dematAccountId || 'N/A'
-      }));
-
-      const headers = Object.keys(exportData[0] || {});
-      const csvContent = [
-        headers.join(','),
-        ...exportData.map((row) =>
-          headers
-            .map((header) => {
-              const value = row[header] || '';
-              return value.toString().includes(',') || value.toString().includes('"') ? `"${value.toString().replace(/"/g, '""')}"` : value;
-            })
-            .join(',')
-        )
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `holdings_${formatDateForFileName()}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setAlertMessage('Holdings exported successfully!');
-      setAlertSeverity('success');
-    } catch (err) {
-      setAlertMessage('Export failed. Please try again.');
-      setAlertSeverity('error');
-      console.error('Export error:', err);
-    } finally {
-      dispatch(hideLoader());
-    }
-  };
-
-  // Auto-hide alert
-  useEffect(() => {
-    if (alertMessage) {
-      const timer = setTimeout(() => {
-        setAlertMessage('');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [alertMessage]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-      {alertMessage && (
-        <Alert severity={alertSeverity} sx={{ mb: 2 }} onClose={() => setAlertMessage('')}>
-          {alertMessage}
-        </Alert>
-      )}
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={6}>
           <Card>
             <Box sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
                   <Typography variant="h6" color="text.secondary">
                     Total Investment
@@ -302,7 +217,7 @@ const Holdings = () => {
                   <Typography variant="h4">{formatCurrency(summary.totalInvestment)}</Typography>
                 </Box>
                 <ShowChartIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-              </Stack>
+              </Box>
             </Box>
           </Card>
         </Grid>
@@ -325,7 +240,7 @@ const Holdings = () => {
           title="Current Holdings"
           subheader="View your unmatched buy transactions and unrealized profit/loss"
           action={
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
               <TextField
                 select
                 size="small"
@@ -347,57 +262,28 @@ const Holdings = () => {
                 ))}
               </TextField>
 
-              <TextField
-                placeholder="Search security..."
-                value={searchSecurity}
-                onChange={(e) => setSearchSecurity(e.target.value)}
-                variant="outlined"
+              <SecurityAutocomplete
+                value={selectedSecurity}
+                onChange={(newValue) => {
+                  setSelectedSecurity(newValue);
+                }}
+                label="Security (Optional)"
                 size="small"
+                required={false}
                 sx={{
-                  minWidth: 250,
+                  minWidth: 300,
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: 'background.paper'
                   }
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
-                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                    </Box>
-                  )
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearch();
-                  }
-                }}
               />
 
-              <Button
-                variant="outlined"
-                startIcon={<SearchIcon />}
-                onClick={handleSearch}
-                disabled={isSearching}
-                size="small"
-                sx={{ minWidth: 100 }}
-              >
-                {isSearching ? 'Searching...' : 'Search'}
-              </Button>
-
-              <IconButton
-                onClick={exportToExcel}
-                color="primary"
-                title="Export to Excel"
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                  borderRadius: 1
-                }}
-              >
-                <DownloadIcon />
-              </IconButton>
-            </Stack>
+              <ExportToExcelButton
+                data={getExportData()}
+                filename={`holdings_${formatDateForFileName()}`}
+                title="Export Holdings to Excel"
+              />
+            </Box>
           }
         />
         <Divider />
@@ -496,9 +382,7 @@ const Holdings = () => {
                 <TableRow>
                   <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
-                      {searchSecurity
-                        ? `No holdings found matching "${searchSecurity}"`
-                        : 'No holdings found. Buy securities to see them here.'}
+                      No holdings found. Buy securities to see them here.
                     </Typography>
                   </TableCell>
                 </TableRow>

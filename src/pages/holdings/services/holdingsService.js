@@ -5,13 +5,17 @@ import { get } from '../../../utils/apiUtil';
  * @param {number} limit - Number of records per page
  * @param {number} offset - Offset for pagination
  * @param {string} dematAccountId - Demat account ID to filter holdings
+ * @param {string} securityId - Optional security ID to filter holdings
  * @returns {Promise} Holdings data with pagination info
  */
-export const fetchHoldings = async (limit = 50, offset = 0, dematAccountId = '') => {
+export const fetchHoldings = async (limit = 50, offset = 0, dematAccountId = '', securityId = null) => {
   try {
     let url = `/holdings/get-all?limit=${limit}&offset=${offset}`;
     if (dematAccountId) {
       url += `&dematAccountId=${dematAccountId}`;
+    }
+    if (securityId) {
+      url += `&securityId=${securityId}`;
     }
     const response = await get(url);
     return response;

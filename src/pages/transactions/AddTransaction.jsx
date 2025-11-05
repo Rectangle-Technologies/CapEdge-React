@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -16,9 +16,7 @@ import {
   Typography,
   CardContent,
   CardHeader,
-  Divider,
-  Autocomplete,
-  CircularProgress
+  Divider
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -32,12 +30,11 @@ import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
+import SecurityAutocomplete from 'components/SecurityAutocomplete';
 
 // Constants
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
-const SECURITY_SEARCH_MIN_CHARS = 3;
-const SECURITY_SEARCH_DEBOUNCE_MS = 750;
 
 const AddTransaction = () => {
   const dispatch = useDispatch();
@@ -51,12 +48,7 @@ const AddTransaction = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
 
   // Dropdown data
-  const [securities, setSecurities] = useState([]);
-  const [securitiesLoading, setSecuritiesLoading] = useState({});
   const [dematAccounts, setDematAccounts] = useState([]);
-
-  // Debounce timer ref for security search
-  const debounceTimerRef = useRef(null);
 
   // Transaction rows
   const [transactions, setTransactions] = useState([
@@ -87,38 +79,6 @@ const AddTransaction = () => {
     }
   };
 
-  const fetchSecuritiesForDropdown = async (searchTerm = '', transactionId) => {
-    // Check minimum character requirement
-    if (searchTerm && searchTerm.length < SECURITY_SEARCH_MIN_CHARS) {
-      setSecurities([]);
-      return [];
-    }
-
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Return a promise that resolves after debounce
-    return new Promise((resolve) => {
-      debounceTimerRef.current = setTimeout(async () => {
-        try {
-          setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: true }));
-          const response = await get(`/security/get-all?name=&pageNo=1&limit=20&search=${encodeURIComponent(searchTerm)}`);
-          const fetchedSecurities = response.securities || [];
-          setSecurities(fetchedSecurities);
-          resolve(fetchedSecurities);
-        } catch (error) {
-          console.error('Error fetching securities:', error);
-          showErrorSnackbar('Failed to fetch securities');
-          resolve([]);
-        } finally {
-          setSecuritiesLoading((prev) => ({ ...prev, [transactionId]: false }));
-        }
-      }, SECURITY_SEARCH_DEBOUNCE_MS);
-    });
-  };
-
   // Fetch demat accounts on component mount
   useEffect(() => {
     if (userAccount && userAccount._id) {
@@ -126,15 +86,6 @@ const AddTransaction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
 
   // Add new transaction row
   const handleAddTransaction = () => {
@@ -418,44 +369,14 @@ const AddTransaction = () => {
                     </TextField>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Autocomplete
-                      size="small"
+                    <SecurityAutocomplete
                       value={transaction.security}
-                      onChange={(event, newValue) => {
+                      onChange={(newValue) => {
                         handleTransactionChange(transaction.id, 'security', newValue);
                       }}
-                      onOpen={async () => {
-                        if (securities.length === 0) {
-                          // Load initial securities with empty search
-                          await fetchSecuritiesForDropdown('', transaction.id);
-                        }
-                      }}
-                      onInputChange={async (event, newInputValue, reason) => {
-                        if (reason === 'input') {
-                          await fetchSecuritiesForDropdown(newInputValue, transaction.id);
-                        }
-                      }}
-                      options={securities}
-                      getOptionLabel={(option) => option.name || ''}
-                      isOptionEqualToValue={(option, value) => option._id === value._id}
-                      loading={securitiesLoading[transaction.id]}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          placeholder="Type at least 3 characters to search"
-                          required
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {securitiesLoading[transaction.id] ? <CircularProgress color="inherit" size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            )
-                          }}
-                        />
-                      )}
-                      noOptionsText="Type at least 3 characters to search securities"
+                      size="small"
+                      required={true}
+                      fullWidth={true}
                     />
                   </TableCell>
                   <TableCell sx={{ width: '12%' }}>

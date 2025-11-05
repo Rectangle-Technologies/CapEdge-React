@@ -20,9 +20,6 @@ import {
   Stack,
   Chip,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
   Collapse
 } from '@mui/material';
 import {
@@ -34,15 +31,17 @@ import {
 } from '@mui/icons-material';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate, formatDateForFileName } from 'utils/formatDate';
-import { useAppDispatch } from 'store/hooks';
+import { useAppDispatch, useAppSelector } from 'store/hooks';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { fetchHoldings, transformHoldingData } from './services/holdingsService';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
+import { get } from 'utils/apiUtil';
 
 // Main component
 const Holdings = () => {
-  // Redux dispatch
+  // Redux dispatch and selectors
   const dispatch = useAppDispatch();
+  const userAccount = useAppSelector((state) => state.app.currentUserAccount);
 
   // State management
   const [searchSecurity, setSearchSecurity] = useState('');
@@ -62,6 +61,10 @@ const Holdings = () => {
 
   // Expanded rows state
   const [expandedSecurities, setExpandedSecurities] = useState({});
+
+  // Demat account state
+  const [dematAccounts, setDematAccounts] = useState([]);
+  const [selectedDematAccount, setSelectedDematAccount] = useState('');
 
   // Toggle expand/collapse for a security
   const toggleExpand = (securityId) => {
@@ -132,11 +135,29 @@ const Holdings = () => {
   const groupedHoldings = groupHoldingsBySecurity(filteredHoldings);
   const summary = calculateSummary(groupedHoldings);
 
+  // Fetch demat accounts
+  const fetchDematAccounts = async () => {
+    try {
+      const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
+      setDematAccounts(response.dematAccounts || []);
+      if (response.dematAccounts && response.dematAccounts.length > 0) {
+        setSelectedDematAccount(response.dematAccounts[0]._id);
+      }
+    } catch (error) {
+      console.error('Error fetching demat accounts:', error);
+      showErrorSnackbar('Failed to fetch demat accounts');
+    }
+  };
+
   // Load holdings from API
   const loadHoldings = async () => {
+    if (!selectedDematAccount) {
+      return;
+    }
+    
     dispatch(showLoader());
     try {
-      const data = await fetchHoldings(limit, offset);
+      const data = await fetchHoldings(limit, offset, selectedDematAccount);
       
       if (data && data.holdings) {
         // Transform API data to component format
@@ -153,11 +174,21 @@ const Holdings = () => {
     }
   };
 
-  // Load holdings on component mount
+  // Fetch demat accounts on component mount
   useEffect(() => {
-    loadHoldings();
+    if (userAccount && userAccount._id) {
+      fetchDematAccounts();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, offset]);
+  }, [userAccount]);
+
+  // Load holdings when demat account or pagination changes
+  useEffect(() => {
+    if (selectedDematAccount) {
+      loadHoldings();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDematAccount, limit, offset]);
 
   // Search function
   const handleSearch = async () => {
@@ -295,6 +326,27 @@ const Holdings = () => {
           subheader="View your unmatched buy transactions and unrealized profit/loss"
           action={
             <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                select
+                size="small"
+                label="Demat Account"
+                value={selectedDematAccount}
+                onChange={(e) => setSelectedDematAccount(e.target.value)}
+                sx={{
+                  minWidth: 200,
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'background.paper'
+                  }
+                }}
+              >
+                {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
+                {dematAccounts.map((account) => (
+                  <MenuItem key={account._id} value={account._id}>
+                    {account.brokerId?.name || account.accountNumber || account._id}
+                  </MenuItem>
+                ))}
+              </TextField>
+
               <TextField
                 placeholder="Search security..."
                 value={searchSecurity}

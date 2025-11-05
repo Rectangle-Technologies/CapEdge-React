@@ -1,11 +1,11 @@
-import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import MainCard from 'components/MainCard';
+import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice';
+import { showErrorSnackbar } from '../../../store/utils';
 import { get } from '../../../utils/apiUtil';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { getTransactionTypeColor } from '../../securities/utils/helpers';
@@ -27,8 +27,8 @@ const TransactionsTable = () => {
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const financialYear = useSelector((state) => state.app.financialYear);
 
-  // Fetch demat accounts
   const fetchDematAccounts = async () => {
+    dispatch(showLoader());
     try {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       setDematAccounts(response.dematAccounts || []);
@@ -37,6 +37,9 @@ const TransactionsTable = () => {
       }
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
+      showErrorSnackbar('Failed to fetch demat accounts');
+    } finally {
+      dispatch(hideLoader());
     }
   };
 
@@ -53,20 +56,18 @@ const TransactionsTable = () => {
       setTotalPages(Math.ceil(data.pagination.total / ITEMS_PER_PAGE) || 1);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      // Keep existing data on error
+      showErrorSnackbar('Failed to fetch transactions');
     } finally {
       dispatch(hideLoader());
     }
   };
 
-  // Fetch demat accounts on component mount
   useEffect(() => {
     if (userAccount && userAccount._id) {
       fetchDematAccounts();
     }
   }, [userAccount]);
 
-  // Fetch transactions when demat account, security or page changes
   useEffect(() => {
     if (selectedDematAccount) {
       fetchTransactions();
@@ -97,7 +98,6 @@ const TransactionsTable = () => {
               <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   select
-                  size="small"
                   label="Demat Account"
                   value={selectedDematAccount}
                   onChange={(e) => {
@@ -143,7 +143,7 @@ const TransactionsTable = () => {
                 '& td, & th': { whiteSpace: 'nowrap' }
               }}
             >
-              <Table aria-labelledby="tableTitle">
+              <Table>
                 <TransactionsTableHead />
                 <TableBody>
                   {transactions.length === 0 ? (
@@ -155,32 +155,37 @@ const TransactionsTable = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((transaction, index) => {
-                      const amount = transaction.quantity * (transaction.price || 0);
+                    transactions.map((transaction) => {
+                      const quantity = transaction.quantity || 0;
+                      const price = transaction.price || 0;
+                      const amount = quantity * price;
+                      const formattedDate = transaction.date 
+                        ? new Date(transaction.date).toLocaleDateString('en-GB')
+                        : '-';
+                      
                       return (
                         <TableRow
                           hover
-                          role="checkbox"
                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           key={transaction._id}
                         >
-                          <TableCell>{transaction._id}</TableCell>
+                          <TableCell>...{transaction._id?.slice(-8) || '-'}</TableCell>
                           <TableCell>{transaction.referenceNumber || '-'}</TableCell>
                           <TableCell>
                             {transaction.securityId?.name || transaction.securityId?.symbol || '-'}
                           </TableCell>
-                          <TableCell align='center'>{new Date(transaction.date).toLocaleDateString('en-GB')}</TableCell>
-                          <TableCell align='center'>
+                          <TableCell align="center">{formattedDate}</TableCell>
+                          <TableCell align="center">
                             <Chip
                               label={transaction.type}
                               color={getTransactionTypeColor(transaction.type)}
                               size="small"
                             />
                           </TableCell>
-                          <TableCell align='center'>{transaction.deliveryType}</TableCell>
-                          <TableCell align='right'>{transaction.quantity}</TableCell>
-                          <TableCell align='right'>{formatCurrency(transaction.price)}</TableCell>
-                          <TableCell align='right'>{formatCurrency(amount)}</TableCell>
+                          <TableCell align="center">{transaction.deliveryType}</TableCell>
+                          <TableCell align="right">{quantity}</TableCell>
+                          <TableCell align="right">{formatCurrency(price)}</TableCell>
+                          <TableCell align="right">{formatCurrency(amount)}</TableCell>
                         </TableRow>
                       )
                     })
@@ -190,13 +195,13 @@ const TransactionsTable = () => {
             </TableContainer>
           </Box>
         </Card>
-        <Box width='100%' sx={{
+        <Box width="100%" sx={{
           mt: 4,
-          display: { xs: 'none', md: 'flex' },
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <Pagination count={totalPages} page={page} onChange={(event, value) => {
+          <Pagination count={totalPages} page={page} onChange={(_, value) => {
             setPage(value);
           }} />
         </Box>

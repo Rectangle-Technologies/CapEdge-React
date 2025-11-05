@@ -256,7 +256,6 @@ const Holdings = () => {
               <TextField
                 select
                 fullWidth
-                size="small"
                 label="Demat Account"
                 value={selectedDematAccount}
                 onChange={(e) => setSelectedDematAccount(e.target.value)}

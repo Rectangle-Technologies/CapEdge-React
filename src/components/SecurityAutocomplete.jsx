@@ -23,7 +23,7 @@ const SecurityAutocomplete = ({
   onChange,
   label = 'Security',
   required = false,
-  size = 'small',
+  size = null,
   disabled = false,
   placeholder = 'Type at least 3 characters to search',
   fullWidth = true,
@@ -76,7 +76,7 @@ const SecurityAutocomplete = ({
 
   return (
     <Autocomplete
-      size={size}
+      {...(size && { size })}
       fullWidth={fullWidth}
       value={value}
       disabled={disabled}

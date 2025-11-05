@@ -195,26 +195,31 @@ const AddTransaction = () => {
 
       // Prepare payload with common fields
       const payload = transactions.map((t) => {
-        // Determine the price based on transaction type and delivery type
-        let price;
-        if (t.deliveryType === 'Intraday') {
-          // For Intraday, use buyPrice (or you could calculate average or use both)
-          price = Number(t.buyPrice);
-        } else {
-          // For Delivery, use the appropriate price based on type
-          price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
-        }
-
-        return {
+        const basePayload = {
           date: transactionDate.format('YYYY-MM-DD'),
           type: t.type,
           quantity: Number(t.quantity),
-          price: price,
           securityId: t.security._id,
           deliveryType: t.deliveryType,
           referenceNumber: referenceNumber,
           dematAccountId: selectedDematAccount
         };
+
+        // For Intraday: include both buyPrice and sellPrice
+        if (t.deliveryType === 'Intraday') {
+          return {
+            ...basePayload,
+            buyPrice: Number(t.buyPrice),
+            sellPrice: Number(t.sellPrice)
+          };
+        } else {
+          // For Delivery: include only price based on transaction type
+          const price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
+          return {
+            ...basePayload,
+            price: price
+          };
+        }
       });
 
       const response = await post('/transaction/create', payload);
@@ -244,7 +249,7 @@ const AddTransaction = () => {
   };
 
   return (
-    <MainCard>
+    <MainCard sx={{ mt: 3 }}>
       <CardHeader
         title={
           <Typography variant="h5" component="div">
@@ -256,16 +261,13 @@ const AddTransaction = () => {
       <CardContent>
         {/* Common Fields Section */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Common Transaction Details
-          </Typography>
           <Grid container spacing={2}>
             <Grid item size={{ xs: 12, md: 4 }}>
               <TextField
                 select
                 fullWidth
                 size="small"
-                label="Demat Account *"
+                label="Demat Account"
                 value={selectedDematAccount}
                 onChange={(e) => setSelectedDematAccount(e.target.value)}
                 required
@@ -282,14 +284,15 @@ const AddTransaction = () => {
             <Grid item size={{ xs: 12, md: 4 }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Transaction Date *"
+                  label="Transaction Date"
                   value={transactionDate}
+                  format='DD/MM/YYYY'
                   onChange={(newValue) => setTransactionDate(newValue)}
                   slotProps={{
                     textField: {
                       fullWidth: true,
                       required: true,
-                      size: 'small'
+                      size: 'small',
                     }
                   }}
                 />
@@ -298,23 +301,18 @@ const AddTransaction = () => {
             <Grid item size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
-                size="small"
-                label="Reference Number *"
+                label="Reference Number"
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
                 required
-                placeholder="e.g., REF001"
               />
             </Grid>
           </Grid>
         </Box>
 
         {/* Transactions Table */}
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="h6">Transaction Details</Typography>
-          <Button variant="contained" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="small">
-            Add Transaction
-          </Button>
         </Box>
 
         <TableContainer component={Paper} variant="outlined">
@@ -434,8 +432,11 @@ const AddTransaction = () => {
         </TableContainer>
 
         {/* Action Buttons */}
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveTransactions} size="large">
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
+            Add Transaction
+          </Button>
+          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveTransactions} size="large" fullWidth>
             Save All Transactions ({transactions.length})
           </Button>
         </Box>

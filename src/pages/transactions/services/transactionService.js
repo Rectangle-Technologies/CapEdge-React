@@ -8,9 +8,9 @@ import { get } from '../../../utils/apiUtil';
  * @param {string} securityId - Optional security ID to filter transactions
  * @returns {Promise} Transaction data with pagination info
  */
-export const getAllTransactions = async (limit = 50, pageNo = 0, dematAccountId = null, securityId = null) => {
+export const getAllTransactions = async (limit = 50, pageNo = 0, dematAccountId = null, securityId = null, financialYear) => {
   try {
-    let url = `/transaction/get-all?limit=${limit}&pageNo=${pageNo}`;
+    let url = `/transaction/get-all?limit=${limit}&pageNo=${pageNo}&financialYearId=${financialYear?._id}`;
     if (dematAccountId) {
       url += `&dematAccountId=${dematAccountId}`;
     }

@@ -1,8 +1,10 @@
-import { Box, Chip, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
+import { Add } from '@mui/icons-material';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice';
 import { get } from '../../../utils/apiUtil';
 import { formatCurrency } from '../../../utils/formatCurrency';
@@ -21,7 +23,9 @@ const TransactionsTable = () => {
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
+  const financialYear = useSelector((state) => state.app.financialYear);
 
   // Fetch demat accounts
   const fetchDematAccounts = async () => {
@@ -44,7 +48,7 @@ const TransactionsTable = () => {
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await getAllTransactions(ITEMS_PER_PAGE, page, selectedDematAccount, securityId);
+      const data = await getAllTransactions(ITEMS_PER_PAGE, page, selectedDematAccount, securityId, financialYear);
       setTransactions(data.transactions || []);
       setTotalPages(Math.ceil(data.pagination.total / ITEMS_PER_PAGE) || 1);
     } catch (error) {
@@ -67,14 +71,30 @@ const TransactionsTable = () => {
     if (selectedDematAccount) {
       fetchTransactions();
     }
-  }, [selectedDematAccount, selectedSecurity, page]);
+  }, [selectedDematAccount, selectedSecurity, page, financialYear]);
 
     return (
       <Grid size={12}>
-        <MainCard content={false}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Card>
+          <CardHeader
+            title="All Transactions"
+            subheader="View and filter all transactions across demat accounts"
+            action={
+              <Button 
+                variant="contained" 
+                startIcon={<Add />} 
+                onClick={() => navigate('/add-transaction')}
+              >
+                Add Transaction
+              </Button>
+            }
+          />
+          <Divider />
+
+          {/* Filters */}
+          <Box sx={{ p: 2, bgcolor: 'background.default' }}>
             <Grid container spacing={2} alignItems="center">
-              <Grid size={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   select
                   size="small"
@@ -85,11 +105,6 @@ const TransactionsTable = () => {
                     setPage(1); // Reset to first page when changing account
                   }}
                   fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper'
-                    }
-                  }}
                 >
                   {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
                   {dematAccounts.map((account) => (
@@ -99,7 +114,7 @@ const TransactionsTable = () => {
                   ))}
                 </TextField>
               </Grid>
-              <Grid size={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SecurityAutocomplete
                   value={selectedSecurity}
                   onChange={(newValue) => {
@@ -110,15 +125,13 @@ const TransactionsTable = () => {
                   size="small"
                   required={false}
                   fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'background.paper'
-                    }
-                  }}
                 />
               </Grid>
             </Grid>
           </Box>
+
+          <Divider />
+
           <Box>
             <TableContainer
               sx={{
@@ -176,7 +189,7 @@ const TransactionsTable = () => {
               </Table>
             </TableContainer>
           </Box>
-        </MainCard>
+        </Card>
         <Box width='100%' sx={{
           mt: 4,
           display: { xs: 'none', md: 'flex' },

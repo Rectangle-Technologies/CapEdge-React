@@ -206,7 +206,7 @@ const Holdings = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -222,7 +222,7 @@ const Holdings = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" color="text.secondary">
@@ -238,21 +238,28 @@ const Holdings = () => {
       <Card>
         <CardHeader
           title="Current Holdings"
-          subheader="View your unmatched buy transactions and unrealized profit/loss"
+          subheader="View all of your holdings as of now"
           action={
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+            <ExportToExcelButton
+              data={getExportData()}
+              filename={`holdings_${formatDateForFileName()}`}
+              title="Export Holdings to Excel"
+            />
+          }
+        />
+        <Divider />
+
+        {/* Filters */}
+        <Box sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, md: 3 }}>
               <TextField
                 select
+                fullWidth
                 size="small"
                 label="Demat Account"
                 value={selectedDematAccount}
                 onChange={(e) => setSelectedDematAccount(e.target.value)}
-                sx={{
-                  minWidth: 200,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'background.paper'
-                  }
-                }}
               >
                 {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
                 {dematAccounts.map((account) => (
@@ -261,7 +268,9 @@ const Holdings = () => {
                   </MenuItem>
                 ))}
               </TextField>
+            </Grid>
 
+            <Grid size={{ xs: 12, md: 3 }}>
               <SecurityAutocomplete
                 value={selectedSecurity}
                 onChange={(newValue) => {
@@ -270,22 +279,12 @@ const Holdings = () => {
                 label="Security (Optional)"
                 size="small"
                 required={false}
-                sx={{
-                  minWidth: 300,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'background.paper'
-                  }
-                }}
+                fullWidth
               />
+            </Grid>
+          </Grid>
+        </Box>
 
-              <ExportToExcelButton
-                data={getExportData()}
-                filename={`holdings_${formatDateForFileName()}`}
-                title="Export Holdings to Excel"
-              />
-            </Box>
-          }
-        />
         <Divider />
 
         <TableContainer component={Paper} sx={{ maxHeight: 600 }}>

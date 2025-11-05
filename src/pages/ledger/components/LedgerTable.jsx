@@ -14,7 +14,11 @@ import {
   IconButton,
   Stack,
   Grid,
-  Box
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { Search as SearchIcon, Download as DownloadIcon } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -30,8 +34,10 @@ const LedgerTable = ({
   setStartDate,
   endDate,
   setEndDate,
-  handleSearch,
-  exportToExcel
+  exportToExcel,
+  selectedDematAccount,
+  setSelectedDematAccount,
+  dematAccounts
 }) => {
   // State to track which row is expanded (only one at a time)
   const [expandedRowId, setExpandedRowId] = useState(null);
@@ -85,6 +91,27 @@ const LedgerTable = ({
       <Box sx={{ p: 2, bgcolor: 'background.default' }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, md: 3 }}>
+              <FormControl fullWidth sx={{ minWidth: 200 }}>
+                <InputLabel>Demat Account</InputLabel>
+                <Select
+                  value={selectedDematAccount?._id || ''}
+                  onChange={(e) => {
+                    const selectedAccount = dematAccounts.find(account => account._id === e.target.value);
+                    setSelectedDematAccount(selectedAccount || null);
+                  }}
+                  label="Demat Account"
+                  fullWidth
+                >
+                  {dematAccounts.length === 0 && (<MenuItem value="">No Demat Accounts</MenuItem>)}
+                  {dematAccounts.map((account) => (
+                    <MenuItem key={account._id} value={account._id}>
+                      {account.brokerId.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <DatePicker
                 label="Start Date"
@@ -96,6 +123,7 @@ const LedgerTable = ({
                 slotProps={{
                   textField: {
                     fullWidth: true,
+                    size: 'small'
                   }
                 }}
               />
@@ -111,13 +139,14 @@ const LedgerTable = ({
                 slotProps={{
                   textField: {
                     fullWidth: true,
+                    size: 'small'
                   }
                 }}
               />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Button variant="outlined" startIcon={<SearchIcon />} onClick={handleSearch} size="small">
+              <Button variant="outlined" startIcon={<SearchIcon />} onClick={() => {}} size="small">
                 Search
               </Button>
             </Grid>
@@ -139,7 +168,10 @@ const LedgerTable = ({
                 <strong>Type</strong>
               </TableCell>
               <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-                <strong>Amount</strong>
+                <strong>Credit</strong>
+              </TableCell>
+              <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
+                <strong>Debit</strong>
               </TableCell>
             </TableRow>
           </TableHead>

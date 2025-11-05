@@ -29,40 +29,11 @@ const Ledger = () => {
   const [totalPages, setTotalPages] = useState(1);
   const ROWS_PER_PAGE = 50;
 
-  // Filtered ledger entries
-  const [filteredEntries, setFilteredEntries] = useState(ledgerEntries);
-
-  // Search function
-  const handleSearch = async () => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      let filtered = [...ledgerEntries];
-
-      // Filter by date range
-      if (startDate) {
-        filtered = filtered.filter((entry) => new Date(entry.date) >= new Date(startDate));
-      }
-      if (endDate) {
-        filtered = filtered.filter((entry) => new Date(entry.date) <= new Date(endDate));
-      }
-
-      // Filter by demat account
-      if (selectedDematAccount !== 'ALL') {
-        filtered = filtered.filter((entry) => entry.dematAccountId === parseInt(selectedDematAccount));
-      }
-
-      setFilteredEntries(filtered);
-    } catch (error) {
-      console.error('Search failed:', error);
-    }
-  };
-
   // Export to Excel function
   const exportToExcel = async () => {
     dispatch(showLoader());
     try {
-      await exportLedgerToExcel(filteredEntries);
+      await exportLedgerToExcel(ledgerEntries);
     } catch (error) {
       console.error('Export failed:', error);
     } finally {
@@ -86,7 +57,7 @@ const Ledger = () => {
   const fetchLedgerEntries = async () => {
     dispatch(showLoader());
     try {
-      const data = await get(`/ledger/get/${selectedDematAccount?._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}`);
+      const data = await get(`/ledger/get/${selectedDematAccount?._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
       setLedgerEntries(data.entries || []);
       setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
     } catch (error) {
@@ -106,37 +77,11 @@ const Ledger = () => {
   }, [financialYear]);
 
   useEffect(() => {
-    if (selectedDematAccount) {
       fetchLedgerEntries();
-    }
-  }, [selectedDematAccount, page]);
+  }, [selectedDematAccount, page, startDate, endDate]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <FormControl fullWidth sx={{ minWidth: 200 }}>
-            <InputLabel>Demat Account</InputLabel>
-            <Select
-              value={selectedDematAccount?._id || ''}
-              onChange={(e) => {
-                const selectedAccount = dematAccounts.find(account => account._id === e.target.value);
-                setSelectedDematAccount(selectedAccount || null);
-              }}
-              label="Demat Account"
-              fullWidth
-            >
-              {dematAccounts.length === 0 && (<MenuItem value="">No Demat Accounts</MenuItem>)}
-              {dematAccounts.map((account) => (
-                <MenuItem key={account._id} value={account._id}>
-                  {account.brokerId.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-      </Grid>
-
       {selectedDematAccount && <Grid container spacing={2} sx={{ mt: 3 }}>
         <Grid size={{ xs: 12, md: 3 }}>
           <Card sx={{ bgcolor: selectedDematAccount.balance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
@@ -165,8 +110,10 @@ const Ledger = () => {
         setStartDate={setStartDate}
         endDate={endDate}
         setEndDate={setEndDate}
-        handleSearch={handleSearch}
         exportToExcel={exportToExcel}
+        selectedDematAccount={selectedDematAccount}
+        setSelectedDematAccount={setSelectedDematAccount}
+        dematAccounts={dematAccounts}
       />
       <Box width='100%' sx={{
         mt: 4,

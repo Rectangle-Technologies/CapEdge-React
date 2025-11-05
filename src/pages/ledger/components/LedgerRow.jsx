@@ -7,6 +7,7 @@ import {
   Chip,
   Collapse,
   IconButton,
+  Tab,
   Table,
   TableBody,
   TableCell,
@@ -21,7 +22,7 @@ import { formatDate } from 'utils/formatDate';
  * Expandable table row component for ledger entries
  * Shows main transaction info and expandable details for trade transactions
  */
-function LedgerRow({ 
+function LedgerRow({
   entry,
   isExpanded,
   onToggleExpand,
@@ -34,9 +35,9 @@ function LedgerRow({
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }} hover>
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
           {hasTradeTransaction && (
-            <IconButton 
-              aria-label="expand row" 
-              size="small" 
+            <IconButton
+              aria-label="expand row"
+              size="small"
               onClick={() => onToggleExpand(entry._id)}
             >
               {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -47,7 +48,7 @@ function LedgerRow({
           {formatDate(entry.date)}
         </TableCell>
         <TableCell sx={{ padding: '8px 16px 8px 16px' }}>
-          <Chip 
+          <Chip
             label={entry.type}
             size="small"
             color={getTransactionColor(entry.type)}
@@ -59,10 +60,19 @@ function LedgerRow({
             fontWeight="bold"
             sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}
           >
-            {entry.transactionAmount >= 0 ? '+' : ''}
-            {formatCurrency(entry.transactionAmount)}
+            {entry.transactionAmount >= 0 ? `+${formatCurrency(entry.transactionAmount)}` : '-'}
           </Typography>
         </TableCell>
+        <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
+          <Typography
+            variant="body2"
+            fontWeight="bold"
+            sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}
+          >
+            {entry.transactionAmount < 0 ? formatCurrency(entry.transactionAmount) : '-'}
+          </Typography>
+        </TableCell>
+
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>

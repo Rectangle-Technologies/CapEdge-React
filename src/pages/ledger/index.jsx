@@ -1,4 +1,4 @@
-import { Box, FormControl, Grid, InputLabel, MenuItem, Pagination, Select } from '@mui/material';
+import { Box, Card, FormControl, Grid, InputLabel, MenuItem, Pagination, Select, Stack, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -7,6 +7,8 @@ import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { get } from '../../utils/apiUtil';
 import LedgerTable from './components/LedgerTable';
 import { exportToExcel as exportLedgerToExcel } from './utils/exportToExcel';
+import { AccountBalance } from '@mui/icons-material';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 // Main component
 const Ledger = () => {
@@ -134,6 +136,27 @@ const Ledger = () => {
           </FormControl>
         </Grid>
       </Grid>
+
+      {selectedDematAccount && <Grid container spacing={2} sx={{ mt: 3 }}>
+        <Grid size={{ xs: 12, md: 3 }}>
+          <Card sx={{ bgcolor: selectedDematAccount.balance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
+            <Box sx={{ p: 2 }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h6" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                    Balance
+                  </Typography>
+                  <Typography variant="h4" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                    {formatCurrency(selectedDematAccount.balance)}
+                  </Typography>
+                </Box>
+                <AccountBalance sx={{ fontSize: 40, color: selectedDematAccount.balance >= 0 ? 'primary.dark' : 'warning.dark' }} />
+              </Stack>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+      }
 
       {/* Main Table */}
       <LedgerTable

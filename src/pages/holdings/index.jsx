@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -24,67 +24,45 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
+import { get } from 'utils/apiUtil';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate, formatDateForFileName } from 'utils/formatDate';
-import { useDispatch, useSelector } from 'react-redux';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
+import { showErrorSnackbar } from 'store/utils';
 import { fetchHoldings, transformHoldingData } from './services/holdingsService';
-import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
-import { get } from 'utils/apiUtil';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import ExportToExcelButton from 'components/ExportToExcelButton';
 
-// Main component
+const HOLDINGS_LIMIT = 50;
+
 const Holdings = () => {
-  // Redux dispatch and selectors
   const dispatch = useDispatch();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   
-  // Pagination state
-  const [limit] = useState(50);
-  const [offset] = useState(0);
-
-  // Holdings data from API
   const [holdings, setHoldings] = useState([]);
-
-  // Filtered holdings
-  const [filteredHoldings, setFilteredHoldings] = useState([]);
-
-  // Expanded rows state
-  const [expandedSecurities, setExpandedSecurities] = useState({});
-
-  // Demat account state
+  const [expandedSecurity, setExpandedSecurity] = useState(null);
   const [dematAccounts, setDematAccounts] = useState([]);
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
-  
-  // Security filter state
   const [selectedSecurity, setSelectedSecurity] = useState(null);
 
-  // Toggle expand/collapse for a security
   const toggleExpand = (securityId) => {
-    setExpandedSecurities((prev) => ({
-      ...prev,
-      [securityId]: !prev[securityId]
-    }));
+    setExpandedSecurity((prev) => (prev === securityId ? null : securityId));
   };
 
-  // Group holdings by security
   const groupHoldingsBySecurity = (holdingsData) => {
     const grouped = {};
     
     holdingsData.forEach((holding) => {
       const key = holding.securityId;
+      
       if (!grouped[key]) {
         grouped[key] = {
           securityId: key,
           securityName: holding.securityName,
           securityType: holding.securityType,
           totalQuantity: 0,
-          avgBuyPrice: 0,
           totalInvestment: 0,
-          currentValue: 0,
-          unrealizedPnL: 0,
-          pnlPercentage: 0,
           holdings: []
         };
       }
@@ -92,50 +70,34 @@ const Holdings = () => {
       grouped[key].holdings.push(holding);
       grouped[key].totalQuantity += holding.quantity;
       grouped[key].totalInvestment += holding.totalInvestment;
-      grouped[key].currentValue += holding.currentValue;
     });
 
-    // Calculate averages and P&L for each group
-    Object.keys(grouped).forEach((key) => {
-      const group = grouped[key];
-      group.avgBuyPrice = group.totalInvestment / group.totalQuantity;
-      group.unrealizedPnL = group.currentValue - group.totalInvestment;
-      group.pnlPercentage = group.totalInvestment > 0 ? (group.unrealizedPnL / group.totalInvestment) * 100 : 0;
+    // Calculate average buy price for each group
+    Object.values(grouped).forEach((group) => {
+      group.avgBuyPrice = group.totalQuantity > 0 ? group.totalInvestment / group.totalQuantity : 0;
     });
 
     return Object.values(grouped);
   };
 
-  // Calculate summary statistics from grouped holdings
   const calculateSummary = (groupedHoldings) => {
-    const totalInvestment = groupedHoldings.reduce((sum, r) => sum + r.totalInvestment, 0);
-    const currentValue = groupedHoldings.reduce((sum, r) => sum + r.currentValue, 0);
-    const unrealizedPnL = currentValue - totalInvestment;
-    const pnlPercentage = totalInvestment > 0 ? (unrealizedPnL / totalInvestment) * 100 : 0;
-    const profitableHoldings = groupedHoldings.filter((r) => r.unrealizedPnL > 0).length;
-    const losingHoldings = groupedHoldings.filter((r) => r.unrealizedPnL < 0).length;
+    const totalInvestment = groupedHoldings.reduce((sum, group) => sum + group.totalInvestment, 0);
+    const totalHoldings = groupedHoldings.length;
 
-    return {
-      totalInvestment,
-      currentValue,
-      unrealizedPnL,
-      pnlPercentage,
-      profitableHoldings,
-      losingHoldings,
-      totalHoldings: groupedHoldings.length
-    };
+    return { totalInvestment, totalHoldings };
   };
 
-  const groupedHoldings = groupHoldingsBySecurity(filteredHoldings);
+  const groupedHoldings = groupHoldingsBySecurity(holdings);
   const summary = calculateSummary(groupedHoldings);
 
-  // Fetch demat accounts
   const fetchDematAccounts = async () => {
     try {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
-      setDematAccounts(response.dematAccounts || []);
-      if (response.dematAccounts && response.dematAccounts.length > 0) {
-        setSelectedDematAccount(response.dematAccounts[0]._id);
+      const accounts = response.dematAccounts || [];
+      
+      setDematAccounts(accounts);
+      if (accounts.length > 0) {
+        setSelectedDematAccount(accounts[0]._id);
       }
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
@@ -143,24 +105,17 @@ const Holdings = () => {
     }
   };
 
-  // Load holdings from API
   const loadHoldings = async () => {
-    if (!selectedDematAccount) {
-      return;
-    }
+    if (!selectedDematAccount) return;
     
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await fetchHoldings(limit, offset, selectedDematAccount, securityId);
+      const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId);
       
-      if (data && data.holdings) {
-        // Transform API data to component format
+      if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
-        setHoldings(transformedHoldings);
-        setFilteredHoldings(transformedHoldings);
-        
-        showSuccessSnackbar('Holdings loaded successfully');
+        setHoldings(transformedHoldings);      
       }
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
@@ -169,25 +124,21 @@ const Holdings = () => {
     }
   };
 
-  // Fetch demat accounts on component mount
   useEffect(() => {
-    if (userAccount && userAccount._id) {
+    if (userAccount?._id) {
       fetchDematAccounts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
 
-  // Load holdings when demat account, security or pagination changes
   useEffect(() => {
     if (selectedDematAccount) {
       loadHoldings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity, limit, offset]);
+  }, [selectedDematAccount, selectedSecurity]);
 
-  // Prepare export data
   const getExportData = () => {
-    // Flatten all holdings from grouped data
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
     
     return allHoldings.map((holding) => ({
@@ -203,13 +154,12 @@ const Holdings = () => {
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-
       {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 6 }}>
           <Card>
             <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box>
                   <Typography variant="h6" color="text.secondary">
                     Total Investment
@@ -260,21 +210,22 @@ const Holdings = () => {
                 value={selectedDematAccount}
                 onChange={(e) => setSelectedDematAccount(e.target.value)}
               >
-                {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
-                {dematAccounts.map((account) => (
-                  <MenuItem key={account._id} value={account._id}>
-                    {account.brokerId?.name || account.accountNumber || account._id}
-                  </MenuItem>
-                ))}
+                {dematAccounts.length === 0 ? (
+                  <MenuItem value="">No Demat Accounts</MenuItem>
+                ) : (
+                  dematAccounts.map((account) => (
+                    <MenuItem key={account._id} value={account._id}>
+                      {account.brokerId?.name || account.accountNumber || account._id}
+                    </MenuItem>
+                  ))
+                )}
               </TextField>
             </Grid>
 
             <Grid size={{ xs: 12, md: 3 }}>
               <SecurityAutocomplete
                 value={selectedSecurity}
-                onChange={(newValue) => {
-                  setSelectedSecurity(newValue);
-                }}
+                onChange={setSelectedSecurity}
                 label="Security (Optional)"
                 size="small"
                 required={false}
@@ -309,14 +260,22 @@ const Holdings = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {groupedHoldings.length > 0 ? (
+              {groupedHoldings.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" color="textSecondary">
+                      No holdings found. Buy securities to see them here.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
                 groupedHoldings.map((group) => (
-                  <>
+                  <React.Fragment key={group.securityId}>
                     {/* Main row - Aggregated by security */}
-                    <TableRow key={group.securityId} hover sx={{ '& > *': { borderBottom: 'unset' } }}>
+                    <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
                       <TableCell>
                         <IconButton size="small" onClick={() => toggleExpand(group.securityId)}>
-                          {expandedSecurities[group.securityId] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                          {expandedSecurity === group.securityId ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                         </IconButton>
                       </TableCell>
                       <TableCell>
@@ -343,7 +302,7 @@ const Holdings = () => {
                     {/* Expanded rows - Individual holdings */}
                     <TableRow>
                       <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                        <Collapse in={expandedSecurities[group.securityId]} timeout="auto" unmountOnExit>
+                        <Collapse in={expandedSecurity === group.securityId} timeout="auto" unmountOnExit>
                           <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>
                               Individual Holdings ({group.holdings.length})
@@ -359,8 +318,8 @@ const Holdings = () => {
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {group.holdings.map((holding, index) => (
-                                  <TableRow key={`${holding.id}-${index}`}>
+                                {group.holdings.map((holding) => (
+                                  <TableRow key={holding.id}>
                                     <TableCell>{formatDate(holding.buyDate)}</TableCell>
                                     <TableCell>{holding.broker || 'N/A'}</TableCell>
                                     <TableCell align="right">{holding.quantity}</TableCell>
@@ -374,16 +333,8 @@ const Holdings = () => {
                         </Collapse>
                       </TableCell>
                     </TableRow>
-                  </>
+                  </React.Fragment>
                 ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
-                    <Typography variant="body1" color="textSecondary">
-                      No holdings found. Buy securities to see them here.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
               )}
             </TableBody>
           </Table>

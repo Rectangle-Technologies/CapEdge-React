@@ -1,25 +1,21 @@
-import { Box, Card, FormControl, Grid, InputLabel, MenuItem, Pagination, Select, Stack, Typography } from '@mui/material';
+import { AccountBalance } from '@mui/icons-material';
+import { Box, Card, Grid, Pagination, Stack, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'store/hooks';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
+import { showErrorSnackbar } from 'store/utils';
 import { get } from '../../utils/apiUtil';
+import { formatCurrency } from '../../utils/formatCurrency';
 import LedgerTable from './components/LedgerTable';
 import { exportToExcel as exportLedgerToExcel } from './utils/exportToExcel';
-import { AccountBalance } from '@mui/icons-material';
-import { formatCurrency } from '../../utils/formatCurrency';
 
-// Main component
 const Ledger = () => {
-  // Redux dispatch
   const dispatch = useAppDispatch();
-
-  // Redux state
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const financialYear = useSelector((state) => state.app.financialYear);
 
-  // State management
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selectedDematAccount, setSelectedDematAccount] = useState(null);
@@ -27,58 +23,74 @@ const Ledger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const ROWS_PER_PAGE = 50;
+  const ROWS_PER_PAGE = 5;
 
-  // Export to Excel function
   const exportToExcel = async () => {
     dispatch(showLoader());
     try {
       await exportLedgerToExcel(ledgerEntries);
     } catch (error) {
+      showErrorSnackbar('Export failed. Please try again.');
       console.error('Export failed:', error);
     } finally {
       dispatch(hideLoader());
     }
   };
 
-  const fetchDematAccounts = async () => {
-    dispatch(showLoader());
-    try {
-      const data = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
-      setDematAccounts(data.dematAccounts || []);
-      setSelectedDematAccount(data.dematAccounts.length > 0 ? data.dematAccounts[0] : null);
-    } catch (error) {
-      console.error('Error fetching demat accounts:', error);
-    } finally {
-      dispatch(hideLoader());
-    }
-  };
-
-  const fetchLedgerEntries = async () => {
-    dispatch(showLoader());
-    try {
-      const data = await get(`/ledger/get/${selectedDematAccount?._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
-      setLedgerEntries(data.entries || []);
-      setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
-    } catch (error) {
-      console.error('Error fetching ledger entries:', error);
-    } finally {
-      dispatch(hideLoader());
-    }
-  }
-
   useEffect(() => {
+    const fetchDematAccounts = async () => {
+      if (!userAccount?._id) {
+        return;
+      }
+
+      dispatch(showLoader());
+      try {
+        const data = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
+        setDematAccounts(data.dematAccounts || []);
+        setSelectedDematAccount(data.dematAccounts.length > 0 ? data.dematAccounts[0] : null);
+      } catch (error) {
+        showErrorSnackbar(error.message || 'Failed to fetch demat accounts. Please try again.');
+        console.error('Error fetching demat accounts:', error);
+      } finally {
+        dispatch(hideLoader());
+      }
+    };
+
     fetchDematAccounts();
   }, [userAccount]);
 
   useEffect(() => {
-    setStartDate(dayjs(financialYear.startDate.split('T')[0]));
-    setEndDate(dayjs(financialYear.endDate.split('T')[0]));
+    if (financialYear?.startDate && financialYear?.endDate) {
+      setStartDate(dayjs(financialYear.startDate.split('T')[0]));
+      setEndDate(dayjs(financialYear.endDate.split('T')[0]));
+    }
   }, [financialYear]);
 
   useEffect(() => {
-      fetchLedgerEntries();
-  }, [selectedDematAccount, page, startDate, endDate]);
+    setPage(1);
+  }, [selectedDematAccount?._id, startDate, endDate]);
+
+  useEffect(() => {
+    const fetchLedgerEntries = async () => {
+      if (!selectedDematAccount || !startDate || !endDate || !startDate.isValid() || !endDate.isValid()) {
+        return;
+      }
+
+      dispatch(showLoader());
+      try {
+        const data = await get(`/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
+        setLedgerEntries(data.entries || []);
+        setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
+      } catch (error) {
+        showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
+        console.error('Error fetching ledger entries:', error);
+      } finally {
+        dispatch(hideLoader());
+      }
+    };
+
+    fetchLedgerEntries();
+  }, [selectedDematAccount, startDate, endDate, page]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -103,7 +115,6 @@ const Ledger = () => {
       </Grid>
       }
 
-      {/* Main Table */}
       <LedgerTable
         ledgerEntries={ledgerEntries}
         startDate={startDate}
@@ -121,7 +132,7 @@ const Ledger = () => {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Pagination count={totalPages} onChange={(event, value) => setPage(value)} />
+        <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
     </Box>
   );

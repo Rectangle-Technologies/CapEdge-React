@@ -121,6 +121,11 @@ const BrokerManagement = () => {
     searchBrokers();
   }, [page]);
 
+  // Reset page to 1 when search term changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchName]);
+
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       <Card>
@@ -151,7 +156,7 @@ const BrokerManagement = () => {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Pagination count={totalPages} onChange={(event, value) => setPage(value)} />
+        <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
 
       <BrokerDialog

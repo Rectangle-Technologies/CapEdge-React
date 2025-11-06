@@ -43,7 +43,7 @@ export const post = async (url, data = null) => {
   try {
     const fullUrl = `${BASE_URL}${url}`;
     const response = await axios.post(fullUrl, data, buildConfig());
-    return response.data;
+    return response.data.data;
   } catch (error) {
     throw handleApiError(error);
   }
@@ -54,7 +54,7 @@ export const put = async (url, data = null) => {
   try {
     const fullUrl = `${BASE_URL}${url}`;
     const response = await axios.put(fullUrl, data, buildConfig());
-    return response.data;
+    return response.data.data;
   } catch (error) {
     throw handleApiError(error);
   }
@@ -65,7 +65,7 @@ export const del = async (url) => {
   try {
     const fullUrl = `${BASE_URL}${url}`;
     const response = await axios.delete(fullUrl, buildConfig());
-    return response.data;
+    return response.data.data;
   } catch (error) {
     throw handleApiError(error);
   }

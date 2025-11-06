@@ -23,7 +23,7 @@ const Ledger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const ROWS_PER_PAGE = 5;
+  const ROWS_PER_PAGE = 50;
 
   const exportToExcel = async () => {
     dispatch(showLoader());
@@ -59,6 +59,24 @@ const Ledger = () => {
     fetchDematAccounts();
   }, [userAccount]);
 
+  const fetchLedgerEntries = async () => {
+    if (!selectedDematAccount || !startDate || !endDate || !startDate.isValid() || !endDate.isValid()) {
+      return;
+    }
+
+    dispatch(showLoader());
+    try {
+      const data = await get(`/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
+      setLedgerEntries(data.entries || []);
+      setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
+    } catch (error) {
+      showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
+      console.error('Error fetching ledger entries:', error);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   useEffect(() => {
     if (financialYear?.startDate && financialYear?.endDate) {
       setStartDate(dayjs(financialYear.startDate.split('T')[0]));
@@ -71,24 +89,6 @@ const Ledger = () => {
   }, [selectedDematAccount?._id, startDate, endDate]);
 
   useEffect(() => {
-    const fetchLedgerEntries = async () => {
-      if (!selectedDematAccount || !startDate || !endDate || !startDate.isValid() || !endDate.isValid()) {
-        return;
-      }
-
-      dispatch(showLoader());
-      try {
-        const data = await get(`/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
-        setLedgerEntries(data.entries || []);
-        setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
-      } catch (error) {
-        showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
-        console.error('Error fetching ledger entries:', error);
-      } finally {
-        dispatch(hideLoader());
-      }
-    };
-
     fetchLedgerEntries();
   }, [selectedDematAccount, startDate, endDate, page]);
 
@@ -125,6 +125,7 @@ const Ledger = () => {
         selectedDematAccount={selectedDematAccount}
         setSelectedDematAccount={setSelectedDematAccount}
         dematAccounts={dematAccounts}
+        fetchLedgerEntries={fetchLedgerEntries}
       />
       <Box width='100%' sx={{
         mt: 4,

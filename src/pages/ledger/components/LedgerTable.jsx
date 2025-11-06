@@ -38,15 +38,12 @@ const LedgerTable = ({
   setSelectedDematAccount,
   dematAccounts
 }) => {
-  // State to track which row is expanded (only one at a time)
   const [expandedRowId, setExpandedRowId] = useState(null);
 
-  // Handle row toggle - close current if same row, otherwise open new row
   const handleRowToggle = (entryId) => {
     setExpandedRowId(expandedRowId === entryId ? null : entryId);
   };
 
-  // Get transaction type color
   const getTransactionColor = (type) => {
     switch (type) {
       case 'BUY':
@@ -86,7 +83,6 @@ const LedgerTable = ({
       />
       <Divider />
 
-      {/* Filters */}
       <Box sx={{ p: 2, bgcolor: 'background.default' }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Grid container spacing={2} alignItems="center">
@@ -181,7 +177,7 @@ const LedgerTable = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     No ledger entries found. Adjust filters or check back later.
                   </Typography>

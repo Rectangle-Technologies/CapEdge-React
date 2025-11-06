@@ -7,7 +7,6 @@ import {
   Chip,
   Collapse,
   IconButton,
-  Tab,
   Table,
   TableBody,
   TableCell,
@@ -18,17 +17,13 @@ import {
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 
-/**
- * Expandable table row component for ledger entries
- * Shows main transaction info and expandable details for trade transactions
- */
 function LedgerRow({
   entry,
   isExpanded,
   onToggleExpand,
   getTransactionColor
 }) {
-  const hasTradeTransaction = !!entry.tradeTransactionId._id;
+  const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
 
   return (
     <>
@@ -69,7 +64,7 @@ function LedgerRow({
             fontWeight="bold"
             sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}
           >
-            {entry.transactionAmount < 0 ? formatCurrency(entry.transactionAmount) : '-'}
+            {entry.transactionAmount < 0 ? `-${formatCurrency(Math.abs(entry.transactionAmount))}` : '-'}
           </Typography>
         </TableCell>
       </TableRow>
@@ -102,17 +97,17 @@ function LedgerRow({
                     <TableRow>
                       <TableCell sx={{ padding: '8px 16px' }}>
                         <Typography variant="body2" fontFamily="monospace">
-                          {entry.tradeTransactionId._id}
+                          {entry.tradeTransactionId?._id || '-'}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ padding: '8px 16px' }}>
-                        {entry.tradeTransactionId.securityName}
+                        {entry.tradeTransactionId?.securityName || '-'}
                       </TableCell>
                       <TableCell align="right" sx={{ padding: '8px 16px' }}>
-                        {entry.tradeTransactionId.quantity}
+                        {entry.tradeTransactionId?.quantity || '-'}
                       </TableCell>
                       <TableCell align="right" sx={{ padding: '8px 16px' }}>
-                        {formatCurrency(entry.tradeTransactionId.price)}
+                        {entry.tradeTransactionId?.price ? formatCurrency(entry.tradeTransactionId.price) : '-'}
                       </TableCell>
                     </TableRow>
                   </TableBody>

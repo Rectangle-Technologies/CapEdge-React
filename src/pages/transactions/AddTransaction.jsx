@@ -32,28 +32,20 @@ import { get, post } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 
-// Constants
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
 
 const AddTransaction = () => {
   const dispatch = useDispatch();
-  
-  // Get userAccount from Redux
   const userAccount = useSelector((state) => state.app.currentUserAccount);
 
-  // Common fields (shared across all transactions)
   const [transactionDate, setTransactionDate] = useState(dayjs());
   const [referenceNumber, setReferenceNumber] = useState('');
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
-
-  // Dropdown data
   const [dematAccounts, setDematAccounts] = useState([]);
-
-  // Transaction rows
   const [transactions, setTransactions] = useState([
     {
-      id: Date.now(),
+      id: 1,
       type: 'BUY',
       quantity: '',
       buyPrice: '',
@@ -62,6 +54,7 @@ const AddTransaction = () => {
       deliveryType: 'Delivery'
     }
   ]);
+  const [nextId, setNextId] = useState(2);
 
   const fetchDematAccounts = async () => {
     try {
@@ -79,7 +72,6 @@ const AddTransaction = () => {
     }
   };
 
-  // Fetch demat accounts on component mount
   useEffect(() => {
     if (userAccount && userAccount._id) {
       fetchDematAccounts();
@@ -87,12 +79,11 @@ const AddTransaction = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
 
-  // Add new transaction row
   const handleAddTransaction = () => {
     setTransactions([
       ...transactions,
       {
-        id: Date.now(),
+        id: nextId,
         type: 'BUY',
         quantity: '',
         buyPrice: '',
@@ -101,9 +92,9 @@ const AddTransaction = () => {
         deliveryType: 'Delivery'
       }
     ]);
+    setNextId(nextId + 1);
   };
 
-  // Remove transaction row
   const handleRemoveTransaction = (id) => {
     if (transactions.length === 1) {
       showErrorSnackbar('At least one transaction is required');
@@ -112,12 +103,10 @@ const AddTransaction = () => {
     setTransactions(transactions.filter((t) => t.id !== id));
   };
 
-  // Update transaction field
   const handleTransactionChange = (id, field, value) => {
     setTransactions(transactions.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
   };
 
-  // Validate transactions
   const validateTransactions = () => {
     if (!referenceNumber.trim()) {
       showErrorSnackbar('Reference Number is required');
@@ -184,7 +173,6 @@ const AddTransaction = () => {
     return true;
   };
 
-  // Save all transactions
   const handleSaveTransactions = async () => {
     if (!validateTransactions()) {
       return;
@@ -193,7 +181,6 @@ const AddTransaction = () => {
     try {
       dispatch(showLoader());
 
-      // Prepare payload with common fields
       const payload = transactions.map((t) => {
         const basePayload = {
           date: transactionDate.format('YYYY-MM-DD'),
@@ -205,7 +192,6 @@ const AddTransaction = () => {
           dematAccountId: selectedDematAccount
         };
 
-        // For Intraday: include both buyPrice and sellPrice
         if (t.deliveryType === 'Intraday') {
           return {
             ...basePayload,
@@ -213,7 +199,6 @@ const AddTransaction = () => {
             sellPrice: Number(t.sellPrice)
           };
         } else {
-          // For Delivery: include only price based on transaction type
           const price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
           return {
             ...basePayload,
@@ -226,12 +211,11 @@ const AddTransaction = () => {
 
       showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
 
-      // Reset form
       setReferenceNumber('');
       setTransactionDate(dayjs());
       setTransactions([
         {
-          id: Date.now(),
+          id: 1,
           type: 'BUY',
           quantity: '',
           buyPrice: '',
@@ -240,6 +224,7 @@ const AddTransaction = () => {
           deliveryType: 'Delivery'
         }
       ]);
+      setNextId(2);
     } catch (error) {
       console.error('Error saving transactions:', error);
       showErrorSnackbar(error.message || 'Failed to save transactions');
@@ -259,7 +244,6 @@ const AddTransaction = () => {
       />
       <Divider />
       <CardContent>
-        {/* Common Fields Section */}
         <Box sx={{ mb: 3 }}>
           <Grid container spacing={2}>
             <Grid item size={{ xs: 12, md: 4 }}>
@@ -310,7 +294,6 @@ const AddTransaction = () => {
           </Grid>
         </Box>
 
-        {/* Transactions Table */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6">Transaction Details</Typography>
         </Box>
@@ -319,21 +302,21 @@ const AddTransaction = () => {
           <Table sx={{ minWidth: 1200 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'primary.lighter' }}>
-                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Delivery Type *</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '14%' }}>Delivery Type *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Type *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Security *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Quantity *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Buy Price *</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Sell Price *</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '12%' }}>
+                <TableCell align="center" sx={{ fontWeight: 'bold', width: '10%' }}>
                   Action
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {transactions.map((transaction, index) => (
+              {transactions.map((transaction) => (
                 <TableRow key={transaction.id} hover>
-                  <TableCell sx={{ width: '12%' }}>
+                  <TableCell sx={{ width: '14%' }}>
                     <TextField
                       select
                       size="small"
@@ -415,7 +398,7 @@ const AddTransaction = () => {
                       inputProps={{ min: 0, step: 0.01 }}
                     />
                   </TableCell>
-                  <TableCell align="center" sx={{ width: '12%' }}>
+                  <TableCell align="center" sx={{ width: '10%' }}>
                     <IconButton
                       color="error"
                       size="small"
@@ -431,7 +414,6 @@ const AddTransaction = () => {
           </Table>
         </TableContainer>
 
-        {/* Action Buttons */}
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
             Add Transaction

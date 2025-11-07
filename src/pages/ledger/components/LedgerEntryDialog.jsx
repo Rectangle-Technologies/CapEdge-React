@@ -35,13 +35,9 @@ const LedgerEntryDialog = ({
                                     label="Date"
                                     value={formik.values.date}
                                     format="DD/MM/YYYY"
-                                    onChange={(value) => {
-                                        formik.setFieldValue('date', value);
-                                        formik.setFieldTouched('date', true, false);
-                                    }}
+                                    onChange={(value) => formik.setFieldValue('date', value)}
                                     slotProps={{
                                         textField: {
-                                            name: 'date',
                                             fullWidth: true,
                                             onBlur: () => formik.setFieldTouched('date', true),
                                             error: formik.touched.date && Boolean(formik.errors.date),

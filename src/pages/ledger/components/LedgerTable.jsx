@@ -1,4 +1,4 @@
-import { Add, Balance, Download as DownloadIcon } from '@mui/icons-material';
+import { Add, Download as DownloadIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -32,7 +32,7 @@ import * as yup from 'yup';
 import { post } from '../../../utils/apiUtil';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../../store/utils';
 import { useDispatch } from 'react-redux';
-import { showLoader } from '../../../store/slices/loaderSlice';
+import { showLoader, hideLoader } from '../../../store/slices/loaderSlice';
 
 const LedgerTable = ({
   ledgerEntries,
@@ -75,12 +75,13 @@ const LedgerTable = ({
     onSubmit: async (values, { resetForm }) => {
       dispatch(showLoader());
       try {
-        if (values.entryType === 'DEBIT') {
-          values.transactionAmount = -Math.abs(values.transactionAmount);
-        }
+        const transactionAmount = values.entryType === 'DEBIT' 
+          ? -Math.abs(values.transactionAmount)
+          : values.transactionAmount;
+
         const data = await post('/ledger/add', {
           date: values.date.format('YYYY-MM-DD'),
-          transactionAmount: values.transactionAmount,
+          transactionAmount: transactionAmount,
           dematAccountId: selectedDematAccount._id
         });
         // After successful submission:

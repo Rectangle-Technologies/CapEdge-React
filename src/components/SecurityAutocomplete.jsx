@@ -3,7 +3,7 @@ import { Autocomplete, TextField, CircularProgress } from '@mui/material';
 import { get } from '../utils/apiUtil';
 import { showErrorSnackbar } from '../store/utils';
 
-const SECURITY_SEARCH_MIN_CHARS = 3;
+const SECURITY_SEARCH_MIN_CHARS = 1;
 const SECURITY_SEARCH_DEBOUNCE_MS = 500;
 
 /**
@@ -25,7 +25,7 @@ const SecurityAutocomplete = ({
   required = false,
   size = null,
   disabled = false,
-  placeholder = 'Type at least 3 characters to search',
+  placeholder = `Type at least ${SECURITY_SEARCH_MIN_CHARS} character${SECURITY_SEARCH_MIN_CHARS > 1 ? 's' : ''} to search securities`,
   fullWidth = true,
   ...otherProps
 }) => {
@@ -33,11 +33,11 @@ const SecurityAutocomplete = ({
   const [loading, setLoading] = useState(false);
   const debounceTimerRef = useRef(null);
 
-  const fetchSecurities = async (searchTerm = '') => {
+  const fetchSecurities = (searchTerm = '') => {
     // Check minimum character requirement
     if (searchTerm && searchTerm.length < SECURITY_SEARCH_MIN_CHARS) {
       setSecurities([]);
-      return [];
+      return;
     }
 
     // Clear existing timer
@@ -45,24 +45,20 @@ const SecurityAutocomplete = ({
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Return a promise that resolves after debounce
-    return new Promise((resolve) => {
-      debounceTimerRef.current = setTimeout(async () => {
-        try {
-          setLoading(true);
-          const response = await get(`/security/get-all?name=&pageNo=1&limit=20&search=${encodeURIComponent(searchTerm)}`);
-          const fetchedSecurities = response.securities || [];
-          setSecurities(fetchedSecurities);
-          resolve(fetchedSecurities);
-        } catch (error) {
-          console.error('Error fetching securities:', error);
-          showErrorSnackbar('Failed to fetch securities');
-          resolve([]);
-        } finally {
-          setLoading(false);
-        }
-      }, SECURITY_SEARCH_DEBOUNCE_MS);
-    });
+    // Set up debounced fetch
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const response = await get(`/security/get-all?name=&pageNo=1&limit=20&search=${encodeURIComponent(searchTerm)}`);
+        const fetchedSecurities = response.securities || [];
+        setSecurities(fetchedSecurities);
+      } catch (error) {
+        console.error('Error fetching securities:', error);
+        showErrorSnackbar('Failed to fetch securities');
+      } finally {
+        setLoading(false);
+      }
+    }, SECURITY_SEARCH_DEBOUNCE_MS);
   };
 
   // Cleanup debounce timer on unmount
@@ -80,18 +76,14 @@ const SecurityAutocomplete = ({
       fullWidth={fullWidth}
       value={value}
       disabled={disabled}
-      onChange={(event, newValue) => {
-        onChange(newValue);
-      }}
-      onOpen={async () => {
-        if (securities.length === 0) {
-          // Load initial securities with empty search
-          await fetchSecurities('');
-        }
-      }}
-      onInputChange={async (event, newInputValue, reason) => {
+      onChange={(event, newValue) => onChange(newValue)}
+      onInputChange={(event, newInputValue, reason) => {
         if (reason === 'input') {
-          await fetchSecurities(newInputValue);
+          if (newInputValue.length < SECURITY_SEARCH_MIN_CHARS) {
+            setSecurities([]);
+            return;
+          }
+          fetchSecurities(newInputValue);
         }
       }}
       options={securities}
@@ -115,7 +107,7 @@ const SecurityAutocomplete = ({
           }}
         />
       )}
-      noOptionsText="Type at least 3 characters to search securities"
+      noOptionsText={`Type at least ${SECURITY_SEARCH_MIN_CHARS} character${SECURITY_SEARCH_MIN_CHARS > 1 ? 's' : ''} to search securities`}
       {...otherProps}
     />
   );

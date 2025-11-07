@@ -96,8 +96,8 @@ function LedgerRow({
                   <TableBody>
                     <TableRow>
                       <TableCell sx={{ padding: '8px 16px' }}>
-                        <Typography variant="body2" fontFamily="monospace">
-                          {entry.tradeTransactionId?._id || '-'}
+                        <Typography variant="body2">
+                          ...{entry.tradeTransactionId?._id?.slice(-8) || '-'}
                         </Typography>
                       </TableCell>
                       <TableCell sx={{ padding: '8px 16px' }}>

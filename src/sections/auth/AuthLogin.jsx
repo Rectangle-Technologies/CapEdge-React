@@ -117,6 +117,7 @@ export default function AuthLogin({ isDemo = false }) {
                       </InputAdornment>
                     }
                     placeholder="Enter password"
+                    autoFocus
                   />
                 </Stack>
                 {touched.password && errors.password && (

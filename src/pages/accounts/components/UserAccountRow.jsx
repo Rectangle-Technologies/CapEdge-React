@@ -71,7 +71,7 @@ function UserAccountRow({
           <IconButton onClick={() => onEditUser(userAccount)} size="small" color="primary">
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => onDeleteUser(userAccount.id)} size="small" color="error">
+          <IconButton onClick={() => onDeleteUser(userAccount._id)} size="small" color="error">
             <DeleteIcon />
           </IconButton>
         </TableCell>

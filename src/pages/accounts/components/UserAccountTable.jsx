@@ -50,6 +50,16 @@ function UserAccountTable({
         return;
       }
 
+      // Handle Alt+Delete / Option+Delete for deleting when a row is selected
+      // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
+      if (event.altKey && (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey) {
+        if (activeRowIndex >= 0 && activeRowIndex < userAccounts.length) {
+          event.preventDefault();
+          onDeleteUser(userAccounts[activeRowIndex]._id);
+        }
+        return;
+      }
+
       // Handle Alt+left/right arrow keys for pagination
       if (event.altKey && event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
@@ -110,7 +120,7 @@ function UserAccountTable({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [userAccounts, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId, onEditUser]);
+  }, [userAccounts, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId, onEditUser, onDeleteUser]);
 
   // Reset active row when user accounts change
   useEffect(() => {

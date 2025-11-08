@@ -135,9 +135,21 @@ const UserAccount = () => {
     setOpenUserDialog(true);
   };
 
-  const handleDeleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user account? This will also delete all associated demat accounts.')) {
-      setUserAccounts((prev) => prev.filter((user) => user.id !== userId));
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user account?')) {
+      dispatch(showLoader());
+      try {
+        await del(`/user-account/delete/${userId}`);
+        await searchUserAccounts();
+        // Trigger custom event to notify UserAccountDropdown to refresh
+        window.dispatchEvent(new CustomEvent('userAccountsUpdated'));
+        showSuccessSnackbar('User account deleted successfully.');
+      } catch (error) {
+        console.error('Error deleting user account:', error);
+        showErrorSnackbar(error.message || 'Failed to delete user account. Please try again.');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 

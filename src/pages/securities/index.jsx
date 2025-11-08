@@ -160,6 +160,9 @@ const Security = () => {
           securityTypes={securityTypes}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </Card>
 

@@ -31,12 +31,24 @@ function UserAccountRow({
   onDeleteUser, 
   onAddDematAccount, 
   onEditDematAccount, 
-  onDeleteDematAccount 
+  onDeleteDematAccount,
+  isActive,
+  onClick,
+  rowRef
 }) {
 
   return (
     <>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow 
+        ref={rowRef}
+        sx={{ 
+          '& > *': { borderBottom: 'unset' },
+          backgroundColor: isActive ? 'action.hover' : 'inherit',
+          cursor: 'pointer',
+        }}
+        hover
+        onClick={onClick}
+      >
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
           <IconButton 
             aria-label="expand row" 

@@ -147,6 +147,9 @@ const BrokerManagement = () => {
           brokers={brokers}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </Card>
 

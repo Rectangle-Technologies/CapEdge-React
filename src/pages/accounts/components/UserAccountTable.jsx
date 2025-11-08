@@ -8,11 +8,11 @@ import {
   Paper,
   Typography
 } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UserAccountRow from './UserAccountRow';
 
 /**
- * User Account Table Component
+ * User Account Table Component - with keyboard navigation
  * Displays the main table with user accounts and their data
  */
 function UserAccountTable({ 
@@ -22,17 +22,95 @@ function UserAccountTable({
   onDeleteUser, 
   onAddDematAccount, 
   onEditDematAccount, 
-  onDeleteDematAccount 
+  onDeleteDematAccount,
+  currentPage,
+  totalPages,
+  onPageChange
 }) {
   // State to track which row is expanded (only one at a time)
   const [expandedRowId, setExpandedRowId] = useState(null);
+  const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
+  const rowRefs = useRef([]);
 
   // Handle row toggle - close current if same row, otherwise open new row
   const handleRowToggle = (userId) => {
     setExpandedRowId(expandedRowId === userId ? null : userId);
   };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Handle left/right arrow keys for pagination
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (currentPage > 1) {
+          onPageChange(currentPage - 1);
+        }
+        return;
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (currentPage < totalPages) {
+          onPageChange(currentPage + 1);
+        }
+        return;
+      }
+
+      // Handle Enter key to expand/collapse active row
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (activeRowIndex !== -1 && userAccounts.length > 0) {
+          const userAccount = userAccounts[activeRowIndex];
+          const userId = userAccount.id || userAccount._id;
+          handleRowToggle(userId);
+        }
+        return;
+      }
+
+      // Handle up/down arrow keys for row navigation
+      if (userAccounts.length === 0) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex < userAccounts.length - 1 ? prevIndex + 1 : prevIndex;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [userAccounts, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId]);
+
+  // Reset active row when user accounts change
+  useEffect(() => {
+    setActiveRowIndex(-1);
+    rowRefs.current = [];
+  }, [userAccounts]);
+
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} ref={tableContainerRef}>
       <Table stickyHeader>
         <TableHead>
           <TableRow>
@@ -53,7 +131,7 @@ function UserAccountTable({
         </TableHead>
         <TableBody>
           {userAccounts && userAccounts.length > 0 ? (
-            userAccounts.map((userAccount) => (
+            userAccounts.map((userAccount, index) => (
               <UserAccountRow
                 key={userAccount.id || userAccount._id}
                 userAccount={userAccount}
@@ -64,6 +142,9 @@ function UserAccountTable({
                 onAddDematAccount={onAddDematAccount}
                 onEditDematAccount={onEditDematAccount}
                 onDeleteDematAccount={onDeleteDematAccount}
+                isActive={activeRowIndex === index}
+                onClick={() => setActiveRowIndex(index)}
+                rowRef={(el) => (rowRefs.current[index] = el)}
               />
             ))
           ) : (

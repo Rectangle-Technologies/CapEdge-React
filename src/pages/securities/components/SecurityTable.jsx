@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import {
   Chip,
   Divider,
@@ -21,13 +22,77 @@ import { getTypeColor, getTypeLabel } from '../utils/helpers';
 import { TABLE_CONFIG } from '../utils/constants';
 
 /**
- * SecurityTable Component - Handles security table display
+ * SecurityTable Component - Handles security table display with keyboard navigation
  */
-const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
+const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPage, totalPages, onPageChange }) => {
+  const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
+  const rowRefs = useRef([]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Handle left/right arrow keys for pagination
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (currentPage > 1) {
+          onPageChange(currentPage - 1);
+        }
+        return;
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (currentPage < totalPages) {
+          onPageChange(currentPage + 1);
+        }
+        return;
+      }
+
+      // Handle up/down arrow keys for row navigation
+      if (securities.length === 0) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex < securities.length - 1 ? prevIndex + 1 : prevIndex;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [securities.length, currentPage, totalPages, onPageChange]);
+
+  // Reset active row when securities change
+  useEffect(() => {
+    setActiveRowIndex(-1);
+    rowRefs.current = [];
+  }, [securities]);
+
   return (
     <>
       <Divider />
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} ref={tableContainerRef}>
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -50,8 +115,17 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete }) => {
           </TableHead>
           <TableBody>
             {securities.length > 0 ? (
-              securities.map((security) => (
-                <TableRow key={security._id} hover>
+              securities.map((security, index) => (
+                <TableRow 
+                  key={security._id} 
+                  hover
+                  ref={(el) => (rowRefs.current[index] = el)}
+                  sx={{
+                    backgroundColor: activeRowIndex === index ? 'action.hover' : 'inherit',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setActiveRowIndex(index)}
+                >
                   <TableCell component="th" scope="row" sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
                     {security.name}
                   </TableCell>

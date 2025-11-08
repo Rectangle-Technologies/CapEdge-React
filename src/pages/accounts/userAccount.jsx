@@ -242,6 +242,9 @@ const UserAccount = () => {
           onAddDematAccount={handleAddDematAccount}
           onEditDematAccount={handleEditDematAccount}
           onDeleteDematAccount={handleDeleteDematAccount}
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       </Card>
 

@@ -28,6 +28,15 @@ const BrokerTable = ({ brokers, onEdit, onDelete, currentPage, totalPages, onPag
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Handle Alt+E / Option+E for editing when a row is selected
+      if (event.altKey && event.code === 'KeyE' && !event.ctrlKey && !event.metaKey) {
+        if (activeRowIndex >= 0 && activeRowIndex < brokers.length) {
+          event.preventDefault();
+          onEdit(brokers[activeRowIndex]);
+        }
+        return;
+      }
+
       // Handle left/right arrow keys for pagination
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -77,7 +86,7 @@ const BrokerTable = ({ brokers, onEdit, onDelete, currentPage, totalPages, onPag
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [brokers.length, currentPage, totalPages, onPageChange]);
+  }, [brokers.length, currentPage, totalPages, onPageChange, activeRowIndex, brokers, onEdit]);
 
   // Reset active row when brokers change
   useEffect(() => {

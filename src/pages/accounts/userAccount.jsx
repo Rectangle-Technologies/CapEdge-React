@@ -216,6 +216,23 @@ const UserAccount = () => {
     setPage(1);
   }, [searchName]);
 
+  // Keyboard shortcut for Add User Account: Alt+N (Option+N on Mac)
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Use event.code instead of event.key to handle Mac's dead key issue with Option
+      // Alt+N on all platforms (Alt is labeled as Option on Mac keyboards)
+      if (event.altKey && event.code === 'KeyN' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault(); // Prevent browser default behavior
+        handleAddUser();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleAddUser]); // Include handleAddUser to ensure we have latest version
+
   return (
     <Box sx={{ width: '100%', p: 3 }}>
       <Card>

@@ -41,6 +41,15 @@ function UserAccountTable({
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Handle Alt+E / Option+E for editing when a row is selected
+      if (event.altKey && event.code === 'KeyE' && !event.ctrlKey && !event.metaKey) {
+        if (activeRowIndex >= 0 && activeRowIndex < userAccounts.length) {
+          event.preventDefault();
+          onEditUser(userAccounts[activeRowIndex]);
+        }
+        return;
+      }
+
       // Handle left/right arrow keys for pagination
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -101,7 +110,7 @@ function UserAccountTable({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [userAccounts, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId]);
+  }, [userAccounts, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId, onEditUser]);
 
   // Reset active row when user accounts change
   useEffect(() => {

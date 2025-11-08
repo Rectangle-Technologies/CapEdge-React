@@ -32,6 +32,15 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Handle Alt+E / Option+E for editing when a row is selected
+      if (event.altKey && event.code === 'KeyE' && !event.ctrlKey && !event.metaKey) {
+        if (activeRowIndex >= 0 && activeRowIndex < securities.length) {
+          event.preventDefault();
+          onEdit(securities[activeRowIndex]);
+        }
+        return;
+      }
+
       // Handle left/right arrow keys for pagination
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -81,7 +90,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [securities.length, currentPage, totalPages, onPageChange]);
+  }, [securities.length, currentPage, totalPages, onPageChange, activeRowIndex, securities, onEdit]);
 
   // Reset active row when securities change
   useEffect(() => {

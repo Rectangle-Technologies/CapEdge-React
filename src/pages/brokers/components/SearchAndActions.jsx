@@ -3,7 +3,8 @@ import {
   Button,
   IconButton,
   Stack,
-  TextField
+  TextField,
+  Tooltip
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -21,6 +22,10 @@ const SearchAndActions = ({
   onExport, 
   onAdd 
 }) => {
+  // Detect platform for keyboard shortcut hint (Option on Mac, Alt on Windows/Linux)
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutHint = isMac ? '⌥N' : 'Alt+N';
+
   return (
     <Stack direction="row" spacing={2} alignItems="center">
       <TextField
@@ -75,9 +80,11 @@ const SearchAndActions = ({
         <DownloadIcon />
       </IconButton>
 
-      <Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
-        Add Broker
-      </Button>
+      <Tooltip title={`Add Broker (${shortcutHint})`} arrow>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
+          Add Broker
+        </Button>
+      </Tooltip>
     </Stack>
   );
 };

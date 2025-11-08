@@ -80,9 +80,11 @@ const LedgerEntryDialog = ({
                                 onBlur={formik.handleBlur}
                                 error={formik.touched.transactionAmount && Boolean(formik.errors.transactionAmount)}
                                 helperText={formik.touched.transactionAmount && formik.errors.transactionAmount}
-                                inputProps={{
-                                    step: "0.01",
-                                    min: "0"
+                                slotProps={{
+                                    htmlInput: {
+                                        step: "0.01",
+                                        min: "0"
+                                    }
                                 }}
                             />
                         </Grid>

@@ -79,11 +79,11 @@ function DematAccountDialog({
               onBlur={dematFormik.handleBlur}
               error={dematFormik.touched.balance && Boolean(dematFormik.errors.balance)}
               helperText={dematFormik.touched.balance && dematFormik.errors.balance}
-              InputProps={{
-                startAdornment: '₹'
+              slotProps={{
+                input: { startAdornment: '₹' },
+                htmlInput: { min: 0, step: 0.01 }
               }}
               placeholder="0.00"
-              inputProps={{ min: 0, step: 0.01 }}
             />
           </Stack>
         </DialogContent>

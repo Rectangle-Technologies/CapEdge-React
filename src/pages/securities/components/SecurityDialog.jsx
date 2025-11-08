@@ -93,11 +93,11 @@ const SecurityDialog = ({
                   onBlur={formik.handleBlur}
                   error={formik.touched.strikePrice && Boolean(formik.errors.strikePrice)}
                   helperText={formik.touched.strikePrice && formik.errors.strikePrice}
-                  InputProps={{
-                    startAdornment: '₹'
+                  slotProps={{
+                    input: { startAdornment: '₹' },
+                    htmlInput: { min: 0, step: FORM_CONFIG.strikePriceStep }
                   }}
                   placeholder="0.00"
-                  inputProps={{ min: 0, step: FORM_CONFIG.strikePriceStep }}
                 />
                 <TextField
                   fullWidth

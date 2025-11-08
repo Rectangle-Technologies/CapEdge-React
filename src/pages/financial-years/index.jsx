@@ -143,7 +143,7 @@ const FinancialYears = () => {
                 <Typography variant="h4">Financial Years</Typography>
             </Grid>
             <Grid container size={12} columnSpacing={3}>
-                <Grid item size={{ xs: 12 }}>
+                <Grid size={{ xs: 12 }}>
                     <Box>
                         <FormControl sx={{ minWidth: 200 }}>
                             <InputLabel id="financial-year-select-label">Financial Year</InputLabel>
@@ -165,7 +165,7 @@ const FinancialYears = () => {
                 </Grid>
                 <form onSubmit={formik.handleSubmit} style={{ display: 'contents' }}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <Grid item size={{ xs: 12, md: 3 }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                             <DatePicker
                                 label="Start Date"
                                 value={formik.values.startDate}
@@ -186,7 +186,7 @@ const FinancialYears = () => {
                                 }}
                             />
                         </Grid>
-                        <Grid item size={{ xs: 12, md: 3 }}>
+                        <Grid size={{ xs: 12, md: 3 }}>
                             <DatePicker
                                 label="End Date"
                                 value={formik.values.endDate}
@@ -208,7 +208,7 @@ const FinancialYears = () => {
                             />
                         </Grid>
                     </LocalizationProvider>
-                    <Grid item size={{ xs: 12, md: 3 }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
                         <TextField
                             fullWidth
                             name="stcgRate"
@@ -219,11 +219,13 @@ const FinancialYears = () => {
                             onBlur={formik.handleBlur}
                             error={formik.touched.stcgRate && Boolean(formik.errors.stcgRate)}
                             helperText={formik.touched.stcgRate && formik.errors.stcgRate}
-                            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
-                            inputProps={{ min: 0, max: 100, step: 0.01 }}
+                            slotProps={{ 
+                                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                                htmlInput: { min: 0, max: 100, step: 0.01 }
+                            }}
                         />
                     </Grid>
-                    <Grid item size={{ xs: 12, md: 3 }}>
+                    <Grid size={{ xs: 12, md: 3 }}>
                         <TextField
                             fullWidth
                             name="ltcgRate"
@@ -234,11 +236,13 @@ const FinancialYears = () => {
                             onBlur={formik.handleBlur}
                             error={formik.touched.ltcgRate && Boolean(formik.errors.ltcgRate)}
                             helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
-                            InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }}
-                            inputProps={{ min: 0, max: 100, step: 0.01 }}
+                            slotProps={{ 
+                                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                                htmlInput: { min: 0, max: 100, step: 0.01 }
+                            }}
                         />
                     </Grid>
-                    <Grid item size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                         <Button type="submit" variant='contained' disabled={formik.isSubmitting}>
                             Submit
                         </Button>

@@ -36,12 +36,14 @@ function SearchAndActions({
             backgroundColor: 'background.paper',
           }
         }}
-        InputProps={{
-          startAdornment: (
-            <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
-              <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-            </Box>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              </Box>
+            ),
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

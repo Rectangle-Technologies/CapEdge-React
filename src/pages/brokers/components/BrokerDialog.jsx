@@ -62,9 +62,11 @@ const BrokerDialog = ({
               onBlur={formik.handleBlur}
               error={formik.touched.panNumber && Boolean(formik.errors.panNumber)}
               helperText={formik.touched.panNumber && formik.errors.panNumber}
-              inputProps={{
-                style: { textTransform: 'uppercase' },
-                maxLength: FORM_CONFIG.panNumberMaxLength
+              slotProps={{
+                htmlInput: {
+                  style: { textTransform: 'uppercase' },
+                  maxLength: FORM_CONFIG.panNumberMaxLength
+                }
               }}
               disabled={!!editingBroker}
             />

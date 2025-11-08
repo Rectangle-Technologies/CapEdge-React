@@ -64,9 +64,11 @@ function UserAccountDialog({
               onBlur={userFormik.handleBlur}
               error={userFormik.touched.panNumber && Boolean(userFormik.errors.panNumber)}
               helperText={userFormik.touched.panNumber && userFormik.errors.panNumber}
-              inputProps={{ 
-                style: { textTransform: 'uppercase' },
-                maxLength: 10
+              slotProps={{ 
+                htmlInput: { 
+                  style: { textTransform: 'uppercase' },
+                  maxLength: 10
+                }
               }}
               disabled={!!editingUser}
             />

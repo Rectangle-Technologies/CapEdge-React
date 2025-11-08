@@ -1,5 +1,5 @@
 import { Add } from '@mui/icons-material';
-import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,6 +30,13 @@ const TransactionsTable = () => {
   // Handle keyboard navigation for pagination
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Handle Alt+N / Option+N for adding transaction
+      if (event.altKey && event.code === 'KeyN' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        navigate('/add-transaction');
+        return;
+      }
+
       // Handle left/right arrow keys for pagination
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -46,7 +53,7 @@ const TransactionsTable = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [page, totalPages]);
+  }, [page, totalPages, navigate]);
 
   const fetchDematAccounts = async () => {
     dispatch(showLoader());
@@ -95,6 +102,10 @@ const TransactionsTable = () => {
     }
   }, [selectedDematAccount, selectedSecurity, page, financialYear]);
 
+  // Detect platform for keyboard shortcut hint
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutHint = isMac ? '⌥N' : 'Alt+N';
+
     return (
       <Grid size={12}>
         <Card>
@@ -102,13 +113,15 @@ const TransactionsTable = () => {
             title="All Transactions"
             subheader="View and filter all transactions across demat accounts"
             action={
-              <Button 
-                variant="contained" 
-                startIcon={<Add />} 
-                onClick={() => navigate('/add-transaction')}
-              >
-                Add Transaction
-              </Button>
+              <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
+                <Button 
+                  variant="contained" 
+                  startIcon={<Add />} 
+                  onClick={() => navigate('/add-transaction')}
+                >
+                  Add Transaction
+                </Button>
+              </Tooltip>
             }
           />
           <Divider />

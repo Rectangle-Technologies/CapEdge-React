@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -8,7 +8,7 @@ import {
 import { useFormik } from 'formik';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
-import { get, post, put } from '../../utils/apiUtil';
+import { del, get, post, put } from '../../utils/apiUtil';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../store/utils';
 
 // Import extracted modules
@@ -17,7 +17,7 @@ import SecurityTable from './components/SecurityTable';
 import SearchAndActions from './components/SearchAndActions';
 import { createSecurityValidationSchema } from './utils/validation';
 import { ROWS_PER_PAGE, API_ENDPOINTS } from './utils/constants';
-import { processFormValues, generateNewSecurityId } from './utils/helpers';
+import { processFormValues } from './utils/helpers';
 import { SecurityExportService } from './services/securityExportService';
 import { useDispatch } from 'react-redux';
 
@@ -65,8 +65,7 @@ const Security = () => {
         setOpenDialog(false);
         setEditingSecurity(null);
       } catch (error) {
-        // Handle error silently or add your preferred error handling
-        console.error(error);
+        console.error('Failed to save security:', error);
         showErrorSnackbar(error.message || 'Failed to save security. Please try again.');
       } finally {
         dispatch(hideLoader());
@@ -75,11 +74,11 @@ const Security = () => {
   });
 
   // Event handlers
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingSecurity(null);
     formik.resetForm();
     setOpenDialog(true);
-  };
+  }, [formik]);
 
   const handleEdit = (security) => {
     setEditingSecurity(security);
@@ -92,9 +91,19 @@ const Security = () => {
     setOpenDialog(true);
   };
 
-  const handleDelete = (securityId) => {
+  const handleDelete = async (securityId) => {
     if (window.confirm('Are you sure you want to delete this security?')) {
-      setSecurities((prev) => prev.filter((security) => security.id !== securityId));
+      dispatch(showLoader());
+      try {
+        await del(`/security/delete/${securityId}`);
+        await searchSecurities();
+        showSuccessSnackbar('Security deleted successfully.');
+      } catch (error) {
+        console.error('Failed to delete security:', error);
+        showErrorSnackbar(error.message || 'Failed to delete security. Please try again.');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 
@@ -107,8 +116,7 @@ const Security = () => {
       setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
       setSecurityTypes(data.securityTypes);
     } catch (error) {
-      // Handle error silently or add your preferred error handling
-      console.error(error);
+      console.error('Failed to fetch securities:', error);
       showErrorSnackbar(error.message || 'Failed to fetch securities. Please try again.');
     } finally {
       dispatch(hideLoader());

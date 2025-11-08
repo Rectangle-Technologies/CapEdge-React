@@ -48,6 +48,7 @@ const BrokerDialog = ({
               error={formik.touched.name && Boolean(formik.errors.name)}
               helperText={formik.touched.name && formik.errors.name}
               placeholder="Enter broker name"
+              autoFocus
             />
             <TextField
               fullWidth

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { useFormik } from 'formik';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
-import { get, post, put } from '../../utils/apiUtil';
+import { del, get, post, put } from '../../utils/apiUtil';
 
 // Import extracted modules
 import BrokerDialog from './components/BrokerDialog';
@@ -60,16 +60,18 @@ const BrokerManagement = () => {
       } catch (error) {
         // Handle error silently or add your preferred error handling
         showErrorSnackbar(error.message || 'Failed to save broker. Please try again.');
+      } finally {
+        dispatch(hideLoader());
       }
     }
   });
 
   // Event handlers
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingBroker(null);
     formik.resetForm();
     setOpenDialog(true);
-  };
+  }, [formik]);
 
   const handleEdit = (broker) => {
     setEditingBroker(broker);
@@ -81,9 +83,20 @@ const BrokerManagement = () => {
     setOpenDialog(true);
   };
 
-  const handleDelete = (brokerId) => {
+  const handleDelete = async (brokerId) => {
     if (window.confirm('Are you sure you want to delete this broker?')) {
-      setBrokers((prev) => prev.filter((broker) => broker.id !== brokerId));
+      dispatch(showLoader());
+      try {
+        await del(`/broker/delete/${brokerId}`);
+        await searchBrokers();
+        showSuccessSnackbar('Broker deleted successfully.');
+      } catch (error) {
+        // Handle error silently or add your preferred error handling
+        console.error('Delete failed:', error);
+        showErrorSnackbar(error.message || 'Failed to delete broker. Please try again.');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 

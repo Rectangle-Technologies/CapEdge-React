@@ -6,7 +6,7 @@ import {
   Pagination
 } from '@mui/material';
 import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { del, get, post, put } from '../../utils/apiUtil';
@@ -119,11 +119,11 @@ const UserAccount = () => {
   });
 
   // Event handlers
-  const handleAddUser = () => {
+  const handleAddUser = useCallback(() => {
     setEditingUser(null);
     userFormik.resetForm();
     setOpenUserDialog(true);
-  };
+  }, [userFormik]);
 
   const handleEditUser = (user) => {
     setEditingUser(user);

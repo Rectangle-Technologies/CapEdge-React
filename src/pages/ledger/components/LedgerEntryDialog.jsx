@@ -41,7 +41,8 @@ const LedgerEntryDialog = ({
                                             fullWidth: true,
                                             onBlur: () => formik.setFieldTouched('date', true),
                                             error: formik.touched.date && Boolean(formik.errors.date),
-                                            helperText: formik.touched.date && formik.errors.date
+                                            helperText: formik.touched.date && formik.errors.date,
+                                            autoFocus: true
                                         }
                                     }}
                                 />

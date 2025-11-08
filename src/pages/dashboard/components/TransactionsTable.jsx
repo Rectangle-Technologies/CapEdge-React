@@ -37,13 +37,13 @@ const TransactionsTable = () => {
         return;
       }
 
-      // Handle left/right arrow keys for pagination
-      if (event.key === 'ArrowLeft') {
+      // Handle Alt+left/right arrow keys for pagination
+      if (event.altKey && event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (page > 1) {
           setPage(page - 1);
         }
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.altKey && event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (page < totalPages) {
           setPage(page + 1);

@@ -50,14 +50,14 @@ function UserAccountTable({
         return;
       }
 
-      // Handle left/right arrow keys for pagination
-      if (event.key === 'ArrowLeft') {
+      // Handle Alt+left/right arrow keys for pagination
+      if (event.altKey && event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (currentPage > 1) {
           onPageChange(currentPage - 1);
         }
         return;
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.altKey && event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (currentPage < totalPages) {
           onPageChange(currentPage + 1);
@@ -76,10 +76,10 @@ function UserAccountTable({
         return;
       }
 
-      // Handle up/down arrow keys for row navigation
+      // Handle Alt+up/down arrow keys for row navigation
       if (userAccounts.length === 0) return;
 
-      if (event.key === 'ArrowDown') {
+      if (event.altKey && event.key === 'ArrowDown' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex < userAccounts.length - 1 ? prevIndex + 1 : prevIndex;
@@ -92,7 +92,7 @@ function UserAccountTable({
           }
           return newIndex;
         });
-      } else if (event.key === 'ArrowUp') {
+      } else if (event.altKey && event.key === 'ArrowUp' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;

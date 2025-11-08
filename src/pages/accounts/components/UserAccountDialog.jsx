@@ -50,6 +50,7 @@ function UserAccountDialog({
               error={userFormik.touched.name && Boolean(userFormik.errors.name)}
               helperText={userFormik.touched.name && userFormik.errors.name}
               placeholder="Enter full name"
+              autoFocus
             />
             <TextField
               fullWidth

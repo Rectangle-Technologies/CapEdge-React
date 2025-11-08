@@ -41,14 +41,24 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
         return;
       }
 
-      // Handle left/right arrow keys for pagination
-      if (event.key === 'ArrowLeft') {
+      // Handle Alt+Delete / Option+Delete for deleting when a row is selected
+      // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
+      if (event.altKey && (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey) {
+        if (activeRowIndex >= 0 && activeRowIndex < securities.length) {
+          event.preventDefault();
+          onDelete(securities[activeRowIndex]._id);
+        }
+        return;
+      }
+
+      // Handle Alt+left/right arrow keys for pagination
+      if (event.altKey && event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (currentPage > 1) {
           onPageChange(currentPage - 1);
         }
         return;
-      } else if (event.key === 'ArrowRight') {
+      } else if (event.altKey && event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (currentPage < totalPages) {
           onPageChange(currentPage + 1);
@@ -56,10 +66,10 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
         return;
       }
 
-      // Handle up/down arrow keys for row navigation
+      // Handle Alt+up/down arrow keys for row navigation
       if (securities.length === 0) return;
 
-      if (event.key === 'ArrowDown') {
+      if (event.altKey && event.key === 'ArrowDown' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex < securities.length - 1 ? prevIndex + 1 : prevIndex;
@@ -72,7 +82,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
           }
           return newIndex;
         });
-      } else if (event.key === 'ArrowUp') {
+      } else if (event.altKey && event.key === 'ArrowUp' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
@@ -90,7 +100,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [securities.length, currentPage, totalPages, onPageChange, activeRowIndex, securities, onEdit]);
+  }, [securities.length, currentPage, totalPages, onPageChange, activeRowIndex, securities, onEdit, onDelete]);
 
   // Reset active row when securities change
   useEffect(() => {
@@ -155,7 +165,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
                     <IconButton onClick={() => onEdit(security)} size="small" color="primary">
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => onDelete(security.id)} size="small" color="error">
+                    <IconButton onClick={() => onDelete(security._id)} size="small" color="error">
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>

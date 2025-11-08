@@ -56,6 +56,7 @@ const SecurityDialog = ({
               error={formik.touched.name && Boolean(formik.errors.name)}
               helperText={formik.touched.name && formik.errors.name}
               placeholder="e.g., Reliance Industries Ltd, NIFTY 50 JAN 2024 CE 18000"
+              autoFocus
             />
 
             <FormControl fullWidth>

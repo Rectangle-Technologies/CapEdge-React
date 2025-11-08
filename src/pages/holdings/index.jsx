@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -49,9 +49,9 @@ const Holdings = () => {
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
 
-  const toggleExpand = (securityId) => {
+  const toggleExpand = useCallback((securityId) => {
     setExpandedSecurity((prev) => (prev === securityId ? null : securityId));
-  };
+  }, []);
 
   const groupHoldingsBySecurity = (holdingsData) => {
     const grouped = {};
@@ -140,7 +140,7 @@ const Holdings = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [groupedHoldings.length, activeRowIndex, expandedSecurity, groupedHoldings]);
+  }, [groupedHoldings, activeRowIndex, toggleExpand]);
 
   // Reset active row when holdings change
   useEffect(() => {

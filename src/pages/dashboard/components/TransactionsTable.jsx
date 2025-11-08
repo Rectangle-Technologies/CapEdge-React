@@ -27,6 +27,27 @@ const TransactionsTable = () => {
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const financialYear = useSelector((state) => state.app.financialYear);
 
+  // Handle keyboard navigation for pagination
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Handle left/right arrow keys for pagination
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (page > 1) {
+          setPage(page - 1);
+        }
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (page < totalPages) {
+          setPage(page + 1);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [page, totalPages]);
+
   const fetchDematAccounts = async () => {
     dispatch(showLoader());
     try {

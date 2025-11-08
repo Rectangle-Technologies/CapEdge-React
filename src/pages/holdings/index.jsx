@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -45,6 +45,9 @@ const Holdings = () => {
   const [dematAccounts, setDematAccounts] = useState([]);
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
+  const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
+  const rowRefs = useRef([]);
 
   const toggleExpand = (securityId) => {
     setExpandedSecurity((prev) => (prev === securityId ? null : securityId));
@@ -87,8 +90,63 @@ const Holdings = () => {
     return { totalInvestment, totalHoldings };
   };
 
-  const groupedHoldings = groupHoldingsBySecurity(holdings);
-  const summary = calculateSummary(groupedHoldings);
+  const groupedHoldings = useMemo(() => groupHoldingsBySecurity(holdings), [holdings]);
+  const summary = useMemo(() => calculateSummary(groupedHoldings), [groupedHoldings]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Handle Enter key to expand/collapse active row
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (activeRowIndex !== -1 && groupedHoldings.length > 0) {
+          const group = groupedHoldings[activeRowIndex];
+          toggleExpand(group.securityId);
+        }
+        return;
+      }
+
+      // Handle up/down arrow keys for row navigation
+      if (groupedHoldings.length === 0) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex < groupedHoldings.length - 1 ? prevIndex + 1 : prevIndex;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [groupedHoldings.length, activeRowIndex, expandedSecurity, groupedHoldings]);
+
+  // Reset active row when holdings change
+  useEffect(() => {
+    setActiveRowIndex(-1);
+    rowRefs.current = [];
+  }, [holdings]);
 
   const fetchDematAccounts = async () => {
     try {
@@ -237,7 +295,7 @@ const Holdings = () => {
 
         <Divider />
 
-        <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+        <TableContainer component={Paper} sx={{ maxHeight: 600 }} ref={tableContainerRef}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -269,10 +327,19 @@ const Holdings = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                groupedHoldings.map((group) => (
+                groupedHoldings.map((group, index) => (
                   <React.Fragment key={group.securityId}>
                     {/* Main row - Aggregated by security */}
-                    <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
+                    <TableRow 
+                      hover 
+                      sx={{ 
+                        '& > *': { borderBottom: 'unset' },
+                        backgroundColor: activeRowIndex === index ? 'action.hover' : 'inherit',
+                        cursor: 'pointer',
+                      }}
+                      ref={(el) => (rowRefs.current[index] = el)}
+                      onClick={() => setActiveRowIndex(index)}
+                    >
                       <TableCell>
                         <IconButton size="small" onClick={() => toggleExpand(group.securityId)}>
                           {expandedSecurity === group.securityId ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}

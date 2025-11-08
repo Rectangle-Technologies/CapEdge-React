@@ -126,6 +126,9 @@ const Ledger = () => {
         setSelectedDematAccount={setSelectedDematAccount}
         dematAccounts={dematAccounts}
         fetchLedgerEntries={fetchLedgerEntries}
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
       />
       <Box width='100%' sx={{
         mt: 4,

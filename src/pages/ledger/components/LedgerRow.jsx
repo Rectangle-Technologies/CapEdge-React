@@ -21,13 +21,25 @@ function LedgerRow({
   entry,
   isExpanded,
   onToggleExpand,
-  getTransactionColor
+  getTransactionColor,
+  isActive,
+  onClick,
+  rowRef
 }) {
   const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
 
   return (
     <>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }} hover>
+      <TableRow 
+        ref={rowRef}
+        sx={{ 
+          '& > *': { borderBottom: 'unset' },
+          backgroundColor: isActive ? 'action.hover' : 'inherit',
+          cursor: 'pointer',
+        }} 
+        hover
+        onClick={onClick}
+      >
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
           {hasTradeTransaction && (
             <IconButton

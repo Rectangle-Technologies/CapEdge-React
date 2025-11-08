@@ -25,7 +25,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LedgerEntryDialog from './LedgerEntryDialog';
 import LedgerRow from './LedgerRow';
 import * as yup from 'yup';
@@ -44,10 +44,16 @@ const LedgerTable = ({
   selectedDematAccount,
   setSelectedDematAccount,
   dematAccounts,
-  fetchLedgerEntries
+  fetchLedgerEntries,
+  currentPage,
+  totalPages,
+  onPageChange
 }) => {
   const [expandedRowId, setExpandedRowId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
+  const rowRefs = useRef([]);
   const dispatch = useDispatch();
 
   const ledgerEntryValidationSchema = yup.object({
@@ -115,6 +121,79 @@ const LedgerTable = ({
   const handleRowToggle = (entryId) => {
     setExpandedRowId(expandedRowId === entryId ? null : entryId);
   };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Handle left/right arrow keys for pagination
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (currentPage > 1) {
+          onPageChange(currentPage - 1);
+        }
+        return;
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (currentPage < totalPages) {
+          onPageChange(currentPage + 1);
+        }
+        return;
+      }
+
+      // Handle Enter key to expand/collapse active row
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (activeRowIndex !== -1 && ledgerEntries.length > 0) {
+          const entry = ledgerEntries[activeRowIndex];
+          const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
+          if (hasTradeTransaction) {
+            handleRowToggle(entry._id);
+          }
+        }
+        return;
+      }
+
+      // Handle up/down arrow keys for row navigation
+      if (ledgerEntries.length === 0) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex < ledgerEntries.length - 1 ? prevIndex + 1 : prevIndex;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveRowIndex((prevIndex) => {
+          const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
+          // Scroll to the active row
+          if (rowRefs.current[newIndex]) {
+            rowRefs.current[newIndex].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'nearest' 
+            });
+          }
+          return newIndex;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [ledgerEntries, currentPage, totalPages, onPageChange, activeRowIndex, expandedRowId]);
+
+  // Reset active row when ledger entries change
+  useEffect(() => {
+    setActiveRowIndex(-1);
+    rowRefs.current = [];
+  }, [ledgerEntries]);
 
   const getTransactionColor = (type) => {
     switch (type) {
@@ -223,7 +302,7 @@ const LedgerTable = ({
 
         <Divider />
 
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} ref={tableContainerRef}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -244,13 +323,16 @@ const LedgerTable = ({
             </TableHead>
             <TableBody>
               {ledgerEntries.length > 0 ? (
-                ledgerEntries.map((entry) => (
+                ledgerEntries.map((entry, index) => (
                   <LedgerRow
                     key={entry._id}
                     entry={entry}
                     isExpanded={expandedRowId === entry._id}
                     onToggleExpand={handleRowToggle}
                     getTransactionColor={getTransactionColor}
+                    isActive={activeRowIndex === index}
+                    onClick={() => setActiveRowIndex(index)}
+                    rowRef={(el) => (rowRefs.current[index] = el)}
                   />
                 ))
               ) : (

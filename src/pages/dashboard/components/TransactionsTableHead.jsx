@@ -37,28 +37,34 @@ const headCells = [
     disablePadding: false,
     label: 'Delivery Type'
   },
-    {
+  {
     id: 'quantity',
     align: 'right',
     disablePadding: false,
     label: 'Quantity'
   },
-    {
+  {
     id: 'price',
     align: 'right',
     disablePadding: false,
     label: 'Price'
   },
-    {
+  {
     id: 'amount',
     align: 'right',
     disablePadding: false,
     label: 'Amount'
+  },
+  {
+    id: 'actions',
+    align: 'center',
+    disablePadding: false,
+    label: 'Actions'
   }
 ];
 
 const TransactionsTableHead = () => {
-    return (
+  return (
     <TableHead>
       <TableRow>
         {headCells.map((headCell) => (

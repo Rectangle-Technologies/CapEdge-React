@@ -1,12 +1,12 @@
-import { Add } from '@mui/icons-material';
-import { Box, Button, Card, CardHeader, Chip, Divider, Grid, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Tooltip, Typography } from '@mui/material';
+import { Add, Delete } from '@mui/icons-material';
+import { Box, Button, Card, CardHeader, Chip, Divider, Grid, IconButton, MenuItem, Pagination, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Tooltip, Typography } from '@mui/material';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice';
 import { showErrorSnackbar } from '../../../store/utils';
-import { get } from '../../../utils/apiUtil';
+import { del, get } from '../../../utils/apiUtil';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { getTransactionTypeColor } from '../../securities/utils/helpers';
 import { getAllTransactions } from '../../transactions/services/transactionService';
@@ -21,13 +21,14 @@ const TransactionsTable = () => {
   const [dematAccounts, setDematAccounts] = useState([]);
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
-  
+  const [selectedRow, setSelectedRow] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const financialYear = useSelector((state) => state.app.financialYear);
 
-  // Handle keyboard navigation for pagination
+  // Handle keyboard navigation for pagination and row selection
   useEffect(() => {
     const handleKeyDown = (event) => {
       // Handle Alt+N / Option+N for adding transaction
@@ -37,23 +38,70 @@ const TransactionsTable = () => {
         return;
       }
 
+      // Handle Alt+Delete / Option+Delete for deleting when a row is selected
+      // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
+      if (event.altKey && (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey) {
+        if (selectedRow && transactions.length > 0) {
+          event.preventDefault();
+          onDeleteTransaction(selectedRow);
+        }
+        return;
+      }
+
       // Handle Alt+left/right arrow keys for pagination
       if (event.altKey && event.key === 'ArrowLeft' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (page > 1) {
           setPage(page - 1);
         }
+        return;
       } else if (event.altKey && event.key === 'ArrowRight' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         if (page < totalPages) {
           setPage(page + 1);
+        }
+        return;
+      }
+
+      // Handle Alt+up/down arrow keys for row navigation
+      if (transactions.length === 0) return;
+
+      if (event.altKey && event.key === 'ArrowUp' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        
+        const currentIndex = selectedRow 
+          ? transactions.findIndex(t => t._id === selectedRow)
+          : -1;
+
+        const newIndex = currentIndex <= 0 ? transactions.length - 1 : currentIndex - 1;
+        setSelectedRow(transactions[newIndex]._id);
+
+        // Ensure the selected row is visible
+        const row = document.getElementById(`transaction-row-${transactions[newIndex]._id}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      } else if (event.altKey && event.key === 'ArrowDown' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        
+        const currentIndex = selectedRow 
+          ? transactions.findIndex(t => t._id === selectedRow)
+          : -1;
+
+        const newIndex = currentIndex >= transactions.length - 1 ? 0 : currentIndex + 1;
+        setSelectedRow(transactions[newIndex]._id);
+
+        // Ensure the selected row is visible
+        const row = document.getElementById(`transaction-row-${transactions[newIndex]._id}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [page, totalPages, navigate]);
+  }, [page, totalPages, navigate, transactions, selectedRow]);
 
   const fetchDematAccounts = async () => {
     dispatch(showLoader());
@@ -75,7 +123,7 @@ const TransactionsTable = () => {
     if (!selectedDematAccount) {
       return;
     }
-    
+
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
@@ -87,6 +135,21 @@ const TransactionsTable = () => {
       showErrorSnackbar('Failed to fetch transactions');
     } finally {
       dispatch(hideLoader());
+    }
+  };
+
+  const onDeleteTransaction = async (transactionId) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      dispatch(showLoader());
+      try {
+        await del(`/transaction/delete/${transactionId}`);
+        fetchTransactions();
+      } catch (error) {
+        console.error('Error deleting transaction:', error);
+        showErrorSnackbar(error.message || 'Failed to delete transaction');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 
@@ -106,141 +169,154 @@ const TransactionsTable = () => {
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const shortcutHint = isMac ? '⌥N' : 'Alt+N';
 
-    return (
-      <Grid size={12}>
-        <Card>
-          <CardHeader
-            title="All Transactions"
-            subheader="View and filter all transactions across demat accounts"
-            action={
-              <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
-                <Button 
-                  variant="contained" 
-                  startIcon={<Add />} 
-                  onClick={() => navigate('/add-transaction')}
-                >
-                  Add Transaction
-                </Button>
-              </Tooltip>
-            }
-          />
-          <Divider />
+  return (
+    <Grid size={12}>
+      <Card>
+        <CardHeader
+          title="All Transactions"
+          subheader="View and filter all transactions across demat accounts"
+          action={
+            <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => navigate('/add-transaction')}
+              >
+                Add Transaction
+              </Button>
+            </Tooltip>
+          }
+        />
+        <Divider />
 
-          {/* Filters */}
-          <Box sx={{ p: 2, bgcolor: 'background.default' }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid size={{ xs: 12, md: 3 }}>
-                <TextField
-                  select
-                  label="Demat Account"
-                  value={selectedDematAccount}
-                  onChange={(e) => {
-                    setSelectedDematAccount(e.target.value);
-                    setPage(1); // Reset to first page when changing account
-                  }}
-                  fullWidth
-                >
-                  {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
-                  {dematAccounts.map((account) => (
-                    <MenuItem key={account._id} value={account._id}>
-                      {account.brokerId?.name || account.accountNumber || account._id}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <SecurityAutocomplete
-                  value={selectedSecurity}
-                  onChange={(newValue) => {
-                    setSelectedSecurity(newValue);
-                    setPage(1); // Reset to first page when changing security
-                  }}
-                  label="Security (Optional)"
-                  size="small"
-                  required={false}
-                  fullWidth
-                />
-              </Grid>
+        {/* Filters */}
+        <Box sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                label="Demat Account"
+                value={selectedDematAccount}
+                onChange={(e) => {
+                  setSelectedDematAccount(e.target.value);
+                  setPage(1); // Reset to first page when changing account
+                }}
+                fullWidth
+              >
+                {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
+                {dematAccounts.map((account) => (
+                  <MenuItem key={account._id} value={account._id}>
+                    {account.brokerId?.name || account.accountNumber || account._id}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
-          </Box>
-
-          <Divider />
-
-          <Box>
-            <TableContainer
-              sx={{
-                width: '100%',
-                overflowX: 'auto',
-                position: 'relative',
-                display: 'block',
-                maxWidth: '100%',
-                '& td, & th': { whiteSpace: 'nowrap' }
-              }}
-            >
-              <Table>
-                <TransactionsTableHead />
-                <TableBody>
-                  {transactions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
-                        <Typography variant="h6" color="text.secondary">
-                          No transactions found
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    transactions.map((transaction) => {
-                      const quantity = transaction.quantity || 0;
-                      const price = transaction.price || 0;
-                      const amount = quantity * price;
-                      const formattedDate = transaction.date 
-                        ? new Date(transaction.date).toLocaleDateString('en-GB')
-                        : '-';
-                      
-                      return (
-                        <TableRow
-                          hover
-                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                          key={transaction._id}
-                        >
-                          <TableCell>...{transaction._id?.slice(-8) || '-'}</TableCell>
-                          <TableCell>{transaction.referenceNumber || '-'}</TableCell>
-                          <TableCell>
-                            {transaction.securityId?.name || transaction.securityId?.symbol || '-'}
-                          </TableCell>
-                          <TableCell align="center">{formattedDate}</TableCell>
-                          <TableCell align="center">
-                            <Chip
-                              label={transaction.type}
-                              color={getTransactionTypeColor(transaction.type)}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell align="center">{transaction.deliveryType}</TableCell>
-                          <TableCell align="right">{quantity}</TableCell>
-                          <TableCell align="right">{formatCurrency(price)}</TableCell>
-                          <TableCell align="right">{formatCurrency(amount)}</TableCell>
-                        </TableRow>
-                      )
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        </Card>
-        <Box width="100%" sx={{
-          mt: 4,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Pagination count={totalPages} page={page} onChange={(_, value) => {
-            setPage(value);
-          }} />
+            <Grid size={{ xs: 12, md: 4 }}>
+              <SecurityAutocomplete
+                value={selectedSecurity}
+                onChange={(newValue) => {
+                  setSelectedSecurity(newValue);
+                  setPage(1); // Reset to first page when changing security
+                }}
+                label="Security (Optional)"
+                size="small"
+                required={false}
+                fullWidth
+              />
+            </Grid>
+          </Grid>
         </Box>
-      </Grid>
-    )
-  }
 
-  export default TransactionsTable
+        <Divider />
+
+        <Box>
+          <TableContainer
+            sx={{
+              width: '100%',
+              overflowX: 'auto',
+              position: 'relative',
+              display: 'block',
+              maxWidth: '100%',
+              '& td, & th': { whiteSpace: 'nowrap' }
+            }}
+          >
+            <Table>
+              <TransactionsTableHead />
+              <TableBody>
+                {transactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
+                      <Typography variant="h6" color="text.secondary">
+                        No transactions found
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  transactions.map((transaction) => {
+                    const quantity = transaction.quantity || 0;
+                    const price = transaction.price || 0;
+                    const amount = quantity * price;
+                    const formattedDate = transaction.date
+                      ? new Date(transaction.date).toLocaleDateString('en-GB')
+                      : '-';
+
+                    return (
+                      <TableRow
+                        hover
+                        selected={selectedRow === transaction._id}
+                        onClick={() => setSelectedRow(transaction._id)}
+                        sx={{ 
+                          '&:last-child td, &:last-child th': { border: 0 },
+                          cursor: 'pointer'
+                        }}
+                        key={transaction._id}
+                        id={`transaction-row-${transaction._id}`}
+                      >
+                        <TableCell>...{transaction._id?.slice(-8) || '-'}</TableCell>
+                        <TableCell>{transaction.referenceNumber || '-'}</TableCell>
+                        <TableCell>
+                          {transaction.securityId?.name || transaction.securityId?.symbol || '-'}
+                        </TableCell>
+                        <TableCell align="center">{formattedDate}</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={transaction.type}
+                            color={getTransactionTypeColor(transaction.type)}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell align="center">{transaction.deliveryType}</TableCell>
+                        <TableCell align="right">{quantity}</TableCell>
+                        <TableCell align="right">{formatCurrency(price)}</TableCell>
+                        <TableCell align="right">{formatCurrency(amount)}</TableCell>
+                        <TableCell align="center">
+                          <Tooltip title="Delete transaction" arrow>
+                            <IconButton onClick={() => onDeleteTransaction(transaction._id)}>
+                              <Delete size="small" color='error' />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      </Card>
+      <Box width="100%" sx={{
+        mt: 4,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Pagination count={totalPages} page={page} onChange={(_, value) => {
+          setPage(value);
+        }} />
+      </Box>
+    </Grid>
+  )
+}
+
+export default TransactionsTable

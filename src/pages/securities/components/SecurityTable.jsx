@@ -138,11 +138,9 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
                 <TableRow 
                   key={security._id} 
                   hover
+                  selected={activeRowIndex === index}
                   ref={(el) => (rowRefs.current[index] = el)}
-                  sx={{
-                    backgroundColor: activeRowIndex === index ? 'action.hover' : 'inherit',
-                    cursor: 'pointer',
-                  }}
+                  sx={{ cursor: 'pointer' }}
                   onClick={() => setActiveRowIndex(index)}
                 >
                   <TableCell component="th" scope="row" sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>

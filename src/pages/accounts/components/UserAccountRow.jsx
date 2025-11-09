@@ -41,10 +41,10 @@ function UserAccountRow({
     <>
       <TableRow 
         ref={rowRef}
+        selected={isActive}
         sx={{ 
           '& > *': { borderBottom: 'unset' },
-          backgroundColor: isActive ? 'action.hover' : 'inherit',
-          cursor: 'pointer',
+          cursor: 'pointer'
         }}
         hover
         onClick={onClick}

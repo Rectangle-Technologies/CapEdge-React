@@ -289,6 +289,7 @@ const AddTransaction = () => {
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
                 required
+                autoFocus
               />
             </Grid>
           </Grid>

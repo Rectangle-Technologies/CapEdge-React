@@ -332,10 +332,10 @@ const Holdings = () => {
                     {/* Main row - Aggregated by security */}
                     <TableRow 
                       hover 
+                      selected={activeRowIndex === index}
                       sx={{ 
                         '& > *': { borderBottom: 'unset' },
-                        backgroundColor: activeRowIndex === index ? 'action.hover' : 'inherit',
-                        cursor: 'pointer',
+                        cursor: 'pointer'
                       }}
                       ref={(el) => (rowRefs.current[index] = el)}
                       onClick={() => setActiveRowIndex(index)}

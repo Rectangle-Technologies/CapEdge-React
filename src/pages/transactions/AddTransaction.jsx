@@ -244,185 +244,192 @@ const AddTransaction = () => {
       />
       <Divider />
       <CardContent>
-        <Box sx={{ mb: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                label="Demat Account"
-                value={selectedDematAccount}
-                onChange={(e) => setSelectedDematAccount(e.target.value)}
-                required
-                placeholder="Select Account"
-              >
-                {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
-                {dematAccounts.map((account) => (
-                  <MenuItem key={account._id} value={account._id}>
-                    {account.brokerId?.name || account.accountNumber || account._id}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item size={{ xs: 12, md: 4 }}>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  label="Transaction Date"
-                  value={transactionDate}
-                  format='DD/MM/YYYY'
-                  onChange={(newValue) => setTransactionDate(newValue)}
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      required: true,
-                      size: 'small',
-                    }
-                  }}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSaveTransactions();
+          }}
+        >
+          <Box sx={{ mb: 3 }}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Demat Account"
+                  value={selectedDematAccount}
+                  onChange={(e) => setSelectedDematAccount(e.target.value)}
+                  required
+                  placeholder="Select Account"
+                >
+                  {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
+                  {dematAccounts.map((account) => (
+                    <MenuItem key={account._id} value={account._id}>
+                      {account.brokerId?.name || account.accountNumber || account._id}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    label="Transaction Date"
+                    value={transactionDate}
+                    format='DD/MM/YYYY'
+                    onChange={(newValue) => setTransactionDate(newValue)}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        required: true,
+                        size: 'small',
+                      }
+                    }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  label="Reference Number"
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  required
+                  autoFocus
                 />
-              </LocalizationProvider>
+              </Grid>
             </Grid>
-            <Grid item size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label="Reference Number"
-                value={referenceNumber}
-                onChange={(e) => setReferenceNumber(e.target.value)}
-                required
-                autoFocus
-              />
-            </Grid>
-          </Grid>
-        </Box>
+          </Box>
 
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6">Transaction Details</Typography>
-        </Box>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6">Transaction Details</Typography>
+          </Box>
 
-        <TableContainer component={Paper} variant="outlined">
-          <Table sx={{ minWidth: 1200 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'primary.lighter' }}>
-                <TableCell sx={{ fontWeight: 'bold', width: '14%' }}>Delivery Type *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Type *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Security *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Quantity *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Buy Price *</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Sell Price *</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '10%' }}>
-                  Action
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id} hover>
-                  <TableCell sx={{ width: '14%' }}>
-                    <TextField
-                      select
-                      size="small"
-                      value={transaction.deliveryType}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'deliveryType', e.target.value)}
-                      fullWidth
-                      required
-                    >
-                      {deliveryTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
-                  <TableCell sx={{ width: '10%' }}>
-                    <TextField
-                      select
-                      size="small"
-                      value={transaction.type}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'type', e.target.value)}
-                      fullWidth
-                      required
-                      disabled={transaction.deliveryType === 'Intraday'}
-                    >
-                      {transactionTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
-                  <TableCell sx={{ width: '30%' }}>
-                    <SecurityAutocomplete
-                      value={transaction.security}
-                      onChange={(newValue) => {
-                        handleTransactionChange(transaction.id, 'security', newValue);
-                      }}
-                      size="small"
-                      required={true}
-                      fullWidth={true}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ width: '12%' }}>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={transaction.quantity}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'quantity', e.target.value)}
-                      fullWidth
-                      required
-                      placeholder="0"
-                      slotProps={{ htmlInput: { min: 0, step: 1 } }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ width: '12%' }}>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={transaction.buyPrice}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'buyPrice', e.target.value)}
-                      fullWidth
-                      required={transaction.deliveryType === 'Intraday' || transaction.type === 'BUY'}
-                      disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'SELL'}
-                      placeholder="0.00"
-                      slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ width: '12%' }}>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={transaction.sellPrice}
-                      onChange={(e) => handleTransactionChange(transaction.id, 'sellPrice', e.target.value)}
-                      fullWidth
-                      required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
-                      disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
-                      placeholder="0.00"
-                      slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
-                    />
-                  </TableCell>
-                  <TableCell align="center" sx={{ width: '10%' }}>
-                    <IconButton
-                      color="error"
-                      size="small"
-                      onClick={() => handleRemoveTransaction(transaction.id)}
-                      disabled={transactions.length === 1}
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
+          <TableContainer component={Paper} variant="outlined">
+            <Table sx={{ minWidth: 1200 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'primary.lighter' }}>
+                  <TableCell sx={{ fontWeight: 'bold', width: '14%' }}>Delivery Type *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Type *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Security *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Quantity *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Buy Price *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Sell Price *</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', width: '10%' }}>
+                    Action
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id} hover>
+                    <TableCell sx={{ width: '14%' }}>
+                      <TextField
+                        select
+                        size="small"
+                        value={transaction.deliveryType}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'deliveryType', e.target.value)}
+                        fullWidth
+                        required
+                      >
+                        {deliveryTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {type}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </TableCell>
+                    <TableCell sx={{ width: '10%' }}>
+                      <TextField
+                        select
+                        size="small"
+                        value={transaction.type}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'type', e.target.value)}
+                        fullWidth
+                        required
+                        disabled={transaction.deliveryType === 'Intraday'}
+                      >
+                        {transactionTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {type}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </TableCell>
+                    <TableCell sx={{ width: '30%' }}>
+                      <SecurityAutocomplete
+                        value={transaction.security}
+                        onChange={(newValue) => {
+                          handleTransactionChange(transaction.id, 'security', newValue);
+                        }}
+                        size="small"
+                        required={true}
+                        fullWidth={true}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: '12%' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={transaction.quantity}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'quantity', e.target.value)}
+                        fullWidth
+                        required
+                        placeholder="0"
+                        slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: '12%' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={transaction.buyPrice}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'buyPrice', e.target.value)}
+                        fullWidth
+                        required={transaction.deliveryType === 'Intraday' || transaction.type === 'BUY'}
+                        disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'SELL'}
+                        placeholder="0.00"
+                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: '12%' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={transaction.sellPrice}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'sellPrice', e.target.value)}
+                        fullWidth
+                        required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
+                        disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
+                        placeholder="0.00"
+                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                      />
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '10%' }}>
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => handleRemoveTransaction(transaction.id)}
+                        disabled={transactions.length === 1}
+                      >
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
-            Add Transaction
-          </Button>
-          <Button variant="contained" color="primary" startIcon={<SaveIcon />} onClick={handleSaveTransactions} size="large" fullWidth>
-            Save All Transactions ({transactions.length})
-          </Button>
-        </Box>
+          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
+              Add Transaction
+            </Button>
+            <Button type="submit" variant="contained" color="primary" startIcon={<SaveIcon />} size="large" fullWidth>
+              Save All Transactions ({transactions.length})
+            </Button>
+          </Box>
+        </form>
       </CardContent>
     </MainCard>
   );

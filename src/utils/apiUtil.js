@@ -11,10 +11,11 @@ const getAuthToken = () => {
 };
 
 // Helper function to build complete config with base URL, headers, and timeout
-const buildConfig = () => {
+const buildConfig = (options = {}) => {
   const token = getAuthToken();
   const headers = {
     'Content-Type': 'application/json',
+    ...options.headers,
   };
 
   if (token) {
@@ -23,6 +24,7 @@ const buildConfig = () => {
 
   return {
     timeout: 10000,
+    ...options,
     headers,
   };
 };
@@ -39,11 +41,11 @@ export const get = async (url) => {
 };
 
 // POST request helper
-export const post = async (url, data = null) => {
+export const post = async (url, data = null, sendEntireResponse = false, options = {}) => {
   try {
     const fullUrl = `${BASE_URL}${url}`;
-    const response = await axios.post(fullUrl, data, buildConfig());
-    return response.data.data;
+    const response = await axios.post(fullUrl, data, buildConfig(options));
+    return sendEntireResponse ? response : response.data.data;
   } catch (error) {
     throw handleApiError(error);
   }

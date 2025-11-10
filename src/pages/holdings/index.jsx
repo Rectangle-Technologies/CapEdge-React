@@ -39,7 +39,7 @@ const HOLDINGS_LIMIT = 50;
 const Holdings = () => {
   const dispatch = useDispatch();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
-  
+
   const [holdings, setHoldings] = useState([]);
   const [expandedSecurity, setExpandedSecurity] = useState(null);
   const [dematAccounts, setDematAccounts] = useState([]);
@@ -55,10 +55,10 @@ const Holdings = () => {
 
   const groupHoldingsBySecurity = (holdingsData) => {
     const grouped = {};
-    
+
     holdingsData.forEach((holding) => {
       const key = holding.securityId;
-      
+
       if (!grouped[key]) {
         grouped[key] = {
           securityId: key,
@@ -69,7 +69,7 @@ const Holdings = () => {
           holdings: []
         };
       }
-      
+
       grouped[key].holdings.push(holding);
       grouped[key].totalQuantity += holding.quantity;
       grouped[key].totalInvestment += holding.totalInvestment;
@@ -115,9 +115,9 @@ const Holdings = () => {
           const newIndex = prevIndex < groupedHoldings.length - 1 ? prevIndex + 1 : prevIndex;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -128,9 +128,9 @@ const Holdings = () => {
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -152,7 +152,7 @@ const Holdings = () => {
     try {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       const accounts = response.dematAccounts || [];
-      
+
       setDematAccounts(accounts);
       if (accounts.length > 0) {
         setSelectedDematAccount(accounts[0]._id);
@@ -165,15 +165,15 @@ const Holdings = () => {
 
   const loadHoldings = async () => {
     if (!selectedDematAccount) return;
-    
+
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
       const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId);
-      
+
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
-        setHoldings(transformedHoldings);      
+        setHoldings(transformedHoldings);
       }
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
@@ -198,7 +198,7 @@ const Holdings = () => {
 
   const getExportData = () => {
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
-    
+
     return allHoldings.map((holding) => ({
       'Buy Date': formatDate(holding.buyDate),
       Security: holding.securityName,
@@ -330,10 +330,10 @@ const Holdings = () => {
                 groupedHoldings.map((group, index) => (
                   <React.Fragment key={group.securityId}>
                     {/* Main row - Aggregated by security */}
-                    <TableRow 
-                      hover 
+                    <TableRow
+                      hover
                       selected={activeRowIndex === index}
-                      sx={{ 
+                      sx={{
                         '& > *': { borderBottom: 'unset' },
                         cursor: 'pointer'
                       }}

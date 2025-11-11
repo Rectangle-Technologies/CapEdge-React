@@ -21,9 +21,19 @@ const ProfitAndLoss = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
 
   const userAccount = useSelector((state) => state.app.currentUserAccount);
-  const financialYear = useSelector((state) => state.app.financialYear)
+  const financialYear = useSelector((state) => state.app.financialYear);
 
   const generatePnLReport = async () => {
+    if (!financialYear?._id) {
+      showErrorSnackbar('Financial year is not selected');
+      return;
+    }
+
+    if (!selectedDematAccount) {
+      showErrorSnackbar('Please select a demat account');
+      return;
+    }
+    
     dispatch(showLoader());
     try {
       // Call API with responseType 'arraybuffer' to get Excel file buffer
@@ -33,7 +43,7 @@ const ProfitAndLoss = () => {
       }, true, { responseType: 'arraybuffer' });
       // Extract filename from Content-Disposition header
       const brokerName = dematAccounts.find(acc => acc._id === selectedDematAccount)?.brokerId?.name;
-      const filename = `pnl_${userAccount.name}_${brokerName}.xlsx`;
+      const filename = `pnl_${userAccount?.name || 'user'}_${brokerName || 'broker'}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -55,6 +65,10 @@ const ProfitAndLoss = () => {
   };
 
   const fetchDematAccounts = async () => {
+    if (!userAccount?._id) {
+      return;
+    }
+    dispatch(showLoader());
     try {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       const accounts = response.dematAccounts || [];
@@ -66,12 +80,14 @@ const ProfitAndLoss = () => {
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
       showErrorSnackbar('Failed to fetch demat accounts');
+    } finally {
+      dispatch(hideLoader());
     }
   };
 
   useEffect(() => {
     fetchDematAccounts();
-  }, []);
+  }, [userAccount]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -96,9 +112,9 @@ const ProfitAndLoss = () => {
           </TextField>
         </Grid>
         <Grid size={{ xs: 12, md: 3 }}>
-            <Button variant="contained" color="primary" onClick={generatePnLReport}>
-        Generate P&L Report
-      </Button>
+          <Button variant="contained" color="primary" onClick={generatePnLReport}>
+            Generate P&L Report
+          </Button>
         </Grid>
       </Grid>
       

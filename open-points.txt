@@ -1,6 +1,5 @@
-[ ] - The line loader comes only once. So is data being cached?
-[ ] - Update routing when page is refreshed
-
+[ ] - Inside User Account page when clicking alt+N, it is opening form to create new user, but what about demat account.
+[ ] - What about shortcut for deletion?
 
 [x] - Data is changing before API Simulation loading
 [x] - There is a delay on clicking Search and display of message. Also message is not needed as data is being changed.

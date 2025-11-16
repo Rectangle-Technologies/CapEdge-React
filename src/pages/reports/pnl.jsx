@@ -43,7 +43,7 @@ const ProfitAndLoss = () => {
       }, true, { responseType: 'arraybuffer' });
       // Extract filename from Content-Disposition header
       const brokerName = dematAccounts.find(acc => acc._id === selectedDematAccount)?.brokerId?.name;
-      const filename = `pnl_${userAccount?.name || 'user'}_${brokerName || 'broker'}.xlsx`;
+      const filename = `pnl_${userAccount?.name || 'user'}_${brokerName || 'broker'}_${financialYear?.title || 'year'}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

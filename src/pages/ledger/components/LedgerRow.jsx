@@ -79,6 +79,9 @@ function LedgerRow({
             {entry.transactionAmount < 0 ? `-${formatCurrency(Math.abs(entry.transactionAmount))}` : '-'}
           </Typography>
         </TableCell>
+        <TableCell align={entry.remarks ? 'left' : 'center'} sx={{ padding: '8px 16px 8px 16px' }}>
+          {entry.remarks || '-'}
+        </TableCell>
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>

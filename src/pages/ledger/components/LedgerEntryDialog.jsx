@@ -89,6 +89,21 @@ const LedgerEntryDialog = ({
                                 }}
                             />
                         </Grid>
+
+                        {/* Remarks */}
+                        <Grid size={12} sx={{ mt: 2 }}>
+                            <TextField
+                                fullWidth
+                                label="Remarks"
+                                name="remarks"
+                                minRows={3}
+                                value={formik.values.remarks}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.remarks && Boolean(formik.errors.remarks)}
+                                helperText={formik.touched.remarks && formik.errors.remarks}
+                            />
+                        </Grid>
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ mt: 2 }}>

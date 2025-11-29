@@ -68,14 +68,16 @@ const LedgerTable = ({
       .number()
       .typeError('Amount must be a number')
       .positive('Amount must be positive')
-      .required('Amount is required')
+      .required('Amount is required'),
+    remarks: yup.string().required('Remarks are required')
   })
 
   const formik = useFormik({
     initialValues: {
       date: dayjs(),
       entryType: '',
-      transactionAmount: ''
+      transactionAmount: '',
+      remarks: ''
     },
     validationSchema: ledgerEntryValidationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -88,7 +90,8 @@ const LedgerTable = ({
         const data = await post('/ledger/add', {
           date: values.date.format('YYYY-MM-DD'),
           transactionAmount: transactionAmount,
-          dematAccountId: selectedDematAccount._id
+          dematAccountId: selectedDematAccount._id,
+          remarks: values.remarks
         });
         // After successful submission:
         resetForm();
@@ -101,7 +104,7 @@ const LedgerTable = ({
         });
       } catch (error) {
         console.error('Error adding ledger entry:', error);
-        showErrorSnackbar('Failed to add ledger entry. Please try again.');
+        showErrorSnackbar(error.message ||'Failed to add ledger entry. Please try again.');
       } finally {
         dispatch(hideLoader());
       }
@@ -318,6 +321,9 @@ const LedgerTable = ({
                 </TableCell>
                 <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Debit</strong>
+                </TableCell>
+                <TableCell align='center' sx={{ padding: '8px 16px 8px 16px' }}>
+                  <strong>Remarks</strong>
                 </TableCell>
               </TableRow>
             </TableHead>

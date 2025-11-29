@@ -104,7 +104,21 @@ const AddTransaction = () => {
   };
 
   const handleTransactionChange = (id, field, value) => {
-    setTransactions(transactions.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
+    setTransactions(transactions.map((t) => {
+      if (t.id !== id) return t;
+      
+      // If transaction type changes, reset the price fields for Delivery type
+      if (field === 'type' && t.deliveryType === 'Delivery') {
+        return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
+      }
+      
+      // If delivery type changes to Delivery, reset both price fields
+      if (field === 'deliveryType' && value === 'Delivery') {
+        return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
+      }
+      
+      return { ...t, [field]: value };
+    }));
   };
 
   const validateTransactions = () => {
@@ -306,16 +320,18 @@ const AddTransaction = () => {
           </Box>
 
           <TableContainer component={Paper} variant="outlined">
-            <Table sx={{ minWidth: 1200 }}>
+            <Table sx={{ minWidth: 1400 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'primary.lighter' }}>
-                  <TableCell sx={{ fontWeight: 'bold', width: '14%' }}>Delivery Type *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Type *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Security *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Quantity *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Buy Price *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Sell Price *</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', width: '10%' }}>
+                  <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Delivery Type *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>Type *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Security *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Quantity *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Price *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Price *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Total Amount Bought</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Total Amount Sold</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>
                     Action
                   </TableCell>
                 </TableRow>
@@ -323,7 +339,7 @@ const AddTransaction = () => {
               <TableBody>
                 {transactions.map((transaction) => (
                   <TableRow key={transaction.id} hover>
-                    <TableCell sx={{ width: '14%' }}>
+                    <TableCell sx={{ width: '12%' }}>
                       <TextField
                         select
                         size="small"
@@ -339,7 +355,7 @@ const AddTransaction = () => {
                         ))}
                       </TextField>
                     </TableCell>
-                    <TableCell sx={{ width: '10%' }}>
+                    <TableCell sx={{ width: '8%' }}>
                       <TextField
                         select
                         size="small"
@@ -356,7 +372,7 @@ const AddTransaction = () => {
                         ))}
                       </TextField>
                     </TableCell>
-                    <TableCell sx={{ width: '30%' }}>
+                    <TableCell sx={{ width: '22%' }}>
                       <SecurityAutocomplete
                         value={transaction.security}
                         onChange={(newValue) => {
@@ -367,7 +383,7 @@ const AddTransaction = () => {
                         fullWidth={true}
                       />
                     </TableCell>
-                    <TableCell sx={{ width: '12%' }}>
+                    <TableCell sx={{ width: '10%' }}>
                       <TextField
                         size="small"
                         type="number"
@@ -379,7 +395,7 @@ const AddTransaction = () => {
                         slotProps={{ htmlInput: { min: 0, step: 1 } }}
                       />
                     </TableCell>
-                    <TableCell sx={{ width: '12%' }}>
+                    <TableCell sx={{ width: '10%' }}>
                       <TextField
                         size="small"
                         type="number"
@@ -392,7 +408,7 @@ const AddTransaction = () => {
                         slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
                       />
                     </TableCell>
-                    <TableCell sx={{ width: '12%' }}>
+                    <TableCell sx={{ width: '10%' }}>
                       <TextField
                         size="small"
                         type="number"
@@ -405,7 +421,21 @@ const AddTransaction = () => {
                         slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ width: '10%' }}>
+                    <TableCell sx={{ width: '10%' }}>
+                      <Typography variant="body2" sx={{ textAlign: 'right', fontWeight: 500 }}>
+                        {transaction.quantity && transaction.buyPrice
+                          ? (Number(transaction.quantity) * Number(transaction.buyPrice)).toFixed(2)
+                          : '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ width: '10%' }}>
+                      <Typography variant="body2" sx={{ textAlign: 'right', fontWeight: 500 }}>
+                        {transaction.quantity && transaction.sellPrice
+                          ? (Number(transaction.quantity) * Number(transaction.sellPrice)).toFixed(2)
+                          : '-'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: '8%' }}>
                       <IconButton
                         color="error"
                         size="small"

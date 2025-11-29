@@ -31,6 +31,7 @@ import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
@@ -329,8 +330,8 @@ const AddTransaction = () => {
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Quantity *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Price *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Price *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Total Amount Bought</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Total Amount Sold</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Amount</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>
                     Action
                   </TableCell>
@@ -424,14 +425,14 @@ const AddTransaction = () => {
                     <TableCell sx={{ width: '10%' }}>
                       <Typography variant="body2" sx={{ textAlign: 'right', fontWeight: 500 }}>
                         {transaction.quantity && transaction.buyPrice
-                          ? (Number(transaction.quantity) * Number(transaction.buyPrice)).toFixed(2)
+                          ? formatCurrency(Number(transaction.quantity) * Number(transaction.buyPrice))
                           : '-'}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>
                       <Typography variant="body2" sx={{ textAlign: 'right', fontWeight: 500 }}>
                         {transaction.quantity && transaction.sellPrice
-                          ? (Number(transaction.quantity) * Number(transaction.sellPrice)).toFixed(2)
+                          ? formatCurrency(Number(transaction.quantity) * Number(transaction.sellPrice))
                           : '-'}
                       </Typography>
                     </TableCell>

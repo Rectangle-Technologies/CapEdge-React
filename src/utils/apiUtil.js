@@ -30,11 +30,11 @@ const buildConfig = (options = {}) => {
 };
 
 // GET request helper
-export const get = async (url) => {
+export const get = async (url, sendEntireResponse = false, options = {}) => {
   try {
     const fullUrl = `${BASE_URL}${url}`;
-    const response = await axios.get(fullUrl, buildConfig());
-    return response.data.data;
+    const response = await axios.get(fullUrl, buildConfig(options));
+    return sendEntireResponse ? response : response.data.data;
   } catch (error) {
     throw handleApiError(error);
   }

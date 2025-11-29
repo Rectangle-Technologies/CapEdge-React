@@ -1,8 +1,9 @@
-import { IconButton } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import { Download as DownloadIcon } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { showLoader, hideLoader } from '../store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from '../store/utils';
+import { get, post } from '../utils/apiUtil';
 
 /**
  * Reusable Export to Excel Button Component
@@ -67,7 +68,40 @@ const ExportToExcelButton = ({
     }
   };
 
+  const handleDownloadAll = async () => {
+    dispatch(showLoader());
+    try {
+      const response = await get('/report/holdings/export',
+        true, { responseType: 'arraybuffer' }
+      );
+      console.log('Download all response:', response);
+      // Today's date in DD/MM/YYYY format
+      const today = new Date();
+      const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+      const filename = `Holdings_${formattedDate}.xlsx`;
+      // Create Blob and trigger download
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      showErrorSnackbar('Download all failed. Please try again.');
+      console.error('Download all error:', err);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   return (
+    <>
+    <Button variant='contained' onClick={handleDownloadAll}>Download all</Button>
     <IconButton
       onClick={handleExport}
       color="primary"
@@ -76,12 +110,14 @@ const ExportToExcelButton = ({
         border: '1px solid',
         borderColor: 'primary.main',
         borderRadius: 1,
+        marginLeft: 2,
         ...sx
       }}
       {...otherProps}
     >
       <DownloadIcon />
     </IconButton>
+    </>
   );
 };
 

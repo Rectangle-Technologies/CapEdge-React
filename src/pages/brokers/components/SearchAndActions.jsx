@@ -67,19 +67,6 @@ const SearchAndActions = ({
         Search
       </Button>
 
-      <IconButton
-        onClick={onExport}
-        color="primary"
-        title="Export to Excel"
-        sx={{
-          border: '1px solid',
-          borderColor: 'primary.main',
-          borderRadius: 1
-        }}
-      >
-        <DownloadIcon />
-      </IconButton>
-
       <Tooltip title={`Add Broker (${shortcutHint})`} arrow>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
           Add Broker

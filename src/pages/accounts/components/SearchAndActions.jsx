@@ -68,19 +68,6 @@ function SearchAndActions({
         Search
       </Button>
       
-      <IconButton
-        onClick={onExport}
-        color="primary"
-        title="Export to Excel"
-        sx={{ 
-          border: '1px solid',
-          borderColor: 'primary.main',
-          borderRadius: 1
-        }}
-      >
-        <DownloadIcon />
-      </IconButton>
-      
       <Tooltip title={`Add User Account (${shortcutHint})`} arrow>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onAddUser}>
           Add User Account

@@ -101,7 +101,7 @@ const ExportToExcelButton = ({
   return (
     <>
     <Button variant='contained' onClick={handleDownloadAll}>Download all</Button>
-    <IconButton
+    {/* <IconButton
       onClick={handleExport}
       color="primary"
       title={title}
@@ -115,7 +115,7 @@ const ExportToExcelButton = ({
       {...otherProps}
     >
       <DownloadIcon />
-    </IconButton>
+    </IconButton> */}
     </>
   );
 };

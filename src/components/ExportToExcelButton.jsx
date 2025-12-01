@@ -74,7 +74,6 @@ const ExportToExcelButton = ({
       const response = await get('/report/holdings/export',
         true, { responseType: 'arraybuffer' }
       );
-      console.log('Download all response:', response);
       // Today's date in DD/MM/YYYY format
       const today = new Date();
       const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;

@@ -23,12 +23,28 @@ const Ledger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const ROWS_PER_PAGE = 50;
+  const ROWS_PER_PAGE = 5;
 
   const exportToExcel = async () => {
     dispatch(showLoader());
     try {
-      await exportLedgerToExcel(ledgerEntries);
+      const response = await get(`/report/ledger/export/${selectedDematAccount._id}?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`,
+        true, { responseType: 'arraybuffer' }
+      );
+      const brokerName = dematAccounts.find(acc => acc._id === selectedDematAccount._id)?.brokerId?.name;
+      const filename = `Ledger_${userAccount?.name || 'user'}_${brokerName || 'broker'}.xlsx`;
+      // Create Blob and trigger download
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       showErrorSnackbar('Export failed. Please try again.');
       console.error('Export failed:', error);

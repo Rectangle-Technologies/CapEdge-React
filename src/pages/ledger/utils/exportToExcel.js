@@ -1,4 +1,5 @@
 import { formatDate, formatDateForFileName } from 'utils/formatDate';
+import { formatCurrency } from '../../../utils/formatCurrency';
 
 /**
  * Export ledger entries to Excel (CSV format)
@@ -13,9 +14,8 @@ export const exportToExcel = async (filteredEntries) => {
     Security: entry.securityName,
     Type: entry.transactionType,
     Quantity: entry.quantity,
-    Price: entry.price.toFixed(2),
-    Amount: entry.transactionAmount.toFixed(2),
-    Balance: entry.balance.toFixed(2),
+    Amount: formatCurrency(entry.transactionAmount),
+    Balance: formatCurrency(entry.balance),
     Remarks: entry.remarks
   }));
 

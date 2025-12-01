@@ -85,7 +85,7 @@ function LedgerRow({
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
               <Box sx={{ margin: 2 }}>
                 <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>

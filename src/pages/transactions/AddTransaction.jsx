@@ -51,6 +51,7 @@ const AddTransaction = () => {
       quantity: '',
       buyPrice: '',
       sellPrice: '',
+      transactionCost: '',
       security: null,
       deliveryType: 'Delivery'
     }
@@ -89,6 +90,7 @@ const AddTransaction = () => {
         quantity: '',
         buyPrice: '',
         sellPrice: '',
+        transactionCost: '',
         security: null,
         deliveryType: 'Delivery'
       }
@@ -204,7 +206,8 @@ const AddTransaction = () => {
           securityId: t.security._id,
           deliveryType: t.deliveryType,
           referenceNumber: referenceNumber,
-          dematAccountId: selectedDematAccount
+          dematAccountId: selectedDematAccount,
+          transactionCost: t.transactionCost ? Number(t.transactionCost) : 0
         };
 
         if (t.deliveryType === 'Intraday') {
@@ -235,6 +238,7 @@ const AddTransaction = () => {
           quantity: '',
           buyPrice: '',
           sellPrice: '',
+          transactionCost: '',
           security: null,
           deliveryType: 'Delivery'
         }
@@ -330,6 +334,7 @@ const AddTransaction = () => {
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Quantity *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Price *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Price *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>Transaction Cost</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Amount</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Amount</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>
@@ -418,6 +423,17 @@ const AddTransaction = () => {
                         fullWidth
                         required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
                         disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
+                        placeholder="0.00"
+                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ width: '8%' }}>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={transaction.transactionCost}
+                        onChange={(e) => handleTransactionChange(transaction.id, 'transactionCost', e.target.value)}
+                        fullWidth
                         placeholder="0.00"
                         slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
                       />

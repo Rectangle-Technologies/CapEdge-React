@@ -334,9 +334,9 @@ const AddTransaction = () => {
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Quantity *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Price *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Price *</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>Transaction Cost</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Amount</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Charges *</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>Buy Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', width: '9%' }}>Sell Amount</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 'bold', width: '8%' }}>
                     Action
                   </TableCell>

@@ -56,6 +56,12 @@ const headCells = [
     label: 'Amount'
   },
   {
+    id: 'transactionCost',
+    align: 'right',
+    disablePadding: false,
+    label: 'Charges'
+  },
+  {
     id: 'actions',
     align: 'center',
     disablePadding: false,

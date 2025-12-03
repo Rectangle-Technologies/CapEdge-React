@@ -23,7 +23,7 @@ const Ledger = () => {
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const ROWS_PER_PAGE = 5;
+  const ROWS_PER_PAGE = 50;
 
   const exportToExcel = async () => {
     dispatch(showLoader());

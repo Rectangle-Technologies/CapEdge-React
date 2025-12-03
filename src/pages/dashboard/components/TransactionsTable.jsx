@@ -289,6 +289,7 @@ const TransactionsTable = () => {
                         <TableCell align="right">{quantity}</TableCell>
                         <TableCell align="right">{formatCurrency(price)}</TableCell>
                         <TableCell align="right">{formatCurrency(amount)}</TableCell>
+                        <TableCell align="right">{formatCurrency(transaction.transactionCost || 0)}</TableCell>
                         <TableCell align="center">
                           <Tooltip title="Delete transaction" arrow>
                             <IconButton onClick={() => onDeleteTransaction(transaction._id)}>

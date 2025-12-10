@@ -29,7 +29,7 @@ export default function ProfileTab() {
     } catch (error) {
       showErrorSnackbar('Logout failed. Please try again.');
     }
-  }
+  };
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
       {/* <ListItemButton>

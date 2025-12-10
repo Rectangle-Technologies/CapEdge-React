@@ -248,11 +248,7 @@ const Holdings = () => {
           title="Current Holdings"
           subheader="View all of your holdings as of now"
           action={
-            <ExportToExcelButton
-              data={getExportData()}
-              filename={`holdings_${formatDateForFileName()}`}
-              title="Export Holdings to Excel"
-            />
+            <ExportToExcelButton data={getExportData()} filename={`holdings_${formatDateForFileName()}`} title="Export Holdings to Excel" />
           }
         />
         <Divider />

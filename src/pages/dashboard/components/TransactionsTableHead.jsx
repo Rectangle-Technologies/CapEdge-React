@@ -1,4 +1,4 @@
-import { TableCell, TableHead, TableRow } from "@mui/material";
+import { TableCell, TableHead, TableRow } from '@mui/material';
 
 const headCells = [
   {
@@ -74,17 +74,13 @@ const TransactionsTableHead = () => {
     <TableHead>
       <TableRow>
         {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.align}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-          >
+          <TableCell key={headCell.id} align={headCell.align} padding={headCell.disablePadding ? 'none' : 'normal'}>
             {headCell.label}
           </TableCell>
         ))}
       </TableRow>
     </TableHead>
   );
-}
+};
 
 export default TransactionsTableHead;

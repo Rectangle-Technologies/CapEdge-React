@@ -52,4 +52,4 @@ export const getTransactionTypeColor = (type) => {
     SELL: 'success'
   };
   return colorMap[type] || 'primary';
-}
+};

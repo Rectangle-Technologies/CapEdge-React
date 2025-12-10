@@ -1,10 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import {
-  Box,
-  Card,
-  CardHeader,
-  Pagination
-} from '@mui/material';
+import { Box, Card, CardHeader, Pagination } from '@mui/material';
 import { useFormik } from 'formik';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
@@ -113,7 +108,7 @@ const Security = () => {
     try {
       const data = await get(`${API_ENDPOINTS.getAllSecurities}?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
       setSecurities(data.securities);
-      setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
+      setTotalPages(Math.ceil(data.pagination.total / ROWS_PER_PAGE));
       setSecurityTypes(data.securityTypes);
     } catch (error) {
       console.error('Failed to fetch securities:', error);
@@ -191,12 +186,15 @@ const Security = () => {
         />
       </Card>
 
-      <Box width='100%' sx={{
-        mt: 4,
-        display: { xs: 'none', md: 'flex' },
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <Box
+        width="100%"
+        sx={{
+          mt: 4,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
 

@@ -15,7 +15,7 @@ const buildConfig = (options = {}) => {
   const token = getAuthToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...options.headers
   };
 
   if (token) {
@@ -25,7 +25,7 @@ const buildConfig = (options = {}) => {
   return {
     timeout: 10000,
     ...options,
-    headers,
+    headers
   };
 };
 
@@ -78,7 +78,7 @@ const handleApiError = (error) => {
   if (error.response) {
     // Server responded with error status
     const { status, data } = error.response;
-    
+
     // Handle specific error cases
     switch (status) {
       case 401:
@@ -110,5 +110,5 @@ export default {
   get,
   post,
   put,
-  del,
+  del
 };

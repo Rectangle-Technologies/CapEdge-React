@@ -6,19 +6,19 @@
  */
 export const formatDate = (date, format = 'display') => {
   if (!date) return '-';
-  
+
   const dateObj = new Date(date);
-  
+
   // Check if date is valid
   if (isNaN(dateObj.getTime())) {
     return '-';
   }
-  
+
   if (format === 'input') {
     // For input fields (YYYY-MM-DD format)
     return dateObj.toISOString().split('T')[0];
   }
-  
+
   // For display (DD/MM/YYYY format)
   return dateObj.toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -43,20 +43,20 @@ export const formatDateForFileName = (date = new Date()) => {
  */
 export const parseDateString = (dateString) => {
   if (!dateString || dateString === '-') return null;
-  
+
   // Try to parse DD/MM/YYYY format
   const parts = dateString.split('/');
   if (parts.length === 3) {
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
     const year = parseInt(parts[2], 10);
-    
+
     const date = new Date(year, month, day);
     if (!isNaN(date.getTime())) {
       return date;
     }
   }
-  
+
   // Fallback to standard Date parsing
   const date = new Date(dateString);
   return isNaN(date.getTime()) ? null : date;

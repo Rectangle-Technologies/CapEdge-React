@@ -17,18 +17,12 @@ import {
  * Demat Account Form Dialog Component
  * Handles creating and editing demat accounts
  */
-function DematAccountDialog({ 
-  open, 
-  onClose, 
-  editingDemat, 
-  dematFormik,
-  brokers 
-}) {
+function DematAccountDialog({ open, onClose, editingDemat, dematFormik, brokers }) {
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
@@ -40,9 +34,7 @@ function DematAccountDialog({
         }
       }}
     >
-      <DialogTitle>
-        {editingDemat ? 'Edit Demat Account' : 'Add New Demat Account'}
-      </DialogTitle>
+      <DialogTitle>{editingDemat ? 'Edit Demat Account' : 'Add New Demat Account'}</DialogTitle>
       <form onSubmit={dematFormik.handleSubmit}>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>

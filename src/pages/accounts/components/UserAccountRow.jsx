@@ -1,48 +1,36 @@
 import {
-    Add as AddIcon,
-    Delete as DeleteIcon,
-    Edit as EditIcon,
-    KeyboardArrowDown as KeyboardArrowDownIcon,
-    KeyboardArrowUp as KeyboardArrowUpIcon
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
-import {
-    Box,
-    Button,
-    Collapse,
-    IconButton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableRow,
-    Typography
-} from '@mui/material';
+import { Box, Button, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { formatCurrency } from '../../../utils/formatCurrency';
 
 /**
  * Expandable table row component for user accounts
  * Shows user details and their associated demat accounts
  */
-function UserAccountRow({ 
+function UserAccountRow({
   userAccount,
   isExpanded,
   onToggleExpand,
-  onEditUser, 
-  onDeleteUser, 
-  onAddDematAccount, 
-  onEditDematAccount, 
+  onEditUser,
+  onDeleteUser,
+  onAddDematAccount,
+  onEditDematAccount,
   onDeleteDematAccount,
   isActive,
   onClick,
   rowRef
 }) {
-
   return (
     <>
-      <TableRow 
+      <TableRow
         ref={rowRef}
         selected={isActive}
-        sx={{ 
+        sx={{
           '& > *': { borderBottom: 'unset' },
           cursor: 'pointer'
         }}
@@ -50,21 +38,25 @@ function UserAccountRow({
         onClick={onClick}
       >
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
-          <IconButton 
-            aria-label="expand row" 
-            size="small" 
-            onClick={() => onToggleExpand(userAccount.id || userAccount._id)}
-          >
+          <IconButton aria-label="expand row" size="small" onClick={() => onToggleExpand(userAccount.id || userAccount._id)}>
             {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
         <TableCell component="th" scope="row" sx={{ width: '25%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
           {userAccount.name}
         </TableCell>
-        <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
-          {userAccount.panNumber}
-        </TableCell>
-        <TableCell sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px', maxWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>{userAccount.panNumber}</TableCell>
+        <TableCell
+          sx={{
+            width: '35%',
+            minWidth: '200px',
+            padding: '8px 16px 8px 16px',
+            maxWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
+        >
           {userAccount.address}
         </TableCell>
         <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
@@ -84,12 +76,7 @@ function UserAccountRow({
                 <Typography variant="h6" gutterBottom component="div">
                   Demat Accounts ({userAccount.dematAccounts ? userAccount.dematAccounts.length : 0})
                 </Typography>
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => onAddDematAccount(userAccount._id)}
-                >
+                <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={() => onAddDematAccount(userAccount._id)}>
                   Add Demat Account
                 </Button>
               </Box>
@@ -111,21 +98,13 @@ function UserAccountRow({
                   <TableBody>
                     {userAccount.dematAccounts.map((dematAccount) => (
                       <TableRow key={dematAccount._id}>
-                        <TableCell sx={{ padding: '8px 16px' }}>
-                          {dematAccount.broker.name}
-                        </TableCell>
-                        <TableCell sx={{ padding: '8px 16px' }}>
-                          {formatCurrency(dematAccount.balance)}
-                        </TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>{dematAccount.broker.name}</TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>{formatCurrency(dematAccount.balance)}</TableCell>
                         <TableCell sx={{ padding: '8px 16px' }}>
                           <IconButton onClick={() => onEditDematAccount(dematAccount, userAccount)} size="small" color="primary">
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            onClick={() => onDeleteDematAccount(dematAccount._id)}
-                            size="small"
-                            color="error"
-                          >
+                          <IconButton onClick={() => onDeleteDematAccount(dematAccount._id)} size="small" color="error">
                             <DeleteIcon />
                           </IconButton>
                         </TableCell>

@@ -16,7 +16,7 @@ export class SecurityExportService {
     try {
       // Simulate processing time for better UX
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       // Prepare data for export
       const exportData = securities.map((security) => ({
         'Security Name': security.name,
@@ -29,8 +29,9 @@ export class SecurityExportService {
       const headers = Object.keys(exportData[0] || {});
       const csvContent = [
         headers.join(','),
-        ...exportData.map(row => 
-          headers.map(header => {
+        ...exportData.map((row) =>
+          headers
+            .map((header) => {
               const value = row[header] || '';
               // Wrap in quotes if contains comma or newline
               return typeof value === 'string' && (value.includes(',') || value.includes('\n')) ? `"${value.replace(/"/g, '""')}"` : value;
@@ -41,7 +42,6 @@ export class SecurityExportService {
 
       // Create and download file
       this._downloadFile(csvContent, `securities_${formatDateForFileName()}.csv`, 'text/csv');
-      
     } catch (error) {
       throw new Error('Failed to export data. Please try again.');
     }
@@ -57,15 +57,15 @@ export class SecurityExportService {
     const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
     link.style.visibility = 'hidden';
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up the URL object
     URL.revokeObjectURL(url);
   }

@@ -13,13 +13,7 @@ import { get, post } from '../utils/apiUtil';
  * @param {Object} props.sx - Additional styling
  * @param {string} props.title - Tooltip text
  */
-const ExportToExcelButton = ({ 
-  data = [], 
-  filename = 'export', 
-  sx = {},
-  title = 'Export to Excel',
-  ...otherProps 
-}) => {
+const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 'Export to Excel', ...otherProps }) => {
   const dispatch = useDispatch();
 
   const handleExport = async () => {
@@ -41,9 +35,7 @@ const ExportToExcelButton = ({
             .map((header) => {
               const value = row[header] || '';
               // Escape values that contain commas or quotes
-              return value.toString().includes(',') || value.toString().includes('"') 
-                ? `"${value.toString().replace(/"/g, '""')}"` 
-                : value;
+              return value.toString().includes(',') || value.toString().includes('"') ? `"${value.toString().replace(/"/g, '""')}"` : value;
             })
             .join(',')
         )
@@ -71,9 +63,7 @@ const ExportToExcelButton = ({
   const handleDownloadAll = async () => {
     dispatch(showLoader());
     try {
-      const response = await get('/report/holdings/export',
-        true, { responseType: 'arraybuffer' }
-      );
+      const response = await get('/report/holdings/export', true, { responseType: 'arraybuffer' });
       // Today's date in DD/MM/YYYY format
       const today = new Date();
       const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
@@ -100,8 +90,10 @@ const ExportToExcelButton = ({
 
   return (
     <>
-    <Button variant='contained' onClick={handleDownloadAll}>Download all</Button>
-    {/* <IconButton
+      <Button variant="contained" onClick={handleDownloadAll}>
+        Download all
+      </Button>
+      {/* <IconButton
       onClick={handleExport}
       color="primary"
       title={title}

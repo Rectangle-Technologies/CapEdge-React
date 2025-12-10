@@ -9,11 +9,16 @@ export const formatCurrency = (amount, currency = '₹', locale = 'en-IN') => {
   if (amount === null || amount === undefined || isNaN(amount)) {
     return `${currency}0.00`;
   }
+
+  const isNegative = amount < 0;
+  const absoluteAmount = Math.abs(amount);
   
-  return `${currency}${Number(amount).toLocaleString(locale, {
+  const formattedAmount = absoluteAmount.toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  })}`;
+  });
+
+  return isNegative ? `-${currency}${formattedAmount}` : `${currency}${formattedAmount}`;
 };
 
 /**

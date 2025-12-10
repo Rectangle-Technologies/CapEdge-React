@@ -7,10 +7,7 @@ import * as yup from 'yup';
 export const createSecurityValidationSchema = (securityTypes) => {
   return yup.object({
     name: yup.string().required('Security name is required').min(2, 'Name must be at least 2 characters'),
-    type: yup
-      .string()
-      .required('Security type is required')
-      .oneOf(securityTypes, 'Invalid security type'),
+    type: yup.string().required('Security type is required').oneOf(securityTypes, 'Invalid security type'),
     strikePrice: yup
       .number()
       .nullable()
@@ -27,7 +24,8 @@ export const createSecurityValidationSchema = (securityTypes) => {
       .nullable()
       .when('type', {
         is: (val) => val === 'OPTIONS' || val === 'FUTURES',
-        then: (schema) => schema.required('Expiry date is required for Options/Futures').min(new Date(), 'Expiry date must be in the future'),
+        then: (schema) =>
+          schema.required('Expiry date is required for Options/Futures').min(new Date(), 'Expiry date must be in the future'),
         otherwise: (schema) => schema.min(new Date(), 'Expiry date must be in the future')
       })
   });

@@ -47,7 +47,7 @@ const masterData = {
       url: 'master-data/financial-years',
       icon: icons.CalendarOutlined,
       breadcrumbs: false
-    },
+    }
   ]
 };
 

@@ -1,10 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Card,
-  CardHeader,
-  Pagination
-} from '@mui/material';
+import { Box, Card, CardHeader, Pagination } from '@mui/material';
 import { useFormik } from 'formik';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { del, get, post, put } from '../../utils/apiUtil';
@@ -106,7 +101,7 @@ const BrokerManagement = () => {
     try {
       const data = await get(`/broker/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
       setBrokers(data.brokers);
-      setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
+      setTotalPages(Math.ceil(data.pagination.total / ROWS_PER_PAGE));
     } catch (error) {
       // Handle error silently or add your preferred error handling
       showErrorSnackbar(error.message || 'Failed to fetch brokers. Please try again.');
@@ -183,21 +178,19 @@ const BrokerManagement = () => {
         />
       </Card>
 
-      <Box width='100%' sx={{
-        mt: 4,
-        display: { xs: 'none', md: 'flex' },
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <Box
+        width="100%"
+        sx={{
+          mt: 4,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
 
-      <BrokerDialog
-        open={openDialog}
-        editingBroker={editingBroker}
-        formik={formik}
-        onClose={() => setOpenDialog(false)}
-      />
+      <BrokerDialog open={openDialog} editingBroker={editingBroker} formik={formik} onClose={() => setOpenDialog(false)} />
     </Box>
   );
 };

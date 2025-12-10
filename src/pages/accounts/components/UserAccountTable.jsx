@@ -1,13 +1,4 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography
-} from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
 import UserAccountRow from './UserAccountRow';
 
@@ -15,13 +6,13 @@ import UserAccountRow from './UserAccountRow';
  * User Account Table Component - with keyboard navigation
  * Displays the main table with user accounts and their data
  */
-function UserAccountTable({ 
-  userAccounts, 
+function UserAccountTable({
+  userAccounts,
   searchName,
-  onEditUser, 
-  onDeleteUser, 
-  onAddDematAccount, 
-  onEditDematAccount, 
+  onEditUser,
+  onDeleteUser,
+  onAddDematAccount,
+  onEditDematAccount,
   onDeleteDematAccount,
   currentPage,
   totalPages,
@@ -52,7 +43,12 @@ function UserAccountTable({
 
       // Handle Alt+Delete / Option+Delete for deleting when a row is selected
       // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
-      if (event.altKey && (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey) {
+      if (
+        event.altKey &&
+        (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
         if (activeRowIndex >= 0 && activeRowIndex < userAccounts.length) {
           event.preventDefault();
           onDeleteUser(userAccounts[activeRowIndex]._id);
@@ -95,9 +91,9 @@ function UserAccountTable({
           const newIndex = prevIndex < userAccounts.length - 1 ? prevIndex + 1 : prevIndex;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -108,9 +104,9 @@ function UserAccountTable({
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;

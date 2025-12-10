@@ -1,28 +1,15 @@
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Stack
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Stack } from '@mui/material';
 
 /**
  * User Account Form Dialog Component
  * Handles creating and editing user accounts
  */
-function UserAccountDialog({ 
-  open, 
-  onClose, 
-  editingUser, 
-  userFormik 
-}) {
+function UserAccountDialog({ open, onClose, editingUser, userFormik }) {
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
@@ -65,8 +52,8 @@ function UserAccountDialog({
               onBlur={userFormik.handleBlur}
               error={userFormik.touched.panNumber && Boolean(userFormik.errors.panNumber)}
               helperText={userFormik.touched.panNumber && userFormik.errors.panNumber}
-              slotProps={{ 
-                htmlInput: { 
+              slotProps={{
+                htmlInput: {
                   style: { textTransform: 'uppercase' },
                   maxLength: 10
                 }

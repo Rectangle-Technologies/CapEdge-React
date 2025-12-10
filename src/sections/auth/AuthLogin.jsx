@@ -30,7 +30,6 @@ import { login } from '../../store/slices/authSlice';
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
-
   const [showPassword, setShowPassword] = React.useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -53,7 +52,7 @@ export default function AuthLogin({ isDemo = false }) {
     } finally {
       dispatch(hideLoader());
     }
-  }
+  };
 
   return (
     <>
@@ -68,7 +67,13 @@ export default function AuthLogin({ isDemo = false }) {
         })}
       >
         {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate onSubmit={(e) => { e.preventDefault(); handleLogin(values); }}>
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin(values);
+            }}
+          >
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>

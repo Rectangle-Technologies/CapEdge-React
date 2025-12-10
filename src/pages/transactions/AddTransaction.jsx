@@ -57,6 +57,7 @@ const AddTransaction = () => {
     }
   ]);
   const [nextId, setNextId] = useState(2);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const fetchDematAccounts = async () => {
     try {
@@ -80,6 +81,24 @@ const AddTransaction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
+
+  useEffect(() => {
+    const total = transactions.reduce((sum, transaction) => {
+      const buyAmount = transaction.quantity && transaction.buyPrice
+        ? Number(transaction.quantity) * Number(transaction.buyPrice)
+        : 0;
+      
+      const sellAmount = transaction.quantity && transaction.sellPrice
+        ? Number(transaction.quantity) * Number(transaction.sellPrice)
+        : 0;
+      
+      const cost = transaction.transactionCost ? Number(transaction.transactionCost) : 0;
+      
+      return sum + buyAmount - sellAmount - cost;
+    }, 0);
+    
+    setTotalAmount(total);
+  }, [transactions]);
 
   const handleAddTransaction = () => {
     setTransactions([
@@ -107,21 +126,23 @@ const AddTransaction = () => {
   };
 
   const handleTransactionChange = (id, field, value) => {
-    setTransactions(transactions.map((t) => {
-      if (t.id !== id) return t;
-      
-      // If transaction type changes, reset the price fields for Delivery type
-      if (field === 'type' && t.deliveryType === 'Delivery') {
-        return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
-      }
-      
-      // If delivery type changes to Delivery, reset both price fields
-      if (field === 'deliveryType' && value === 'Delivery') {
-        return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
-      }
-      
-      return { ...t, [field]: value };
-    }));
+    setTransactions(
+      transactions.map((t) => {
+        if (t.id !== id) return t;
+
+        // If transaction type changes, reset the price fields for Delivery type
+        if (field === 'type' && t.deliveryType === 'Delivery') {
+          return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
+        }
+
+        // If delivery type changes to Delivery, reset both price fields
+        if (field === 'deliveryType' && value === 'Delivery') {
+          return { ...t, [field]: value, buyPrice: '', sellPrice: '' };
+        }
+
+        return { ...t, [field]: value };
+      })
+    );
   };
 
   const validateTransactions = () => {
@@ -295,13 +316,13 @@ const AddTransaction = () => {
                   <DatePicker
                     label="Transaction Date"
                     value={transactionDate}
-                    format='DD/MM/YYYY'
+                    format="DD/MM/YYYY"
                     onChange={(newValue) => setTransactionDate(newValue)}
                     slotProps={{
                       textField: {
                         fullWidth: true,
                         required: true,
-                        size: 'small',
+                        size: 'small'
                       }
                     }}
                   />
@@ -469,6 +490,11 @@ const AddTransaction = () => {
           </TableContainer>
 
           <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
+              <Typography variant="h4">
+                Total amount: {formatCurrency(totalAmount)}
+              </Typography>
+            </div>
             <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
               Add Transaction
             </Button>

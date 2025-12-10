@@ -33,7 +33,7 @@ export const transformHoldingData = (holding) => {
   const buyPrice = holding.price || 0;
   const quantity = holding.quantity || 0;
   const totalInvestment = buyPrice * quantity;
-  
+
   // Note: Current price needs to come from market data or another source
   // For now, we'll use buy price as placeholder
   const currentPrice = buyPrice; // TODO: Fetch from market data API

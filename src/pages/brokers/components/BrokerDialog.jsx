@@ -1,28 +1,15 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-  TextField
-} from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material';
 import { FORM_CONFIG } from '../utils/constants';
 
 /**
  * BrokerDialog Component - Handles add/edit broker dialog
  */
-const BrokerDialog = ({ 
-  open, 
-  editingBroker, 
-  formik, 
-  onClose 
-}) => {
+const BrokerDialog = ({ open, editingBroker, formik, onClose }) => {
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {

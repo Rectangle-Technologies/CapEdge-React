@@ -26,9 +26,7 @@ export const exportToExcel = async (filteredEntries) => {
       headers
         .map((header) => {
           const value = row[header] || '';
-          return value.toString().includes(',') || value.toString().includes('"')
-            ? `"${value.toString().replace(/"/g, '""')}"`
-            : value;
+          return value.toString().includes(',') || value.toString().includes('"') ? `"${value.toString().replace(/"/g, '""')}"` : value;
         })
         .join(',')
     )

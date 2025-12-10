@@ -19,18 +19,12 @@ import { getSecurityTypeLabel } from '../../../utils/securityTypes';
 /**
  * SecurityDialog Component - Handles add/edit security dialog
  */
-const SecurityDialog = ({ 
-  open, 
-  editingSecurity, 
-  formik, 
-  securityTypes,
-  onClose 
-}) => {
+const SecurityDialog = ({ open, editingSecurity, formik, securityTypes, onClose }) => {
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {

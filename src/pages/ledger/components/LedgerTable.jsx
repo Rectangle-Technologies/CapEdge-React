@@ -64,13 +64,9 @@ const LedgerTable = ({
         return value && dayjs(value).isValid();
       }),
     entryType: yup.string().required('Entry type is required'),
-    transactionAmount: yup
-      .number()
-      .typeError('Amount must be a number')
-      .positive('Amount must be positive')
-      .required('Amount is required'),
+    transactionAmount: yup.number().typeError('Amount must be a number').positive('Amount must be positive').required('Amount is required'),
     remarks: yup.string().required('Remarks are required')
-  })
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -83,9 +79,7 @@ const LedgerTable = ({
     onSubmit: async (values, { resetForm }) => {
       dispatch(showLoader());
       try {
-        const transactionAmount = values.entryType === 'DEBIT' 
-          ? -Math.abs(values.transactionAmount)
-          : values.transactionAmount;
+        const transactionAmount = values.entryType === 'DEBIT' ? -Math.abs(values.transactionAmount) : values.transactionAmount;
 
         const data = await post('/ledger/add', {
           date: values.date.format('YYYY-MM-DD'),
@@ -104,7 +98,7 @@ const LedgerTable = ({
         });
       } catch (error) {
         console.error('Error adding ledger entry:', error);
-        showErrorSnackbar(error.message ||'Failed to add ledger entry. Please try again.');
+        showErrorSnackbar(error.message || 'Failed to add ledger entry. Please try again.');
       } finally {
         dispatch(hideLoader());
       }
@@ -165,9 +159,9 @@ const LedgerTable = ({
           const newIndex = prevIndex < ledgerEntries.length - 1 ? prevIndex + 1 : prevIndex;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -178,9 +172,9 @@ const LedgerTable = ({
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -236,7 +230,9 @@ const LedgerTable = ({
                 </IconButton>
               </Grid>
               <Grid>
-                <Button variant='contained' startIcon={<Add />} onClick={handleAddLedgerEntry}>Add Ledger Entry</Button>
+                <Button variant="contained" startIcon={<Add />} onClick={handleAddLedgerEntry}>
+                  Add Ledger Entry
+                </Button>
               </Grid>
             </Grid>
           }
@@ -252,13 +248,13 @@ const LedgerTable = ({
                   <Select
                     value={selectedDematAccount?._id || ''}
                     onChange={(e) => {
-                      const selectedAccount = dematAccounts.find(account => account._id === e.target.value);
+                      const selectedAccount = dematAccounts.find((account) => account._id === e.target.value);
                       setSelectedDematAccount(selectedAccount || null);
                     }}
                     label="Demat Account"
                     fullWidth
                   >
-                    {dematAccounts.length === 0 && (<MenuItem value="">No Demat Accounts</MenuItem>)}
+                    {dematAccounts.length === 0 && <MenuItem value="">No Demat Accounts</MenuItem>}
                     {dematAccounts.map((account) => (
                       <MenuItem key={account._id} value={account._id}>
                         {account.brokerId.name}
@@ -322,7 +318,7 @@ const LedgerTable = ({
                 <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Debit</strong>
                 </TableCell>
-                <TableCell align='center' sx={{ padding: '8px 16px 8px 16px' }}>
+                <TableCell align="center" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Remarks</strong>
                 </TableCell>
               </TableRow>
@@ -354,11 +350,7 @@ const LedgerTable = ({
           </Table>
         </TableContainer>
       </Card>
-      <LedgerEntryDialog
-        open={openDialog}
-        formik={formik}
-        onClose={handleCloseDialog}
-      />
+      <LedgerEntryDialog open={openDialog} formik={formik} onClose={handleCloseDialog} />
     </>
   );
 };

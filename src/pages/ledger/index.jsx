@@ -28,10 +28,12 @@ const Ledger = () => {
   const exportToExcel = async () => {
     dispatch(showLoader());
     try {
-      const response = await get(`/report/ledger/export/${selectedDematAccount._id}?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`,
-        true, { responseType: 'arraybuffer' }
+      const response = await get(
+        `/report/ledger/export/${selectedDematAccount._id}?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`,
+        true,
+        { responseType: 'arraybuffer' }
       );
-      const brokerName = dematAccounts.find(acc => acc._id === selectedDematAccount._id)?.brokerId?.name;
+      const brokerName = dematAccounts.find((acc) => acc._id === selectedDematAccount._id)?.brokerId?.name;
       const filename = `Ledger_${userAccount?.name || 'user'}_${brokerName || 'broker'}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
@@ -82,9 +84,11 @@ const Ledger = () => {
 
     dispatch(showLoader());
     try {
-      const data = await get(`/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`);
+      const data = await get(
+        `/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`
+      );
       setLedgerEntries(data.entries || []);
-      setTotalPages(Math.ceil((data.pagination.total) / ROWS_PER_PAGE));
+      setTotalPages(Math.ceil(data.pagination.total / ROWS_PER_PAGE));
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
       console.error('Error fetching ledger entries:', error);
@@ -110,26 +114,27 @@ const Ledger = () => {
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
-      {selectedDematAccount && <Grid container spacing={2} sx={{ mt: 3 }}>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Card sx={{ bgcolor: selectedDematAccount.balance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
-            <Box sx={{ p: 2 }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Box>
-                  <Typography variant="h6" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
-                    Balance
-                  </Typography>
-                  <Typography variant="h4" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
-                    {formatCurrency(selectedDematAccount.balance)}
-                  </Typography>
-                </Box>
-                <AccountBalance sx={{ fontSize: 40, color: selectedDematAccount.balance >= 0 ? 'primary.dark' : 'warning.dark' }} />
-              </Stack>
-            </Box>
-          </Card>
+      {selectedDematAccount && (
+        <Grid container spacing={2} sx={{ mt: 3 }}>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Card sx={{ bgcolor: selectedDematAccount.balance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
+              <Box sx={{ p: 2 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h6" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      Balance
+                    </Typography>
+                    <Typography variant="h4" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      {formatCurrency(selectedDematAccount.balance)}
+                    </Typography>
+                  </Box>
+                  <AccountBalance sx={{ fontSize: 40, color: selectedDematAccount.balance >= 0 ? 'primary.dark' : 'warning.dark' }} />
+                </Stack>
+              </Box>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-      }
+      )}
 
       <LedgerTable
         ledgerEntries={ledgerEntries}
@@ -146,12 +151,15 @@ const Ledger = () => {
         totalPages={totalPages}
         onPageChange={setPage}
       />
-      <Box width='100%' sx={{
-        mt: 4,
-        display: { xs: 'none', md: 'flex' },
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <Box
+        width="100%"
+        sx={{
+          mt: 4,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
     </Box>

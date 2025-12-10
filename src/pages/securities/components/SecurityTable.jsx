@@ -12,10 +12,7 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { formatDate } from '../../../utils/formatDate';
 import { getTypeColor, getTypeLabel } from '../utils/helpers';
@@ -43,7 +40,12 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
 
       // Handle Alt+Delete / Option+Delete for deleting when a row is selected
       // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
-      if (event.altKey && (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey) {
+      if (
+        event.altKey &&
+        (event.code === 'Delete' || event.key === 'Delete' || event.code === 'Backspace' || event.key === 'Backspace') &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
         if (activeRowIndex >= 0 && activeRowIndex < securities.length) {
           event.preventDefault();
           onDelete(securities[activeRowIndex]._id);
@@ -75,9 +77,9 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
           const newIndex = prevIndex < securities.length - 1 ? prevIndex + 1 : prevIndex;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -88,9 +90,9 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;
           // Scroll to the active row
           if (rowRefs.current[newIndex]) {
-            rowRefs.current[newIndex].scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'nearest' 
+            rowRefs.current[newIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest'
             });
           }
           return newIndex;
@@ -135,8 +137,8 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
           <TableBody>
             {securities.length > 0 ? (
               securities.map((security, index) => (
-                <TableRow 
-                  key={security._id} 
+                <TableRow
+                  key={security._id}
                   hover
                   selected={activeRowIndex === index}
                   ref={(el) => (rowRefs.current[index] = el)}
@@ -147,11 +149,7 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
                     {security.name}
                   </TableCell>
                   <TableCell sx={{ width: '15%', minWidth: '120px', padding: '8px 16px 8px 16px' }}>
-                    <Chip
-                      label={getTypeLabel(security.type, securityTypes)}
-                      color={getTypeColor(security.type)} 
-                      size="small" 
-                    />
+                    <Chip label={getTypeLabel(security.type, securityTypes)} color={getTypeColor(security.type)} size="small" />
                   </TableCell>
                   <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
                     {security.strikePrice ? formatCurrency(security.strikePrice) : '-'}

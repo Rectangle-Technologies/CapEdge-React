@@ -7,14 +7,18 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 // Async thunk for login API call
 export const login = createAsyncThunk('auth/login', async ({ username, password }, { rejectWithValue }) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-      username,
-      password
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      {
+        username,
+        password
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
 
     return response.data;
   } catch (error) {
@@ -33,12 +37,16 @@ export const validateToken = createAsyncThunk('auth/validateToken', async (_, { 
       return rejectWithValue('No token found');
     }
 
-    const response = await axios.post(`${API_BASE_URL}/auth/validate-token`, {}, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/validate-token`,
+      {},
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       }
-    });
+    );
 
     return response.data;
   } catch (error) {

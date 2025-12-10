@@ -1,10 +1,4 @@
-import {
-  Box,
-  Button,
-  Grid,
-  MenuItem,
-  TextField
-} from '@mui/material';
+import { Box, Button, Grid, MenuItem, TextField } from '@mui/material';
 import { useAppDispatch } from 'store/hooks';
 import { showErrorSnackbar } from '../../store/utils';
 import { get, post } from '../../utils/apiUtil';
@@ -33,16 +27,21 @@ const ProfitAndLoss = () => {
       showErrorSnackbar('Please select a demat account');
       return;
     }
-    
+
     dispatch(showLoader());
     try {
       // Call API with responseType 'arraybuffer' to get Excel file buffer
-      const response = await post('/report/pnl/export', {
-        dematAccountId: selectedDematAccount,
-        financialYearId: financialYear._id
-      }, true, { responseType: 'arraybuffer' });
+      const response = await post(
+        '/report/pnl/export',
+        {
+          dematAccountId: selectedDematAccount,
+          financialYearId: financialYear._id
+        },
+        true,
+        { responseType: 'arraybuffer' }
+      );
       // Extract filename from Content-Disposition header
-      const brokerName = dematAccounts.find(acc => acc._id === selectedDematAccount)?.brokerId?.name;
+      const brokerName = dematAccounts.find((acc) => acc._id === selectedDematAccount)?.brokerId?.name;
       const filename = `pnl_${userAccount?.name || 'user'}_${brokerName || 'broker'}_${financialYear?.title || 'year'}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
@@ -117,7 +116,6 @@ const ProfitAndLoss = () => {
           </Button>
         </Grid>
       </Grid>
-      
     </Box>
   );
 };

@@ -24,7 +24,7 @@ export default function DashboardLayout() {
   const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector(state => state.auth.token);
+  const token = useSelector((state) => state.auth.token);
   // set media wise responsive drawer
   useEffect(() => {
     const handleAuth = async () => {

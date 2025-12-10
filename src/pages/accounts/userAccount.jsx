@@ -1,10 +1,4 @@
-import {
-  Box,
-  Card,
-  CardHeader,
-  Divider,
-  Pagination
-} from '@mui/material';
+import { Box, Card, CardHeader, Divider, Pagination } from '@mui/material';
 import { useFormik } from 'formik';
 import { useEffect, useState, useCallback } from 'react';
 import { hideLoader, showLoader } from 'store/slices/loaderSlice';
@@ -55,7 +49,6 @@ const UserAccount = () => {
         if (editingUser) {
           // Update existing user
           await put(`/user-account/update/${editingUser._id}`, values);
-
         } else {
           // Create new user
           await post('/user-account/create', values);
@@ -88,17 +81,17 @@ const UserAccount = () => {
         if (editingDemat) {
           // Update existing demat account
           await put(`/demat-account/update/${editingDemat._id}`, {
-              userAccountId: selectedUserIdForDemat.toString(),
-              brokerId: editingDemat.brokerId,
-              balance: parseFloat(values.balance)
-            });
+            userAccountId: selectedUserIdForDemat.toString(),
+            brokerId: editingDemat.brokerId,
+            balance: parseFloat(values.balance)
+          });
         } else {
           // Create new demat account
           await post('/demat-account/create', {
-              userAccountId: selectedUserIdForDemat.toString(),
-              brokerId: values.brokerId,
-              balance: parseFloat(values.balance)
-            });
+            userAccountId: selectedUserIdForDemat.toString(),
+            brokerId: values.brokerId,
+            balance: parseFloat(values.balance)
+          });
         }
         await searchUserAccounts();
         // Trigger custom event to notify UserAccountDropdown to refresh
@@ -191,11 +184,13 @@ const UserAccount = () => {
   const searchUserAccounts = async () => {
     dispatch(showLoader());
     try {
-      const userAccountData = await get(`/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}&includeDematAccounts=true`);
+      const userAccountData = await get(
+        `/user-account/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}&includeDematAccounts=true`
+      );
       const brokerData = await get(`/broker/get-all?name=${searchName}&pageNo=${page}&limit=${ROWS_PER_PAGE}`);
       setBrokers(brokerData.brokers);
       setUserAccounts(userAccountData.userAccounts || []);
-      setTotalPages(Math.ceil((userAccountData.pagination.total) / ROWS_PER_PAGE));
+      setTotalPages(Math.ceil(userAccountData.pagination.total / ROWS_PER_PAGE));
     } catch (error) {
       // Handle error silently or add your preferred error handling
       showErrorSnackbar(error.message || 'Failed to fetch user accounts. Please try again.');
@@ -277,22 +272,20 @@ const UserAccount = () => {
         />
       </Card>
 
-      <Box width='100%' sx={{
-        mt: 4,
-        display: { xs: 'none', md: 'flex' },
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <Box
+        width="100%"
+        sx={{
+          mt: 4,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
         <Pagination count={totalPages} page={page} onChange={(event, value) => setPage(value)} />
       </Box>
 
       {/* User Account Dialog */}
-      <UserAccountDialog
-        open={openUserDialog}
-        onClose={() => setOpenUserDialog(false)}
-        editingUser={editingUser}
-        userFormik={userFormik}
-      />
+      <UserAccountDialog open={openUserDialog} onClose={() => setOpenUserDialog(false)} editingUser={editingUser} userFormik={userFormik} />
 
       {/* Demat Account Dialog */}
       <DematAccountDialog

@@ -14,10 +14,6 @@ export const createSecurityValidationSchema = (securityTypes) => {
       .when('type', {
         is: (val) => val === 'OPTIONS' || val === 'FUTURES',
         then: (schema) => schema.required('Strike price is required for Options/Futures').min(0, 'Strike price cannot be negative')
-      })
-      .test('decimal', 'Strike price can have maximum 2 decimal places', (value) => {
-        if (value === undefined || value === null || value === '') return true;
-        return /^\d+(\.\d{1,2})?$/.test(value.toString());
       }),
     expiry: yup
       .date()

@@ -211,7 +211,7 @@ const FinancialYears = () => {
               helperText={formik.touched.stcgRate && formik.errors.stcgRate}
               slotProps={{
                 input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                htmlInput: { min: 0, max: 100, step: 0.01 }
+                htmlInput: { min: 0, max: 100 }
               }}
             />
           </Grid>
@@ -228,7 +228,7 @@ const FinancialYears = () => {
               helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
               slotProps={{
                 input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                htmlInput: { min: 0, max: 100, step: 0.01 }
+                htmlInput: { min: 0, max: 100 }
               }}
             />
           </Grid>

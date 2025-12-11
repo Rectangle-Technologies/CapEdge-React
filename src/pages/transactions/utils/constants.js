@@ -20,6 +20,5 @@ export const DELIVERY_TYPES = [
 export const FORM_CONFIG = {
   quantityMin: 1,
   priceMin: 0,
-  priceStep: 0.01,
   referenceNumberMaxLength: 50
 };

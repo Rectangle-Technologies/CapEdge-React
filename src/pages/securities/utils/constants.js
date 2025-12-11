@@ -19,9 +19,7 @@ export const TABLE_CONFIG = {
 
 // Form configuration
 export const FORM_CONFIG = {
-  nameMinLength: 2,
-  strikePriceStep: 0.01,
-  maxDecimalPlaces: 2
+  nameMinLength: 2
 };
 
 // API endpoints

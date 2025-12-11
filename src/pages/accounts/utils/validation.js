@@ -17,8 +17,4 @@ export const dematAccountValidationSchema = yup.object({
     .number()
     .required('Balance is required')
     .min(0, 'Balance cannot be negative')
-    .test('decimal', 'Balance can have maximum 2 decimal places', (value) => {
-      if (value === undefined || value === null) return true;
-      return /^\d+(\.\d{1,2})?$/.test(value.toString());
-    })
 });

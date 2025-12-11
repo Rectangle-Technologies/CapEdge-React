@@ -73,7 +73,7 @@ function DematAccountDialog({ open, onClose, editingDemat, dematFormik, brokers 
               helperText={dematFormik.touched.balance && dematFormik.errors.balance}
               slotProps={{
                 input: { startAdornment: '₹' },
-                htmlInput: { min: 0, step: 0.01 }
+                htmlInput: { min: 0 }
               }}
               placeholder="0.00"
             />

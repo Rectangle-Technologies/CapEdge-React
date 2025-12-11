@@ -431,8 +431,7 @@ const AddTransaction = () => {
                         fullWidth
                         required={transaction.deliveryType === 'Intraday' || transaction.type === 'BUY'}
                         disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'SELL'}
-                        placeholder="0.00"
-                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                        slotProps={{ htmlInput: { min: 0} }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>
@@ -444,8 +443,7 @@ const AddTransaction = () => {
                         fullWidth
                         required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
                         disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
-                        placeholder="0.00"
-                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                        slotProps={{ htmlInput: { min: 0} }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '8%' }}>
@@ -455,8 +453,7 @@ const AddTransaction = () => {
                         value={transaction.transactionCost}
                         onChange={(e) => handleTransactionChange(transaction.id, 'transactionCost', e.target.value)}
                         fullWidth
-                        placeholder="0.00"
-                        slotProps={{ htmlInput: { min: 0, step: 0.01 } }}
+                        slotProps={{ htmlInput: { min: 0} }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>

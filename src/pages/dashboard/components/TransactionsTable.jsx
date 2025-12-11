@@ -4,8 +4,10 @@ import {
   Button,
   Card,
   CardHeader,
+  Checkbox,
   Chip,
   Divider,
+  FormControlLabel,
   Grid,
   IconButton,
   MenuItem,
@@ -20,7 +22,7 @@ import {
   Typography
 } from '@mui/material';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice';
@@ -41,6 +43,10 @@ const TransactionsTable = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [filterDelivery, setFilterDelivery] = useState(true);
+  const [filterIntraday, setFilterIntraday] = useState(false);
+  const [filterBuy, setFilterBuy] = useState(true);
+  const [filterSell, setFilterSell] = useState(true);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -180,10 +186,62 @@ const TransactionsTable = () => {
   }, [userAccount]);
 
   useEffect(() => {
-    if (selectedDematAccount) {
+    if (selectedDematAccount && selectedSecurity) {
       fetchTransactions();
     }
   }, [selectedDematAccount, selectedSecurity, page, financialYear]);
+
+  // Filter transactions on the client side
+  const filteredTransactions = useMemo(() => {
+    if (!selectedSecurity) return [];
+
+    return transactions.filter((transaction) => {
+      // Filter by transaction type (Delivery/Intraday)
+      // If no transaction type filters are selected, show all
+      const hasTransactionTypeFilter = filterDelivery || filterIntraday;
+      if (hasTransactionTypeFilter) {
+        const deliveryType = transaction.deliveryType;
+        const matchesType =
+          (filterDelivery && deliveryType === 'Delivery') || (filterIntraday && deliveryType === 'Intraday');
+        if (!matchesType) return false;
+      }
+
+      // Filter by buy/sell type
+      // If no buy/sell filters are selected, show all
+      const hasBuySellFilter = filterBuy || filterSell;
+      if (hasBuySellFilter) {
+        const buySellType = transaction.type?.toUpperCase();
+        const matchesBuySell = (filterBuy && buySellType === 'BUY') || (filterSell && buySellType === 'SELL');
+        if (!matchesBuySell) return false;
+      }
+
+      return true;
+    });
+  }, [transactions, selectedSecurity, filterDelivery, filterIntraday, filterBuy, filterSell]);
+
+  // Calculate totals based on filtered transactions
+  const { totalQuantity, totalAmount } = useMemo(() => {
+    return filteredTransactions.reduce(
+      (acc, transaction) => {
+        const quantity = transaction.quantity || 0;
+        const price = transaction.price || 0;
+        const amount = quantity * price;
+        const transactionCost = transaction.transactionCost || 0;
+        const type = transaction.type?.toUpperCase();
+
+        if (type === 'BUY') {
+          acc.totalQuantity += quantity;
+          acc.totalAmount += amount - transactionCost;
+        } else if (type === 'SELL') {
+          acc.totalQuantity -= quantity;
+          acc.totalAmount -= (amount + transactionCost);
+        }
+
+        return acc;
+      },
+      { totalQuantity: 0, totalAmount: 0 }
+    );
+  }, [filteredTransactions]);
 
   // Detect platform for keyboard shortcut hint
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
@@ -240,6 +298,56 @@ const TransactionsTable = () => {
                 fullWidth
               />
             </Grid>
+            {selectedSecurity && (
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={filterDelivery}
+                        onChange={(e) => {
+                          setFilterDelivery(e.target.checked);
+                        }}
+                      />
+                    }
+                    label="Delivery"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={filterIntraday}
+                        onChange={(e) => {
+                          setFilterIntraday(e.target.checked);
+                        }}
+                      />
+                    }
+                    label="Intraday"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={filterBuy}
+                        onChange={(e) => {
+                          setFilterBuy(e.target.checked);
+                        }}
+                      />
+                    }
+                    label="BUY"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={filterSell}
+                        onChange={(e) => {
+                          setFilterSell(e.target.checked);
+                        }}
+                      />
+                    }
+                    label="SELL"
+                  />
+                </Box>
+              </Grid>
+            )}
           </Grid>
         </Box>
 
@@ -259,16 +367,16 @@ const TransactionsTable = () => {
             <Table>
               <TransactionsTableHead />
               <TableBody>
-                {transactions.length === 0 ? (
+                {filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
+                    <TableCell colSpan={11} align="center" sx={{ py: 5 }}>
                       <Typography variant="h6" color="text.secondary">
-                        No transactions found
+                        {!selectedSecurity ? 'Select a security to view its transactions' : 'No transactions match the selected filters'}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  transactions.map((transaction) => {
+                  filteredTransactions.map((transaction) => {
                     const quantity = transaction.quantity || 0;
                     const price = transaction.price || 0;
                     const amount = quantity * price;
@@ -308,6 +416,25 @@ const TransactionsTable = () => {
                       </TableRow>
                     );
                   })
+                )}
+                {selectedSecurity && filteredTransactions.length > 0 && (
+                  <TableRow sx={{ bgcolor: 'background.default', '& td': { fontWeight: 'bold', borderTop: 2, borderColor: 'divider' } }}>
+                    <TableCell colSpan={6} align="right">
+                      Total
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography fontWeight="bold" >
+                        {totalQuantity}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right"></TableCell>
+                    <TableCell align="right">
+                      <Typography fontWeight="bold">
+                        {formatCurrency(totalAmount)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell colSpan={2}></TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>

@@ -1,6 +1,6 @@
 import { Button, IconButton } from '@mui/material';
 import { Download as DownloadIcon } from '@mui/icons-material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showLoader, hideLoader } from '../store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from '../store/utils';
 import { get, post } from '../utils/apiUtil';
@@ -15,6 +15,7 @@ import { get, post } from '../utils/apiUtil';
  */
 const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 'Export to Excel', ...otherProps }) => {
   const dispatch = useDispatch();
+  const financialYear = useSelector((state) => state.app.financialYear);
 
   const handleExport = async () => {
     if (!data || data.length === 0) {
@@ -63,11 +64,10 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
   const handleDownloadAll = async () => {
     dispatch(showLoader());
     try {
-      const response = await get('/report/holdings/export', true, { responseType: 'arraybuffer' });
+      const response = await get(`/report/holdings/export?financialYearId=${financialYear?._id}`, true, { responseType: 'arraybuffer' });
       // Today's date in DD/MM/YYYY format
       const today = new Date();
-      const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-      const filename = `Holdings_${formattedDate}.xlsx`;
+      const filename = `Holdings_${financialYear?.title || ''}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

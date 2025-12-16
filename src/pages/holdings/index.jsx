@@ -39,6 +39,7 @@ const HOLDINGS_LIMIT = 50;
 const Holdings = () => {
   const dispatch = useDispatch();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
+  const financialYear = useSelector((state) => state.app.financialYear);
 
   const [holdings, setHoldings] = useState([]);
   const [expandedSecurity, setExpandedSecurity] = useState(null);
@@ -169,7 +170,7 @@ const Holdings = () => {
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId);
+      const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId, financialYear?._id);
 
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
@@ -194,7 +195,7 @@ const Holdings = () => {
       loadHoldings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity]);
+  }, [selectedDematAccount, selectedSecurity, financialYear]);
 
   const getExportData = () => {
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);

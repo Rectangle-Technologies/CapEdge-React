@@ -201,8 +201,7 @@ const TransactionsTable = () => {
       const hasTransactionTypeFilter = filterDelivery || filterIntraday;
       if (hasTransactionTypeFilter) {
         const deliveryType = transaction.deliveryType;
-        const matchesType =
-          (filterDelivery && deliveryType === 'Delivery') || (filterIntraday && deliveryType === 'Intraday');
+        const matchesType = (filterDelivery && deliveryType === 'Delivery') || (filterIntraday && deliveryType === 'Intraday');
         if (!matchesType) return false;
       }
 
@@ -234,7 +233,7 @@ const TransactionsTable = () => {
           acc.totalAmount += amount - transactionCost;
         } else if (type === 'SELL') {
           acc.totalQuantity -= quantity;
-          acc.totalAmount -= (amount + transactionCost);
+          acc.totalAmount -= amount + transactionCost;
         }
 
         return acc;
@@ -255,8 +254,8 @@ const TransactionsTable = () => {
           subheader="View and filter all transactions across demat accounts"
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
                 onClick={() => navigate('/ipo')}
                 startIcon={<Add />}
@@ -432,15 +431,11 @@ const TransactionsTable = () => {
                       Total
                     </TableCell>
                     <TableCell align="right">
-                      <Typography fontWeight="bold" >
-                        {totalQuantity}
-                      </Typography>
+                      <Typography fontWeight="bold">{totalQuantity}</Typography>
                     </TableCell>
                     <TableCell align="right"></TableCell>
                     <TableCell align="right">
-                      <Typography fontWeight="bold">
-                        {formatCurrency(totalAmount)}
-                      </Typography>
+                      <Typography fontWeight="bold">{formatCurrency(totalAmount)}</Typography>
                     </TableCell>
                     <TableCell colSpan={2}></TableCell>
                   </TableRow>

@@ -87,19 +87,15 @@ const AddTransaction = () => {
 
   useEffect(() => {
     const total = transactions.reduce((sum, transaction) => {
-      const buyAmount = transaction.quantity && transaction.buyPrice
-        ? Number(transaction.quantity) * Number(transaction.buyPrice)
-        : 0;
-      
-      const sellAmount = transaction.quantity && transaction.sellPrice
-        ? Number(transaction.quantity) * Number(transaction.sellPrice)
-        : 0;
-      
+      const buyAmount = transaction.quantity && transaction.buyPrice ? Number(transaction.quantity) * Number(transaction.buyPrice) : 0;
+
+      const sellAmount = transaction.quantity && transaction.sellPrice ? Number(transaction.quantity) * Number(transaction.sellPrice) : 0;
+
       const cost = transaction.transactionCost ? Number(transaction.transactionCost) : 0;
-      
+
       return sum + buyAmount - sellAmount - cost;
     }, 0);
-    
+
     setTotalAmount(total);
   }, [transactions]);
 
@@ -436,7 +432,7 @@ const AddTransaction = () => {
                         fullWidth
                         required={transaction.deliveryType === 'Intraday' || transaction.type === 'BUY'}
                         disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'SELL'}
-                        slotProps={{ htmlInput: { min: 0} }}
+                        slotProps={{ htmlInput: { min: 0 } }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>
@@ -448,7 +444,7 @@ const AddTransaction = () => {
                         fullWidth
                         required={transaction.deliveryType === 'Intraday' || transaction.type === 'SELL'}
                         disabled={transaction.deliveryType === 'Delivery' && transaction.type === 'BUY'}
-                        slotProps={{ htmlInput: { min: 0} }}
+                        slotProps={{ htmlInput: { min: 0 } }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '8%' }}>
@@ -458,7 +454,8 @@ const AddTransaction = () => {
                         value={transaction.transactionCost}
                         onChange={(e) => handleTransactionChange(transaction.id, 'transactionCost', e.target.value)}
                         fullWidth
-                        slotProps={{ htmlInput: { min: 0} }}
+                        slotProps={{ htmlInput: { min: 0 } }}
+                        disabled={isIpoMode}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>
@@ -492,10 +489,8 @@ const AddTransaction = () => {
           </TableContainer>
 
           <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
-              <Typography variant="h4">
-                Total amount: {formatCurrency(totalAmount)}
-              </Typography>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Typography variant="h4">Total amount: {formatCurrency(totalAmount)}</Typography>
             </div>
             <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
               Add Transaction

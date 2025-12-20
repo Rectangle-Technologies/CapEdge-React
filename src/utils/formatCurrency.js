@@ -12,7 +12,7 @@ export const formatCurrency = (amount, currency = '₹', locale = 'en-IN') => {
 
   const isNegative = amount < 0;
   const absoluteAmount = Math.abs(amount);
-  
+
   const formattedAmount = absoluteAmount.toLocaleString(locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2

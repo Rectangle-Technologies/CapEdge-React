@@ -13,8 +13,5 @@ export const userAccountValidationSchema = yup.object({
 // Demat Account validation schema
 export const dematAccountValidationSchema = yup.object({
   brokerId: yup.string().required('Broker is required'),
-  balance: yup
-    .number()
-    .required('Balance is required')
-    .min(0, 'Balance cannot be negative')
+  balance: yup.number().required('Balance is required').min(0, 'Balance cannot be negative')
 });

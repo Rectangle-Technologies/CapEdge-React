@@ -26,6 +26,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post } from 'utils/apiUtil';
@@ -38,7 +39,9 @@ const deliveryTypes = ['Delivery', 'Intraday'];
 
 const AddTransaction = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
+  const isIpoMode = location.pathname === '/ipo';
 
   const [transactionDate, setTransactionDate] = useState(dayjs());
   const [referenceNumber, setReferenceNumber] = useState('');
@@ -105,13 +108,13 @@ const AddTransaction = () => {
       ...transactions,
       {
         id: nextId,
-        type: 'BUY',
+        type: isIpoMode ? 'BUY' : 'BUY',
         quantity: '',
         buyPrice: '',
         sellPrice: '',
         transactionCost: '',
         security: null,
-        deliveryType: 'Delivery'
+        deliveryType: isIpoMode ? 'Delivery' : 'Delivery'
       }
     ]);
     setNextId(nextId + 1);
@@ -228,7 +231,8 @@ const AddTransaction = () => {
           deliveryType: t.deliveryType,
           referenceNumber: referenceNumber,
           dematAccountId: selectedDematAccount,
-          transactionCost: t.transactionCost ? Number(t.transactionCost) : 0
+          transactionCost: t.transactionCost ? Number(t.transactionCost) : 0,
+          isIpo: isIpoMode
         };
 
         if (t.deliveryType === 'Intraday') {
@@ -374,6 +378,7 @@ const AddTransaction = () => {
                         onChange={(e) => handleTransactionChange(transaction.id, 'deliveryType', e.target.value)}
                         fullWidth
                         required
+                        disabled={isIpoMode}
                       >
                         {deliveryTypes.map((type) => (
                           <MenuItem key={type} value={type}>
@@ -390,7 +395,7 @@ const AddTransaction = () => {
                         onChange={(e) => handleTransactionChange(transaction.id, 'type', e.target.value)}
                         fullWidth
                         required
-                        disabled={transaction.deliveryType === 'Intraday'}
+                        disabled={transaction.deliveryType === 'Intraday' || isIpoMode}
                       >
                         {transactionTypes.map((type) => (
                           <MenuItem key={type} value={type}>

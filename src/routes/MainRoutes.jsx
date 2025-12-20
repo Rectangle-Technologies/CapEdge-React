@@ -86,6 +86,10 @@ const MainRoutes = {
     {
       path: 'add-transaction',
       element: <AddTransaction />
+    },
+    {
+      path: 'ipo',
+      element: <AddTransaction />
     }
   ]
 };

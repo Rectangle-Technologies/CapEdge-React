@@ -254,11 +254,20 @@ const TransactionsTable = () => {
           title="All Transactions"
           subheader="View and filter all transactions across demat accounts"
           action={
-            <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
-              <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/add-transaction')}>
-                Add Transaction
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                variant="contained" 
+                sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
+                onClick={() => navigate('/ipo')}
+              >
+                IPO
               </Button>
-            </Tooltip>
+              <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
+                <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/add-transaction')}>
+                  Add Transaction
+                </Button>
+              </Tooltip>
+            </Box>
           }
         />
         <Divider />

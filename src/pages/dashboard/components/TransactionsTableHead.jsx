@@ -2,12 +2,6 @@ import { TableCell, TableHead, TableRow } from '@mui/material';
 
 const headCells = [
   {
-    id: 'id',
-    align: 'left',
-    disablePadding: false,
-    label: 'Id'
-  },
-  {
     id: 'reference_no',
     align: 'left',
     disablePadding: false,

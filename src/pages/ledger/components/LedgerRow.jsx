@@ -55,7 +55,7 @@ function LedgerRow({ entry, isExpanded, onToggleExpand, getTransactionColor, isA
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ padding: '8px 16px' }}>
-                        <strong>Transaction ID</strong>
+                        <strong>Reference</strong>
                       </TableCell>
                       <TableCell sx={{ padding: '8px 16px' }}>
                         <strong>Security</strong>
@@ -71,7 +71,7 @@ function LedgerRow({ entry, isExpanded, onToggleExpand, getTransactionColor, isA
                   <TableBody>
                     <TableRow>
                       <TableCell sx={{ padding: '8px 16px' }}>
-                        <Typography variant="body2">...{entry.tradeTransactionId?._id?.slice(-8) || '-'}</Typography>
+                        <Typography variant="body2">{entry.tradeTransactionId?.referenceNumber || '-'}</Typography>
                       </TableCell>
                       <TableCell sx={{ padding: '8px 16px' }}>{entry.tradeTransactionId?.securityName || '-'}</TableCell>
                       <TableCell align="right" sx={{ padding: '8px 16px' }}>

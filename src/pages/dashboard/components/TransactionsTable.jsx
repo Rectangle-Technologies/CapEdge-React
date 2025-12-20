@@ -259,6 +259,7 @@ const TransactionsTable = () => {
                 variant="contained" 
                 sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
                 onClick={() => navigate('/ipo')}
+                startIcon={<Add />}
               >
                 IPO
               </Button>
@@ -378,7 +379,7 @@ const TransactionsTable = () => {
               <TableBody>
                 {filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} align="center" sx={{ py: 5 }}>
+                    <TableCell colSpan={10} align="center" sx={{ py: 5 }}>
                       <Typography variant="h6" color="text.secondary">
                         {!selectedSecurity ? 'Select a security to view its transactions' : 'No transactions match the selected filters'}
                       </Typography>
@@ -403,7 +404,6 @@ const TransactionsTable = () => {
                         key={transaction._id}
                         id={`transaction-row-${transaction._id}`}
                       >
-                        <TableCell>...{transaction._id?.slice(-8) || '-'}</TableCell>
                         <TableCell>{transaction.referenceNumber || '-'}</TableCell>
                         <TableCell>{transaction.securityId?.name || transaction.securityId?.symbol || '-'}</TableCell>
                         <TableCell align="center">{formattedDate}</TableCell>
@@ -428,7 +428,7 @@ const TransactionsTable = () => {
                 )}
                 {selectedSecurity && filteredTransactions.length > 0 && (
                   <TableRow sx={{ bgcolor: 'background.default', '& td': { fontWeight: 'bold', borderTop: 2, borderColor: 'divider' } }}>
-                    <TableCell colSpan={6} align="right">
+                    <TableCell colSpan={5} align="right">
                       Total
                     </TableCell>
                     <TableCell align="right">

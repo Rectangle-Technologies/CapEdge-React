@@ -108,13 +108,13 @@ const AddTransaction = () => {
       ...transactions,
       {
         id: nextId,
-        type: isIpoMode ? 'BUY' : 'BUY',
+        type: 'BUY',
         quantity: '',
         buyPrice: '',
         sellPrice: '',
         transactionCost: '',
         security: null,
-        deliveryType: isIpoMode ? 'Delivery' : 'Delivery'
+        deliveryType: 'Delivery'
       }
     ]);
     setNextId(nextId + 1);
@@ -282,7 +282,7 @@ const AddTransaction = () => {
       <CardHeader
         title={
           <Typography variant="h5" component="div">
-            Add Transactions
+            Add {isIpoMode ? 'IPO ' : ''} Transactions
           </Typography>
         }
       />

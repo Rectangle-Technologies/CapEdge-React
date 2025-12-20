@@ -390,6 +390,7 @@ const TransactionsTable = () => {
                     const price = transaction.price || 0;
                     const amount = quantity * price;
                     const formattedDate = transaction.date ? new Date(transaction.date).toLocaleDateString('en-GB') : '-';
+                    const type = transaction.isIpo ? 'IPO' : transaction.type?.toUpperCase();
 
                     return (
                       <TableRow
@@ -407,7 +408,7 @@ const TransactionsTable = () => {
                         <TableCell>{transaction.securityId?.name || transaction.securityId?.symbol || '-'}</TableCell>
                         <TableCell align="center">{formattedDate}</TableCell>
                         <TableCell align="center">
-                          <Chip label={transaction.type} color={getTransactionTypeColor(transaction.type)} size="small" />
+                          <Chip label={type} color={getTransactionTypeColor(type)} size="small" />
                         </TableCell>
                         <TableCell align="center">{transaction.deliveryType}</TableCell>
                         <TableCell align="right">{quantity}</TableCell>

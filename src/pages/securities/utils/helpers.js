@@ -49,7 +49,8 @@ export const generateNewSecurityId = (securities) => {
 export const getTransactionTypeColor = (type) => {
   const colorMap = {
     BUY: 'primary',
-    SELL: 'success'
+    SELL: 'success',
+    IPO: 'warning',
   };
   return colorMap[type] || 'primary';
 };

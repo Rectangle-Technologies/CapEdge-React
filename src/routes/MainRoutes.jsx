@@ -5,6 +5,7 @@ import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 import AddTransaction from '../pages/transactions/AddTransaction';
 import FinancialYears from '../pages/financial-years';
+import SplitSecurity from '../pages/securities/components/SplitSecurity';
 
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -50,6 +51,10 @@ const MainRoutes = {
     {
       path: 'master-data/broker',
       element: <BrokerManagement />
+    },
+    {
+      path: 'master-data/security/split/:securityId',
+      element: <SplitSecurity />
     },
     {
       path: 'master-data/security',

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Button,
   Chip,
   Divider,
   IconButton,
@@ -17,14 +18,19 @@ import { formatCurrency } from '../../../utils/formatCurrency';
 import { formatDate } from '../../../utils/formatDate';
 import { getTypeColor, getTypeLabel } from '../utils/helpers';
 import { TABLE_CONFIG } from '../utils/constants';
+import SplitHistoryModal from './SplitHistoryModal';
+import { useNavigate } from 'react-router';
 
 /**
  * SecurityTable Component - Handles security table display with keyboard navigation
  */
 const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPage, totalPages, onPageChange }) => {
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const [splitHistoryModalOpen, setSplitHistoryModalOpen] = useState(false);
+  const [selectedSecurity, setSelectedSecurity] = useState(null);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
+  const navigate = useNavigate();
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -120,17 +126,20 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
               <TableCell sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
                 <strong>{TABLE_CONFIG.columns.name.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '15%', minWidth: '120px', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                 <strong>{TABLE_CONFIG.columns.type.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'right' }}>
                 <strong>{TABLE_CONFIG.columns.strikePrice.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                 <strong>{TABLE_CONFIG.columns.expiry.label}</strong>
               </TableCell>
-              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>
+              <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                 <strong>{TABLE_CONFIG.columns.actions.label}</strong>
+              </TableCell>
+              <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
+                <strong>Split Actions</strong>
               </TableCell>
             </TableRow>
           </TableHead>
@@ -148,16 +157,16 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
                   <TableCell component="th" scope="row" sx={{ width: '35%', minWidth: '200px', padding: '8px 16px 8px 16px' }}>
                     {security.name}
                   </TableCell>
-                  <TableCell sx={{ width: '15%', minWidth: '120px', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                     <Chip label={getTypeLabel(security.type, securityTypes)} color={getTypeColor(security.type)} size="small" />
                   </TableCell>
-                  <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'right' }}>
                     {security.strikePrice ? formatCurrency(security.strikePrice) : '-'}
                   </TableCell>
-                  <TableCell sx={{ width: '20%', minWidth: '150px', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                     {formatDate(security.expiry)}
                   </TableCell>
-                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px' }}>
+                  <TableCell sx={{ width: '10%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
                     <IconButton onClick={() => onEdit(security)} size="small" color="primary">
                       <EditIcon />
                     </IconButton>
@@ -165,11 +174,22 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
+                  <TableCell sx={{ width: '20%', padding: '8px 16px 8px 16px', textAlign: 'center' }}>
+                    <Button variant="contained" size="small" sx={{ mr: 1 }} onClick={() => navigate(`split/${security._id}`)}>
+                      Split
+                    </Button>
+                    <Button variant="outlined" color="primary" size="small" onClick={() => {
+                      setSplitHistoryModalOpen(true);
+                      setSelectedSecurity(security)
+                    }}>
+                      Split History
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     No securities found. Click "Add Security" to create one.
                   </Typography>
@@ -179,6 +199,12 @@ const SecurityTable = ({ securities, securityTypes, onEdit, onDelete, currentPag
           </TableBody>
         </Table>
       </TableContainer>
+
+      <SplitHistoryModal
+        open={splitHistoryModalOpen}
+        onClose={() => setSplitHistoryModalOpen(false)}
+        security={selectedSecurity}
+      />
     </>
   );
 };

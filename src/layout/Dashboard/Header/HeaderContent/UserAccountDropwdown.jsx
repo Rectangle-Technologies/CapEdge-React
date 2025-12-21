@@ -81,7 +81,7 @@ const UserAccountDropwdown = () => {
   const currentValue = selectedAccount && selectedAccount.name ? selectedAccount.name : '';
 
   return (
-    <Box sx={{ width: 200, m: 2 }}>
+    <Box sx={{ width: 300, m: 2 }}>
       <Autocomplete
         size="small"
         disablePortal

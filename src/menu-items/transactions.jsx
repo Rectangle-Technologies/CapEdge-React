@@ -1,9 +1,10 @@
 // assets
-import { TransactionOutlined } from '@ant-design/icons';
+import { TransactionOutlined, SplitCellsOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  TransactionOutlined
+  TransactionOutlined,
+  SplitCellsOutlined
 };
 
 // ==============================|| MENU ITEMS - TRANSACTIONS ||============================== //
@@ -19,6 +20,14 @@ const transactions = {
       type: 'item',
       url: 'transactions',
       icon: icons.TransactionOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'split',
+      title: 'Split',
+      type: 'item',
+      url: 'split',
+      icon: icons.SplitCellsOutlined,
       breadcrumbs: false
     }
   ]

@@ -10,6 +10,9 @@ import SplitSecurity from '../pages/securities/components/SplitSecurity';
 // render- Dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
 
+// render - transactions
+const Split = Loadable(lazy(() => import('pages/transactions/split')));
+
 // render - color
 const Color = Loadable(lazy(() => import('pages/component-overview/color')));
 const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
@@ -43,6 +46,10 @@ const MainRoutes = {
     {
       path: 'transactions',
       element: <DashboardDefault />
+    },
+    {
+      path: 'split',
+      element: <Split />
     },
     {
       path: 'master-data/user-account',

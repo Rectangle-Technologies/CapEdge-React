@@ -24,7 +24,8 @@ import {
   Refresh as RefreshIcon,
   Close as CloseIcon,
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  TrendingDown as TrendingDownIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import { formatCurrency } from 'utils/formatCurrency';
 
@@ -39,13 +40,18 @@ const HoldingsPreviewPanel = ({
   onCalculatePreview,
   onResetPreview,
   onSubmitSplit,
-  onClose
+  onClose,
+  onUpdatePreviewRow,
+  validationErrors
 }) => {
   const displayData = isPreviewMode ? splitPreview : holdings;
 
   // Calculate totals
   const totalOriginalQuantity = holdings.reduce((sum, h) => sum + (h.quantity || 0), 0);
   const totalNewQuantity = splitPreview.reduce((sum, h) => sum + (h.newQuantity || 0), 0);
+
+  // Check if there are any validation errors
+  const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
 
   // Parse ratio for display
   const getRatioInfo = () => {
@@ -58,13 +64,19 @@ const HoldingsPreviewPanel = ({
       return {
         isSplit: multiplier > 1,
         multiplier,
-        description: multiplier > 1 ? `${num} share â†’ ${den} shares (Stock Split)` : `${num} shares â†’ ${den} share (Reverse Split)`
+        description: multiplier > 1 ? `${num} share → ${den} shares (Stock Split)` : `${num} shares → ${den} share (Reverse Split)`
       };
     }
     return null;
   };
 
   const ratioInfo = getRatioInfo();
+
+  // Handle editable field change
+  const handleFieldChange = (index, field, value) => {
+    const numValue = parseFloat(value) || 0;
+    onUpdatePreviewRow(index, field, numValue);
+  };
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -119,7 +131,13 @@ const HoldingsPreviewPanel = ({
                 <Button variant="outlined" startIcon={<RefreshIcon />} onClick={onResetPreview}>
                   Reset
                 </Button>
-                <Button variant="contained" color="success" startIcon={<SendIcon />} onClick={onSubmitSplit}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<SendIcon />}
+                  onClick={onSubmitSplit}
+                  disabled={hasValidationErrors}
+                >
                   Apply Split
                 </Button>
               </Box>
@@ -134,6 +152,13 @@ const HoldingsPreviewPanel = ({
               sx={{ mt: 2 }}
             >
               {ratioInfo.description}
+            </Alert>
+          )}
+
+          {/* Validation Error Summary */}
+          {hasValidationErrors && (
+            <Alert severity="error" icon={<WarningIcon />} sx={{ mt: 2 }}>
+              Some rows have validation errors. Old Qty × Old Price must equal New Qty × New Price.
             </Alert>
           )}
         </Box>
@@ -173,41 +198,87 @@ const HoldingsPreviewPanel = ({
                         New Price
                       </TableCell>
                     )}
+                    {isPreviewMode && (
+                      <TableCell sx={{ fontWeight: 'bold' }} align="center">
+                        Status
+                      </TableCell>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {displayData.map((holding, index) => (
-                    <TableRow key={holding._id || index}>
-                      <TableCell>{holding.dematAccountId?.userAccountId?.name || 'N/A'}</TableCell>
-                      <TableCell>{holding.dematAccountId?.accountNumber || 'N/A'}</TableCell>
-                      <TableCell align="right">{isPreviewMode ? holding.originalQuantity : holding.quantity}</TableCell>
-                      {isPreviewMode && (
-                        <TableCell
-                          align="right"
-                          sx={{
-                            color: 'success.main',
-                            fontWeight: 'bold',
-                            backgroundColor: 'success.lighter'
-                          }}
-                        >
-                          {holding.newQuantity}
+                  {displayData.map((holding, index) => {
+                    const hasError = validationErrors && validationErrors[index];
+                    return (
+                      <TableRow
+                        key={holding._id || index}
+                        sx={hasError ? { backgroundColor: 'error.lighter' } : {}}
+                      >
+                        <TableCell>{holding.dematAccountId?.userAccountId?.name || 'N/A'}</TableCell>
+                        <TableCell>{holding.dematAccountId?.accountNumber || 'N/A'}</TableCell>
+                        <TableCell align="right">
+                          {isPreviewMode ? holding.originalQuantity : holding.quantity}
                         </TableCell>
-                      )}
-                      <TableCell align="right">{formatCurrency(isPreviewMode ? holding.originalPrice : holding.price)}</TableCell>
-                      {isPreviewMode && (
-                        <TableCell
-                          align="right"
-                          sx={{
-                            color: 'success.main',
-                            fontWeight: 'bold',
-                            backgroundColor: 'success.lighter'
-                          }}
-                        >
-                          {formatCurrency(holding.newPrice)}
+                        {isPreviewMode && (
+                          <TableCell align="right" sx={{ p: 0.5 }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={holding.newQuantity}
+                              onChange={(e) => handleFieldChange(index, 'newQuantity', e.target.value)}
+                              error={hasError}
+                              sx={{
+                                width: 100,
+                                '& input': {
+                                  textAlign: 'right',
+                                  py: 0.5,
+                                  color: 'success.main',
+                                  fontWeight: 'bold'
+                                }
+                              }}
+                              inputProps={{ min: 0, step: 1 }}
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell align="right">
+                          {formatCurrency(isPreviewMode ? holding.originalPrice : holding.price)}
                         </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                        {isPreviewMode && (
+                          <TableCell align="right" sx={{ p: 0.5 }}>
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={holding.newPrice.toFixed(2)}
+                              onChange={(e) => handleFieldChange(index, 'newPrice', e.target.value)}
+                              error={hasError}
+                              sx={{
+                                width: 120,
+                                '& input': {
+                                  textAlign: 'right',
+                                  py: 0.5,
+                                  color: 'success.main',
+                                  fontWeight: 'bold'
+                                }
+                              }}
+                              inputProps={{ min: 0, step: 0.01 }}
+                            />
+                          </TableCell>
+                        )}
+                        {isPreviewMode && (
+                          <TableCell align="center">
+                            {hasError ? (
+                              <Tooltip title={validationErrors[index]}>
+                                <WarningIcon color="error" fontSize="small" />
+                              </Tooltip>
+                            ) : (
+                              <Typography color="success.main" fontSize="small">
+                                ✓
+                              </Typography>
+                            )}
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

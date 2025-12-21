@@ -27,6 +27,7 @@ const Split = () => {
   const [splitPreview, setSplitPreview] = useState([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [ratioError, setRatioError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   const ROWS_PER_PAGE = 50;
 
@@ -134,6 +135,12 @@ const Split = () => {
       return;
     }
 
+    // Validate all rows before submitting
+    if (!validateAllRows(splitPreview)) {
+      showErrorSnackbar('Please fix validation errors before submitting');
+      return;
+    }
+
     const parsed = parseSplitRatio(splitRatio);
     if (!parsed.valid) {
       showErrorSnackbar(parsed.error);
@@ -146,6 +153,11 @@ const Split = () => {
         securityId: selectedSecurity._id,
         splitRatioNumerator: parsed.numerator,
         splitRatioDenominator: parsed.denominator,
+        holdings: splitPreview.map((h) => ({
+          holdingId: h._id,
+          newQuantity: h.newQuantity,
+          newPrice: h.newPrice
+        })),
         financialYearId: financialYear?._id
       });
 
@@ -165,6 +177,44 @@ const Split = () => {
   const handleResetPreview = () => {
     setIsPreviewMode(false);
     setSplitPreview([]);
+    setValidationErrors({});
+  };
+
+  // Validate a single row: oldQty * oldPrice should equal newQty * newPrice
+  const validateRow = (holding) => {
+    const oldValue = holding.originalQuantity * holding.originalPrice;
+    const newValue = holding.newQuantity * holding.newPrice;
+    // Allow small floating point tolerance (0.01)
+    const tolerance = 0.01;
+    const isValid = Math.abs(oldValue - newValue) <= tolerance;
+    return isValid ? null : `Value mismatch: ${oldValue.toFixed(2)} ≠ ${newValue.toFixed(2)}`;
+  };
+
+  // Validate all rows and update validation errors
+  const validateAllRows = (preview) => {
+    const errors = {};
+    preview.forEach((holding, index) => {
+      const error = validateRow(holding);
+      if (error) {
+        errors[index] = error;
+      }
+    });
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Update a single row in the preview
+  const handleUpdatePreviewRow = (index, field, value) => {
+    setSplitPreview((prevPreview) => {
+      const newPreview = [...prevPreview];
+      newPreview[index] = {
+        ...newPreview[index],
+        [field]: value
+      };
+      // Validate after update
+      validateAllRows(newPreview);
+      return newPreview;
+    });
   };
 
   // Effects
@@ -217,6 +267,8 @@ const Split = () => {
               onResetPreview={handleResetPreview}
               onSubmitSplit={handleSubmitSplit}
               onClose={() => handleSecuritySelect(null)}
+              onUpdatePreviewRow={handleUpdatePreviewRow}
+              validationErrors={validationErrors}
             />
           </Grid>
         )}

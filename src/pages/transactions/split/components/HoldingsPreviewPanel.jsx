@@ -131,13 +131,7 @@ const HoldingsPreviewPanel = ({
                 <Button variant="outlined" startIcon={<RefreshIcon />} onClick={onResetPreview}>
                   Reset
                 </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  startIcon={<SendIcon />}
-                  onClick={onSubmitSplit}
-                  disabled={hasValidationErrors}
-                >
+                <Button variant="contained" color="success" startIcon={<SendIcon />} onClick={onSubmitSplit} disabled={hasValidationErrors}>
                   Apply Split
                 </Button>
               </Box>
@@ -209,15 +203,10 @@ const HoldingsPreviewPanel = ({
                   {displayData.map((holding, index) => {
                     const hasError = validationErrors && validationErrors[index];
                     return (
-                      <TableRow
-                        key={holding._id || index}
-                        sx={hasError ? { backgroundColor: 'error.lighter' } : {}}
-                      >
+                      <TableRow key={holding._id || index} sx={hasError ? { backgroundColor: 'error.lighter' } : {}}>
                         <TableCell>{holding.dematAccountId?.userAccountId?.name || 'N/A'}</TableCell>
                         <TableCell>{holding.dematAccountId?.accountNumber || 'N/A'}</TableCell>
-                        <TableCell align="right">
-                          {isPreviewMode ? holding.originalQuantity : holding.quantity}
-                        </TableCell>
+                        <TableCell align="right">{isPreviewMode ? holding.originalQuantity : holding.quantity}</TableCell>
                         {isPreviewMode && (
                           <TableCell align="right" sx={{ p: 0.5 }}>
                             <TextField
@@ -239,9 +228,7 @@ const HoldingsPreviewPanel = ({
                             />
                           </TableCell>
                         )}
-                        <TableCell align="right">
-                          {formatCurrency(isPreviewMode ? holding.originalPrice : holding.price)}
-                        </TableCell>
+                        <TableCell align="right">{formatCurrency(isPreviewMode ? holding.originalPrice : holding.price)}</TableCell>
                         {isPreviewMode && (
                           <TableCell align="right" sx={{ p: 0.5 }}>
                             <TextField

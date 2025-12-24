@@ -1,6 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { SWRConfig } from 'swr';
 
 // project imports
 import router from 'routes';

@@ -4,8 +4,9 @@ import { get } from '../../../utils/apiUtil'
 import { useDispatch } from 'react-redux'
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice'
 import { useEffect, useState } from 'react'
-import { Grid, Typography, Card, CardContent, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, TextField, Alert, Button } from '@mui/material'
+import { Grid, Typography, Card, CardContent, CardHeader, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, TextField, Button } from '@mui/material'
 import { formatDate } from '../../../utils/formatDate'
+import { formatCurrency } from '../../../utils/formatCurrency'
 
 const SplitSecurity = () => {
     const { securityId } = useParams()
@@ -14,31 +15,6 @@ const SplitSecurity = () => {
     const [splitFrom, setSplitFrom] = useState('')
     const [splitTo, setSplitTo] = useState('')
     const [newQuantities, setNewQuantities] = useState({})
-    const [validationErrors, setValidationErrors] = useState({})
-
-    const validateHolding = (holdingIndex, holding) => {
-        if (!splitFrom || !splitTo) return null
-        
-        const from = parseFloat(splitFrom)
-        const to = parseFloat(splitTo)
-        
-        if (from <= 0 || to <= 0) return null
-        
-        const currentTotal = holding.entries.reduce((sum, entry) => sum + entry.quantity, 0)
-        const expectedTotal = (currentTotal * to) / from
-        
-        const actualTotal = holding.entries.reduce((sum, entry, entryIndex) => {
-            const newQty = parseFloat(newQuantities[`${holdingIndex}-${entryIndex}`]) || 0
-            return sum + newQty
-        }, 0)
-        
-        const tolerance = 0.0001 // Allow small floating point differences
-        if (Math.abs(actualTotal - expectedTotal) > tolerance) {
-            return { actualTotal, expectedTotal }
-        }
-        
-        return null
-    }
 
     const handleNewQuantityChange = (holdingIndex, entryIndex, value) => {
         setNewQuantities(prev => ({
@@ -46,21 +22,6 @@ const SplitSecurity = () => {
             [`${holdingIndex}-${entryIndex}`]: value
         }))
     }
-
-    useEffect(() => {
-        if (data?.holdings && splitFrom && splitTo) {
-            const errors = {}
-            data.holdings.forEach((holding, index) => {
-                const error = validateHolding(index, holding)
-                if (error) {
-                    errors[index] = error
-                }
-            })
-            setValidationErrors(errors)
-        } else {
-            setValidationErrors({})
-        }
-    }, [newQuantities, splitFrom, splitTo, data])
 
     useEffect(() => {
         dispatch(showLoader())
@@ -145,25 +106,34 @@ const SplitSecurity = () => {
                                                 <TableRow>
                                                     <TableCell><strong>Date</strong></TableCell>
                                                     <TableCell align="center"><strong>Current Quantity</strong></TableCell>
+                                                    <TableCell align="center"><strong>Current Price</strong></TableCell>
                                                     <TableCell align="center"><strong>New Quantity</strong></TableCell>
+                                                    <TableCell align="center"><strong>New Price</strong></TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                {holding.entries.map((entry, entryIndex) => (
-                                                    <TableRow key={entryIndex} sx={{ backgroundColor: entryIndex % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
-                                                        <TableCell>{formatDate(entry.buyDate)}</TableCell>
-                                                        <TableCell align="center">{entry.quantity}</TableCell>
-                                                        <TableCell align="center">
-                                                            <TextField
-                                                                value={newQuantities[`${index}-${entryIndex}`] || ''}
-                                                                onChange={(e) => handleNewQuantityChange(index, entryIndex, e.target.value)}
-                                                                type="number"
-                                                                size="small"
-                                                                sx={{ width: 100 }}
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
+                                                {holding.entries.map((entry, entryIndex) => {
+                                                    const newQty = parseFloat(newQuantities[`${index}-${entryIndex}`]) || 0
+                                                    const newPrice = newQty > 0 ? (entry.price * entry.quantity) / newQty : 0
+                                                    
+                                                    return (
+                                                        <TableRow key={entryIndex}>
+                                                            <TableCell>{formatDate(entry.buyDate)}</TableCell>
+                                                            <TableCell align="center">{entry.quantity}</TableCell>
+                                                            <TableCell align="center">{formatCurrency(entry.price)}</TableCell>
+                                                            <TableCell align="center">
+                                                                <TextField
+                                                                    value={newQuantities[`${index}-${entryIndex}`] || ''}
+                                                                    onChange={(e) => handleNewQuantityChange(index, entryIndex, e.target.value)}
+                                                                    type="number"
+                                                                    size="small"
+                                                                    sx={{ width: 100 }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell align="center">{formatCurrency(newPrice)}</TableCell>
+                                                        </TableRow>
+                                                    )
+                                                })}
                                                 <TableRow sx={{ backgroundColor: 'action.hover' }}>
                                                     <TableCell><strong>Total</strong></TableCell>
                                                     <TableCell align="center">
@@ -171,6 +141,7 @@ const SplitSecurity = () => {
                                                             {holding.entries.reduce((sum, entry) => sum + entry.quantity, 0)}
                                                         </strong>
                                                     </TableCell>
+                                                    <TableCell></TableCell>
                                                     <TableCell align="center">
                                                         <strong>
                                                             {holding.entries.reduce((sum, entry, entryIndex) => {
@@ -179,15 +150,11 @@ const SplitSecurity = () => {
                                                             }, 0)}
                                                         </strong>
                                                     </TableCell>
+                                                    <TableCell></TableCell>
                                                 </TableRow>
                                             </TableBody>
                                         </Table>
                                     </TableContainer>
-                                    {validationErrors[index] && (
-                                        <Alert severity="error" sx={{ mt: 2 }}>
-                                            Total mismatch: Expected {validationErrors[index].expectedTotal}, but got {validationErrors[index].actualTotal}
-                                        </Alert>
-                                    )}
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -198,9 +165,9 @@ const SplitSecurity = () => {
                     <Button 
                         variant="contained" 
                         size="large"
-                        disabled={Object.keys(validationErrors).length > 0 || !splitFrom || !splitTo}
+                        disabled={!splitFrom || !splitTo}
                     >
-                        Submit
+                        Split
                     </Button>
                 </Box>
                 </>

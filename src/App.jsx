@@ -1,6 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { SWRConfig } from 'swr';
 
 // project imports
 import router from 'routes';
@@ -19,7 +18,6 @@ import GlobalSnackbar from 'components/GlobalSnackbar';
 export default function App() {
   return (
     <Provider store={store}>
-      <SWRConfig value={{ provider: () => new Map() }}>
         <ThemeCustomization>
           <ScrollTop>
             <RouterProvider router={router} />
@@ -27,7 +25,6 @@ export default function App() {
             <GlobalSnackbar />
           </ScrollTop>
         </ThemeCustomization>
-      </SWRConfig>
     </Provider>
   );
 }

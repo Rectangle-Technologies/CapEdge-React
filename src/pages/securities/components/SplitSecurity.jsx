@@ -1,6 +1,6 @@
-import { useParams } from 'react-router';
-import { showErrorSnackbar } from '../../../store/utils';
-import { get } from '../../../utils/apiUtil';
+import { useParams, useNavigate } from 'react-router';
+import { showErrorSnackbar, showSuccessSnackbar } from '../../../store/utils';
+import { get, post } from '../../../utils/apiUtil';
 import { useDispatch } from 'react-redux';
 import { hideLoader, showLoader } from '../../../store/slices/loaderSlice';
 import { useEffect, useState } from 'react';
@@ -30,6 +30,7 @@ import { formatCurrency } from '../../../utils/formatCurrency';
 
 const SplitSecurity = () => {
   const { securityId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [data, setData] = useState(null);
   const [splitFrom, setSplitFrom] = useState('');
@@ -197,7 +198,7 @@ const SplitSecurity = () => {
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
             <Button variant="contained" size="large" disabled={!splitFrom || !splitTo}
-            onClick={() => {
+            onClick={async () => {
               // get data to submit
               const transactions = [];
 
@@ -225,7 +226,17 @@ const SplitSecurity = () => {
                 transactions
               };
 
-              console.log('Submitting split data:', splitData);
+              try {
+                dispatch(showLoader());
+                await post('/security/split', splitData);
+                showSuccessSnackbar('Security split successfully!');
+                navigate('/report/holdings');
+              } catch (error) {
+                console.error('Error splitting security:', error);
+                showErrorSnackbar('Failed to split security.');
+              } finally {
+                dispatch(hideLoader());
+              }
             }}
             >
               Split

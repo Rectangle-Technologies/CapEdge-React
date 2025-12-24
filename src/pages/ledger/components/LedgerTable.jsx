@@ -329,6 +329,7 @@ const LedgerTable = ({
                   <LedgerRow
                     key={entry._id}
                     entry={entry}
+                    index={index}
                     isExpanded={expandedRowId === entry._id}
                     onToggleExpand={handleRowToggle}
                     getTransactionColor={getTransactionColor}

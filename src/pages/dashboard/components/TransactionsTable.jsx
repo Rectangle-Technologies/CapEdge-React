@@ -385,7 +385,7 @@ const TransactionsTable = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredTransactions.map((transaction) => {
+                  filteredTransactions.map((transaction, index) => {
                     const quantity = transaction.quantity || 0;
                     const price = transaction.price || 0;
                     const amount = quantity * price;
@@ -399,7 +399,8 @@ const TransactionsTable = () => {
                         onClick={() => setSelectedRow(transaction._id)}
                         sx={{
                           '&:last-child td, &:last-child th': { border: 0 },
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
                         }}
                         key={transaction._id}
                         id={`transaction-row-${transaction._id}`}

@@ -364,8 +364,8 @@ const AddTransaction = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow key={transaction.id} hover>
+                {transactions.map((transaction, index) => (
+                  <TableRow key={transaction.id} hover sx={{ backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
                     <TableCell sx={{ width: '12%' }}>
                       <TextField
                         select

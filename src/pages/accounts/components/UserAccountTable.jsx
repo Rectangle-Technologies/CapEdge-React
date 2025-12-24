@@ -150,6 +150,7 @@ function UserAccountTable({
               <UserAccountRow
                 key={userAccount.id || userAccount._id}
                 userAccount={userAccount}
+                index={index}
                 isExpanded={expandedRowId === (userAccount.id || userAccount._id)}
                 onToggleExpand={handleRowToggle}
                 onEditUser={onEditUser}

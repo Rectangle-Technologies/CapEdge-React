@@ -150,7 +150,7 @@ const SplitSecurity = () => {
                                             </TableHead>
                                             <TableBody>
                                                 {holding.entries.map((entry, entryIndex) => (
-                                                    <TableRow key={entryIndex}>
+                                                    <TableRow key={entryIndex} sx={{ backgroundColor: entryIndex % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
                                                         <TableCell>{formatDate(entry.buyDate)}</TableCell>
                                                         <TableCell align="center">{entry.quantity}</TableCell>
                                                         <TableCell align="center">

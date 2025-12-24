@@ -3,7 +3,7 @@ import { Box, Chip, Collapse, IconButton, Table, TableBody, TableCell, TableHead
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 
-function LedgerRow({ entry, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef }) {
+function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef }) {
   const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
 
   return (
@@ -13,7 +13,8 @@ function LedgerRow({ entry, isExpanded, onToggleExpand, getTransactionColor, isA
         selected={isActive}
         sx={{
           '& > *': { borderBottom: 'unset' },
-          cursor: 'pointer'
+          cursor: 'pointer',
+          backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
         }}
         hover
         onClick={onClick}

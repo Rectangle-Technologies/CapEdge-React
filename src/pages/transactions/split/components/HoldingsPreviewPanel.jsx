@@ -203,7 +203,7 @@ const HoldingsPreviewPanel = ({
                   {displayData.map((holding, index) => {
                     const hasError = validationErrors && validationErrors[index];
                     return (
-                      <TableRow key={holding._id || index} sx={hasError ? { backgroundColor: 'error.lighter' } : {}}>
+                      <TableRow key={holding._id || index} sx={hasError ? { backgroundColor: 'error.lighter' } : { backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
                         <TableCell>{holding.dematAccountId?.userAccountId?.name || 'N/A'}</TableCell>
                         <TableCell>{holding.dematAccountId?.accountNumber || 'N/A'}</TableCell>
                         <TableCell align="right">{isPreviewMode ? holding.originalQuantity : holding.quantity}</TableCell>

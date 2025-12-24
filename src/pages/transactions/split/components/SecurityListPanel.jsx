@@ -154,6 +154,7 @@ const SecurityListPanel = ({
                     onClick={() => onSecuritySelect(security)}
                     sx={{
                       cursor: 'pointer',
+                      backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit',
                       '&.Mui-selected': {
                         backgroundColor: 'primary.lighter'
                       },

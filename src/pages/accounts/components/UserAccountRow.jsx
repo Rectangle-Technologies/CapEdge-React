@@ -23,7 +23,8 @@ function UserAccountRow({
   onDeleteDematAccount,
   isActive,
   onClick,
-  rowRef
+  rowRef,
+  index
 }) {
   return (
     <>
@@ -32,7 +33,8 @@ function UserAccountRow({
         selected={isActive}
         sx={{
           '& > *': { borderBottom: 'unset' },
-          cursor: 'pointer'
+          cursor: 'pointer',
+          backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
         }}
         hover
         onClick={onClick}

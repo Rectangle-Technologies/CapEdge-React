@@ -332,7 +332,8 @@ const Holdings = () => {
                       selected={activeRowIndex === index}
                       sx={{
                         '& > *': { borderBottom: 'unset' },
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
                       }}
                       ref={(el) => (rowRefs.current[index] = el)}
                       onClick={() => setActiveRowIndex(index)}
@@ -382,8 +383,8 @@ const Holdings = () => {
                                 </TableRow>
                               </TableHead>
                               <TableBody>
-                                {group.holdings.map((holding) => (
-                                  <TableRow key={holding.id}>
+                                {group.holdings.map((holding, holdingIndex) => (
+                                  <TableRow key={holding.id} sx={{ backgroundColor: holdingIndex % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
                                     <TableCell>{formatDate(holding.buyDate)}</TableCell>
                                     <TableCell>{holding.broker || 'N/A'}</TableCell>
                                     <TableCell align="right">{holding.quantity}</TableCell>

@@ -173,7 +173,10 @@ export default function OrderTable() {
                 <TableRow
                   hover
                   role="checkbox"
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  sx={{ 
+                    '&:last-child td, &:last-child th': { border: 0 },
+                    backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
+                  }}
                   tabIndex={-1}
                   key={row.tracking_no}
                 >

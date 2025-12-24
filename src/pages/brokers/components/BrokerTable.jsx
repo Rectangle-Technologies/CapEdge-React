@@ -124,7 +124,10 @@ const BrokerTable = ({ brokers, onEdit, onDelete, currentPage, totalPages, onPag
                   hover
                   ref={(el) => (rowRefs.current[index] = el)}
                   selected={activeRowIndex === index}
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ 
+                    cursor: 'pointer',
+                    backgroundColor: index % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit'
+                  }}
                   onClick={() => setActiveRowIndex(index)}
                 >
                   <TableCell

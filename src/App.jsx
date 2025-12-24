@@ -19,7 +19,7 @@ import GlobalSnackbar from 'components/GlobalSnackbar';
 export default function App() {
   return (
     <Provider store={store}>
-      <SWRConfig value={{ provider: () => new Map() }}>
+      {/* <SWRConfig value={{ provider: () => new Map() }}> */}
         <ThemeCustomization>
           <ScrollTop>
             <RouterProvider router={router} />
@@ -27,7 +27,7 @@ export default function App() {
             <GlobalSnackbar />
           </ScrollTop>
         </ThemeCustomization>
-      </SWRConfig>
+      {/* </SWRConfig> */}
     </Provider>
   );
 }

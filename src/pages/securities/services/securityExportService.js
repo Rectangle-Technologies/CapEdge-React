@@ -21,7 +21,7 @@ export class SecurityExportService {
       const exportData = securities.map((security) => ({
         'Security Name': security.name,
         Type: getTypeLabel(security.type, securityTypes),
-        'Strike Price': security.strikePrice ? security.strikePrice.toFixed(2) : '-',
+        'Strike Price': security.strikePrice ? security.strikePrice : '-',
         'Expiry Date': formatDate(security.expiry)
       }));
 

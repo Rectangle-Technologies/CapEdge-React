@@ -205,8 +205,8 @@ const Holdings = () => {
       Security: holding.securityName,
       Type: holding.securityType,
       Quantity: holding.quantity,
-      'Buy Price': holding.buyPrice.toFixed(2),
-      Investment: holding.totalInvestment.toFixed(2),
+      'Buy Price': holding.buyPrice,
+      Investment: holding.totalInvestment,
       Broker: holding.broker || 'N/A'
     }));
   };

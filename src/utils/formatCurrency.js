@@ -15,7 +15,7 @@ export const formatCurrency = (amount, currency = '₹', locale = 'en-IN') => {
 
   const formattedAmount = absoluteAmount.toLocaleString(locale, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 6
   });
 
   return isNegative ? `-${currency}${formattedAmount}` : `${currency}${formattedAmount}`;
@@ -40,5 +40,5 @@ export const formatCurrencyForInput = (amount) => {
   if (amount === null || amount === undefined || isNaN(amount)) {
     return '';
   }
-  return Number(amount).toFixed(2);
+  return Number(amount);
 };

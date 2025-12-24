@@ -234,7 +234,7 @@ const HoldingsPreviewPanel = ({
                             <TextField
                               size="small"
                               type="number"
-                              value={holding.newPrice.toFixed(2)}
+                              value={holding.newPrice}
                               onChange={(e) => handleFieldChange(index, 'newPrice', e.target.value)}
                               error={hasError}
                               sx={{

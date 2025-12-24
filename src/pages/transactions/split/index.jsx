@@ -187,7 +187,7 @@ const Split = () => {
     // Allow small floating point tolerance (0.01)
     const tolerance = 0.01;
     const isValid = Math.abs(oldValue - newValue) <= tolerance;
-    return isValid ? null : `Value mismatch: ${oldValue.toFixed(2)} ≠ ${newValue.toFixed(2)}`;
+    return isValid ? null : `Value mismatch: ${oldValue} ≠ ${newValue}`;
   };
 
   // Validate all rows and update validation errors

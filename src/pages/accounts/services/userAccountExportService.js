@@ -28,7 +28,7 @@ export class UserAccountExportService {
               'PAN Number': user.panNumber,
               Address: user.address,
               Broker: broker ? broker.name : 'Unknown Broker',
-              Balance: demat.balance.toFixed(2)
+              Balance: demat.balance
             });
           });
         } else {

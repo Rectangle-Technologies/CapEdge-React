@@ -36,7 +36,22 @@ const SplitHistoryModal = ({ open, onClose, security }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {/* Split history rows will go here */}
+                            {security?.splitHistory?.length > 0 ? (
+                                security.splitHistory.map((split) => (
+                                    <TableRow key={split._id}>
+                                        <TableCell>
+                                            {new Date(split.splitDate).toLocaleDateString('en-GB')}
+                                        </TableCell>
+                                        <TableCell>{split.splitRatio}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={2} align="center">
+                                        No split history available
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>

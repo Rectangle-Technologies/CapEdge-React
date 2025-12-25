@@ -80,6 +80,47 @@ const SplitSecurity = () => {
     }
   }, [splitFrom, splitTo, data]);
 
+  const handleSplitSecurity = async () => {
+    // get data to submit
+    const transactions = [];
+
+    data.holdings.forEach((holding, holdingIndex) => {
+      holding.entries.forEach((entry, entryIndex) => {
+        const key = `${holdingIndex}-${entryIndex}`;
+        const newQty = parseFloat(newQuantities[key]) || 0;
+        const newPrice = newQty > 0 ? (entry.price * entry.quantity) / newQty : 0;
+
+        transactions.push({
+          transactionId: entry.transactionId,
+          quantityBeforeSplit: entry.quantity,
+          holdingId: entry.holdingId,
+          quantityAfterSplit: newQty,
+          priceBeforeSplit: entry.price,
+          priceAfterSplit: newPrice
+        });
+      });
+    });
+
+    const splitData = {
+      securityId,
+      splitDate: splitDate.toDate(),
+      splitRatio: `${splitFrom}:${splitTo}`,
+      transactions
+    };
+      
+    dispatch(showLoader());
+    try {
+      await post('/security/split', splitData);
+      showSuccessSnackbar('Security split successfully!');
+      navigate('/report/holdings');
+    } catch (error) {
+      console.error('Error splitting security:', error);
+      showErrorSnackbar(error.message || 'Failed to split security.');
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h3" sx={{ my: 3 }}>
@@ -197,48 +238,7 @@ const SplitSecurity = () => {
           </Grid>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo}
-            onClick={async () => {
-              // get data to submit
-              const transactions = [];
-
-              data.holdings.forEach((holding, holdingIndex) => {
-                holding.entries.forEach((entry, entryIndex) => {
-                  const key = `${holdingIndex}-${entryIndex}`;
-                  const newQty = parseFloat(newQuantities[key]) || 0;
-                  const newPrice = newQty > 0 ? (entry.price * entry.quantity) / newQty : 0;
-
-                  transactions.push({
-                    transactionId: entry.transactionId,
-                    quantityBeforeSplit: entry.quantity,
-                    holdingId: entry.holdingId,
-                    quantityAfterSplit: newQty,
-                    priceBeforeSplit: entry.price,
-                    priceAfterSplit: newPrice
-                  });
-                });
-              });
-
-              const splitData = {
-                securityId,
-                splitDate: splitDate.toDate(),
-                splitRatio: `${splitFrom}:${splitTo}`,
-                transactions
-              };
-
-              try {
-                dispatch(showLoader());
-                await post('/security/split', splitData);
-                showSuccessSnackbar('Security split successfully!');
-                navigate('/report/holdings');
-              } catch (error) {
-                console.error('Error splitting security:', error);
-                showErrorSnackbar('Failed to split security.');
-              } finally {
-                dispatch(hideLoader());
-              }
-            }}
-            >
+            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo} onClick={handleSplitSecurity}>
               Split
             </Button>
           </Box>

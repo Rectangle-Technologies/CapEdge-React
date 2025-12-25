@@ -31,18 +31,18 @@ const SplitHistoryModal = ({ open, onClose, security }) => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell><strong>Date</strong></TableCell>
-                                <TableCell><strong>Split Ratio</strong></TableCell>
+                                <TableCell align="center"><strong>Date</strong></TableCell>
+                                <TableCell align="center"><strong>Split Ratio</strong></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {security?.splitHistory?.length > 0 ? (
                                 security.splitHistory.map((split) => (
                                     <TableRow key={split._id}>
-                                        <TableCell>
+                                        <TableCell align="center">
                                             {new Date(split.splitDate).toLocaleDateString('en-GB')}
                                         </TableCell>
-                                        <TableCell>{split.splitRatio}</TableCell>
+                                        <TableCell align="center">{split.splitRatio}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (

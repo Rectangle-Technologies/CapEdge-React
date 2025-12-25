@@ -43,7 +43,7 @@ const UserAccountDropwdown = () => {
   }, [fetchUserAccounts]);
 
   useEffect(() => {
-    if (userAccounts.length > 0 && (!selectedAccount || !selectedAccount._id)) {
+    if (userAccounts.length > 0 && !selectedAccount?._id) {
       dispatch(
         setCurrentUserAccount({
           _id: userAccounts[0]._id,
@@ -51,11 +51,11 @@ const UserAccountDropwdown = () => {
         })
       );
     }
-  }, [userAccounts, selectedAccount, dispatch]);
+  }, [userAccounts, selectedAccount?._id, dispatch]);
 
   // Ensure selected account still exists in the current userAccounts list
   useEffect(() => {
-    if (selectedAccount && selectedAccount._id && userAccounts.length > 0) {
+    if (selectedAccount?._id && userAccounts.length > 0) {
       const accountExists = userAccounts.some((account) => account._id === selectedAccount._id);
       if (!accountExists) {
         // Reset to first account if current selection no longer exists
@@ -67,7 +67,7 @@ const UserAccountDropwdown = () => {
         );
       }
     }
-  }, [userAccounts, selectedAccount, dispatch]);
+  }, [userAccounts, selectedAccount?._id, dispatch]);
 
   // Show disabled state if no accounts available
   if (!userAccounts || userAccounts.length === 0) {
@@ -78,7 +78,7 @@ const UserAccountDropwdown = () => {
     );
   }
 
-  const currentValue = selectedAccount && selectedAccount.name ? selectedAccount.name : '';
+  const currentValue = selectedAccount?.name || '';
 
   return (
     <Box sx={{ width: 300, m: 2 }}>

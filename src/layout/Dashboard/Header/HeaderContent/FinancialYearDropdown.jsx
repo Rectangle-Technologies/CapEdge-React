@@ -48,7 +48,8 @@ const FinancialYearDropdown = () => {
       }
     };
     fetchFinancialYears();
-  }, [dispatch, financialYear?.title]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   return (
     <Box sx={{ width: 150, m: 2 }}>

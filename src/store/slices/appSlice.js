@@ -1,6 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
+// Load persisted state from localStorage
+const loadPersistedState = () => {
+  try {
+    const persistedState = localStorage.getItem('capedge_app_state');
+    if (persistedState) {
+      return JSON.parse(persistedState);
+    }
+  } catch (error) {
+    console.error('Failed to load persisted state:', error);
+  }
+  return null;
+};
+
+// Save state to localStorage
+const saveStateToLocalStorage = (state) => {
+  try {
+    localStorage.setItem('capedge_app_state', JSON.stringify(state));
+  } catch (error) {
+    console.error('Failed to save state to localStorage:', error);
+  }
+};
+
+const persistedState = loadPersistedState();
+
+const initialState = persistedState || {
   currentUserAccount: {
     _id: null,
     name: null
@@ -19,9 +43,11 @@ const appSlice = createSlice({
   reducers: {
     setCurrentUserAccount: (state, action) => {
       state.currentUserAccount = action.payload;
+      saveStateToLocalStorage(state);
     },
     setFinancialYear: (state, action) => {
       state.financialYear = action.payload;
+      saveStateToLocalStorage(state);
     }
   }
 });

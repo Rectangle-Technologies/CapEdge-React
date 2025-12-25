@@ -83,43 +83,45 @@ const SplitSecurity = () => {
   }, [splitFrom, splitTo, data]);
 
   const handleSplitSecurity = async () => {
-    // get data to submit
-    const transactions = [];
+    if (window.confirm('Are you sure you want to split this security? This action cannot be undone.')) {
+      // get data to submit
+      const transactions = [];
 
-    data.holdings.forEach((holding, holdingIndex) => {
-      holding.entries.forEach((entry, entryIndex) => {
-        const key = `${holdingIndex}-${entryIndex}`;
-        const newQty = parseFloat(newQuantities[key]) || 0;
-        const newPrice = newQty > 0 ? (entry.price * entry.quantity) / newQty : 0;
+      data.holdings.forEach((holding, holdingIndex) => {
+        holding.entries.forEach((entry, entryIndex) => {
+          const key = `${holdingIndex}-${entryIndex}`;
+          const newQty = parseFloat(newQuantities[key]) || 0;
+          const newPrice = newQty > 0 ? (entry.price * entry.quantity) / newQty : 0;
 
-        transactions.push({
-          transactionId: entry.transactionId,
-          quantityBeforeSplit: entry.quantity,
-          holdingId: entry.holdingId,
-          quantityAfterSplit: newQty,
-          priceBeforeSplit: entry.price,
-          priceAfterSplit: newPrice
+          transactions.push({
+            transactionId: entry.transactionId,
+            quantityBeforeSplit: entry.quantity,
+            holdingId: entry.holdingId,
+            quantityAfterSplit: newQty,
+            priceBeforeSplit: entry.price,
+            priceAfterSplit: newPrice
+          });
         });
       });
-    });
 
-    const splitData = {
-      securityId,
-      splitDate: splitDate.toDate(),
-      splitRatio: `${splitFrom}:${splitTo}`,
-      transactions
-    };
-      
-    dispatch(showLoader());
-    try {
-      await post('/security/split', splitData);
-      showSuccessSnackbar('Security split successfully!');
-      navigate('/report/holdings');
-    } catch (error) {
-      console.error('Error splitting security:', error);
-      showErrorSnackbar(error.message || 'Failed to split security.');
-    } finally {
-      dispatch(hideLoader());
+      const splitData = {
+        securityId,
+        splitDate: splitDate.toDate(),
+        splitRatio: `${splitFrom}:${splitTo}`,
+        transactions
+      };
+
+      dispatch(showLoader());
+      try {
+        await post('/security/split', splitData);
+        showSuccessSnackbar('Security split successfully!');
+        navigate('/report/holdings');
+      } catch (error) {
+        console.error('Error splitting security:', error);
+        showErrorSnackbar(error.message || 'Failed to split security.');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 
@@ -137,7 +139,7 @@ const SplitSecurity = () => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 3, gap: 5}}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 3, gap: 5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography mr={2} variant="h5">
                 Split Ratio

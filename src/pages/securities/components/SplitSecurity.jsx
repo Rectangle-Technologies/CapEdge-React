@@ -46,10 +46,12 @@ const SplitSecurity = () => {
   };
 
   useEffect(() => {
+    if (!splitDate) return;
+
     dispatch(showLoader());
     const fetchHoldings = async () => {
       try {
-        const result = await get(`/holdings/for-split/${securityId}`);
+        const result = await get(`/holdings/for-split/${securityId}/${splitDate.format('YYYY-MM-DD')}`);
         setData(result);
       } catch (error) {
         console.error('Error fetching holdings for security split:', error);
@@ -60,7 +62,7 @@ const SplitSecurity = () => {
     };
 
     fetchHoldings();
-  }, [securityId, dispatch]);
+  }, [securityId, splitDate, dispatch]);
 
   useEffect(() => {
     if (splitFrom && splitTo && data?.holdings) {
@@ -135,7 +137,7 @@ const SplitSecurity = () => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 3, gap: 5}}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography mr={2} variant="h5">
                 Split Ratio

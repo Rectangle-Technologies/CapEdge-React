@@ -26,13 +26,14 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { Add } from '@mui/icons-material';
 
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
@@ -40,6 +41,7 @@ const deliveryTypes = ['Delivery', 'Intraday'];
 const AddTransaction = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const isIpoMode = location.pathname === '/ipo';
 
@@ -61,6 +63,7 @@ const AddTransaction = () => {
   ]);
   const [nextId, setNextId] = useState(2);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [addSecurityDialogOpen, setAddSecurityDialogOpen] = useState(false);
 
   const fetchDematAccounts = async () => {
     try {
@@ -84,6 +87,24 @@ const AddTransaction = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
+
+  // Restore state when navigating back from Security component
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('addTransactionState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setTransactionDate(dayjs(parsed.transactionDate));
+        setReferenceNumber(parsed.referenceNumber);
+        setSelectedDematAccount(parsed.selectedDematAccount);
+        setTransactions(parsed.transactions);
+        setNextId(parsed.nextId);
+        sessionStorage.removeItem('addTransactionState');
+      } catch (error) {
+        console.error('Error restoring state:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const total = transactions.reduce((sum, transaction) => {
@@ -280,6 +301,30 @@ const AddTransaction = () => {
           <Typography variant="h5" component="div">
             Add {isIpoMode ? 'IPO ' : ''} Transactions
           </Typography>
+        }
+        action={
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => {
+              // Save current state to sessionStorage
+              sessionStorage.setItem(
+                'addTransactionState',
+                JSON.stringify({
+                  transactionDate: transactionDate.toISOString(),
+                  referenceNumber,
+                  selectedDematAccount,
+                  transactions,
+                  nextId
+                })
+              );
+              // Navigate to security page with state to auto-open dialog
+              navigate('/master-data/security', { state: { openDialog: true, returnTo: location.pathname } });
+            }}
+            color="secondary"
+          >
+            Add Security
+          </Button>
         }
       />
       <Divider />

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Box, Card, CardHeader, Pagination } from '@mui/material';
 import { useFormik } from 'formik';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { formatCurrencyForInput } from 'utils/formatCurrency';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { del, get, post, put } from '../../utils/apiUtil';
@@ -20,6 +21,8 @@ import { useDispatch } from 'react-redux';
 const Security = () => {
   // Redux dispatch
   const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // State management
   const [searchName, setSearchName] = useState('');
@@ -59,6 +62,11 @@ const Security = () => {
         resetForm();
         setOpenDialog(false);
         setEditingSecurity(null);
+        
+        // If we came from AddTransaction, navigate back
+        if (location.state?.returnTo) {
+          navigate(location.state.returnTo);
+        }
       } catch (error) {
         console.error('Failed to save security:', error);
         showErrorSnackbar(error.message || 'Failed to save security. Please try again.');
@@ -135,6 +143,13 @@ const Security = () => {
     // Initial fetch of securities and types
     searchSecurities();
   }, [page]);
+
+  // Auto-open dialog if navigated from AddTransaction
+  useEffect(() => {
+    if (location.state?.openDialog) {
+      setOpenDialog(true);
+    }
+  }, [location.state]);
 
   // Reset page to 1 when search term changes
   useEffect(() => {

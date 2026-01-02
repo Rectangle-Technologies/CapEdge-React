@@ -9,6 +9,7 @@ import Profile from './Profile';
 // project import
 import UserAccountDropwdown from './UserAccountDropwdown';
 import FinancialYearDropdown from './FinancialYearDropdown';
+import KeyboardShortcuts from './KeyboardShortcuts';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -36,6 +37,7 @@ export default function HeaderContent() {
       {!downLG && <FinancialYearDropdown />}
       {!downLG && <UserAccountDropwdown />}
       {!downLG && <Profile />}
+      {!downLG && <KeyboardShortcuts />}
       {downLG && <MobileSection />}
     </>
   );

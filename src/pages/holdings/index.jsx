@@ -107,10 +107,10 @@ const Holdings = () => {
         return;
       }
 
-      // Handle up/down arrow keys for row navigation
+      // Handle Alt+up/down arrow keys for row navigation
       if (groupedHoldings.length === 0) return;
 
-      if (event.key === 'ArrowDown') {
+      if (event.altKey && event.key === 'ArrowDown' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex < groupedHoldings.length - 1 ? prevIndex + 1 : prevIndex;
@@ -123,7 +123,7 @@ const Holdings = () => {
           }
           return newIndex;
         });
-      } else if (event.key === 'ArrowUp') {
+      } else if (event.altKey && event.key === 'ArrowUp' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         setActiveRowIndex((prevIndex) => {
           const newIndex = prevIndex > 0 ? prevIndex - 1 : 0;

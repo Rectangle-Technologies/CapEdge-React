@@ -12,19 +12,22 @@ import store from 'store';
 // global components
 import GlobalLoader from 'components/GlobalLoader';
 import GlobalSnackbar from 'components/GlobalSnackbar';
+import BackendLoader from './components/BackendLoader';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL, REDUX ||============================== //
 
 export default function App() {
   return (
     <Provider store={store}>
-        <ThemeCustomization>
-          <ScrollTop>
+      <ThemeCustomization>
+        <ScrollTop>
+          <BackendLoader>
             <RouterProvider router={router} />
             <GlobalLoader />
             <GlobalSnackbar />
-          </ScrollTop>
-        </ThemeCustomization>
+          </BackendLoader>
+        </ScrollTop>
+      </ThemeCustomization>
     </Provider>
   );
 }

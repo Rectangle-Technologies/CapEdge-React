@@ -114,7 +114,7 @@ const AddTransaction = () => {
 
       const cost = transaction.transactionCost ? Number(transaction.transactionCost) : 0;
 
-      return sum + buyAmount - sellAmount - cost;
+      return sum + buyAmount - sellAmount + cost;
     }, 0);
 
     setTotalAmount(total);

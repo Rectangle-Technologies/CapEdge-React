@@ -196,22 +196,22 @@ const AddTransaction = () => {
 
       // For Intraday: both buy and sell prices are required
       if (t.deliveryType === 'Intraday') {
-        if (!t.buyPrice || t.buyPrice <= 0) {
+        if (!t.buyPrice || t.buyPrice < 0) {
           showErrorSnackbar(`Transaction ${i + 1}: Valid buy price is required for Intraday`);
           return false;
         }
-        if (!t.sellPrice || t.sellPrice <= 0) {
+        if (!t.sellPrice || t.sellPrice < 0) {
           showErrorSnackbar(`Transaction ${i + 1}: Valid sell price is required for Intraday`);
           return false;
         }
       } else {
         // For Delivery: only validate the price based on transaction type
-        if (t.type === 'BUY' && (!t.buyPrice || t.buyPrice <= 0)) {
+        if (t.type === 'BUY' && (!t.buyPrice || t.buyPrice < 0)) {
           showErrorSnackbar(`Transaction ${i + 1}: Valid buy price is required`);
           return false;
         }
 
-        if (t.type === 'SELL' && (!t.sellPrice || t.sellPrice <= 0)) {
+        if (t.type === 'SELL' && (!t.sellPrice || t.sellPrice < 0)) {
           showErrorSnackbar(`Transaction ${i + 1}: Valid sell price is required`);
           return false;
         }

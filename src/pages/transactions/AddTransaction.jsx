@@ -465,7 +465,7 @@ const AddTransaction = () => {
                         fullWidth
                         required
                         placeholder="0"
-                        slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                        slotProps={{ htmlInput: { min: 0, step: 'any' } }}
                       />
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>

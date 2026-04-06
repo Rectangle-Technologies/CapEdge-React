@@ -81,7 +81,7 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      showErrorSnackbar('Download all failed. Please try again.');
+      showErrorSnackbar(err.message || 'Download all failed. Please try again.');
       console.error('Download all error:', err);
     } finally {
       dispatch(hideLoader());

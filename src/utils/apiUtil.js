@@ -77,7 +77,17 @@ export const del = async (url) => {
 const handleApiError = (error) => {
   if (error.response) {
     // Server responded with error status
-    const { status, data } = error.response;
+    let { status, data } = error.response;
+
+    // When responseType is 'arraybuffer', error response data is also an ArrayBuffer.
+    // Decode it back to a plain object so error messages can be read.
+    if (data instanceof ArrayBuffer) {
+      try {
+        data = JSON.parse(new TextDecoder().decode(data));
+      } catch {
+        data = {};
+      }
+    }
 
     // Handle specific error cases
     switch (status) {

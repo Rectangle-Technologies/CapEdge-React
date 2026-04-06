@@ -31,8 +31,9 @@ const FinancialYearDropdown = () => {
         const years = data.financialYears || [];
         setFinancialYears(years);
 
-        // Set first year as default if available and no year is currently selected
-        if (years.length > 0 && !financialYear?.title) {
+        // Set first year as default if no year is selected or the persisted year no longer exists in the list
+        const persistedYearExists = financialYear?._id && years.some((y) => y._id === financialYear._id);
+        if (years.length > 0 && !persistedYearExists) {
           dispatch(
             setFinancialYear({
               _id: years[0]._id || null,

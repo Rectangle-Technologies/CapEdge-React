@@ -1,10 +1,11 @@
-import { KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
-import { Box, Chip, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { DeleteOutline, KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
+import { Box, Chip, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 
-function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef }) {
+function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef, onDelete }) {
   const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
+  const isDeletable = !hasTradeTransaction;
 
   return (
     <>
@@ -43,10 +44,26 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
         <TableCell align={entry.remarks ? 'left' : 'center'} sx={{ padding: '8px 16px 8px 16px' }}>
           {entry.remarks || '-'}
         </TableCell>
+        <TableCell align="center" sx={{ padding: '8px 4px 8px 4px', width: 48 }}>
+          {isDeletable && (
+            <Tooltip title="Delete entry">
+              <IconButton
+                size="small"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(entry._id);
+                }}
+              >
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </TableCell>
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
               <Box sx={{ margin: 2 }}>
                 <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>

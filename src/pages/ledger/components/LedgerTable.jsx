@@ -4,6 +4,11 @@ import {
   Button,
   Card,
   CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormControl,
   Grid,
@@ -29,7 +34,7 @@ import { useState, useEffect, useRef } from 'react';
 import LedgerEntryDialog from './LedgerEntryDialog';
 import LedgerRow from './LedgerRow';
 import * as yup from 'yup';
-import { post } from '../../../utils/apiUtil';
+import { del, post } from '../../../utils/apiUtil';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../../store/utils';
 import { useDispatch } from 'react-redux';
 import { showLoader, hideLoader } from '../../../store/slices/loaderSlice';
@@ -51,6 +56,7 @@ const LedgerTable = ({
 }) => {
   const [expandedRowId, setExpandedRowId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
@@ -113,6 +119,29 @@ const LedgerTable = ({
   const handleCloseDialog = () => {
     formik.resetForm();
     setOpenDialog(false);
+  };
+
+  const handleDeleteRequest = (entryId) => {
+    setDeleteConfirmId(entryId);
+  };
+
+  const handleDeleteConfirm = async () => {
+    dispatch(showLoader());
+    try {
+      const data = await del(`/ledger/${deleteConfirmId}`);
+      setDeleteConfirmId(null);
+      fetchLedgerEntries();
+      showSuccessSnackbar('Ledger entry deleted successfully.');
+      setSelectedDematAccount({
+        ...selectedDematAccount,
+        balance: data.latestBalance
+      });
+    } catch (error) {
+      console.error('Error deleting ledger entry:', error);
+      showErrorSnackbar(error.message || 'Failed to delete ledger entry. Please try again.');
+    } finally {
+      dispatch(hideLoader());
+    }
   };
 
   const handleRowToggle = (entryId) => {
@@ -321,6 +350,7 @@ const LedgerTable = ({
                 <TableCell align="center" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Remarks</strong>
                 </TableCell>
+                <TableCell sx={{ width: 48, padding: '8px 4px 8px 4px' }} />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -336,11 +366,12 @@ const LedgerTable = ({
                     isActive={activeRowIndex === index}
                     onClick={() => setActiveRowIndex(index)}
                     rowRef={(el) => (rowRefs.current[index] = el)}
+                    onDelete={handleDeleteRequest}
                   />
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No ledger entries found. Adjust filters or check back later.
                     </Typography>
@@ -352,6 +383,21 @@ const LedgerTable = ({
         </TableContainer>
       </Card>
       <LedgerEntryDialog open={openDialog} formik={formik} onClose={handleCloseDialog} />
+
+      <Dialog open={!!deleteConfirmId} onClose={() => setDeleteConfirmId(null)}>
+        <DialogTitle>Delete Ledger Entry</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this ledger entry? This will recalculate your account balance and financial year records.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

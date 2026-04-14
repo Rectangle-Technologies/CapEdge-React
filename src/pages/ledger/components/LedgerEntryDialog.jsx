@@ -84,7 +84,8 @@ const LedgerEntryDialog = ({ open, formik, onClose }) => {
                 helperText={formik.touched.transactionAmount && formik.errors.transactionAmount}
                 slotProps={{
                   htmlInput: {
-                    min: '0'
+                    min: '0',
+                    step: 'any'
                   }
                 }}
               />

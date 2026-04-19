@@ -16,7 +16,8 @@ const ratesValidationSchema = Yup.object({
   startDate: Yup.date().required('Start Date is required').nullable(),
   endDate: Yup.date().required('End Date is required').nullable(),
   stcgRate: Yup.number().required('STCG Rate is required').min(0, 'STCG Rate must be at least 0').max(100, 'STCG Rate must not exceed 100'),
-  ltcgRate: Yup.number().required('LTCG Rate is required').min(0, 'LTCG Rate must be at least 0').max(100, 'LTCG Rate must not exceed 100')
+  ltcgRate: Yup.number().required('LTCG Rate is required').min(0, 'LTCG Rate must be at least 0').max(100, 'LTCG Rate must not exceed 100'),
+  intradayRate: Yup.number().required('Intraday Rate is required').min(0, 'Intraday Rate must be at least 0').max(100, 'Intraday Rate must not exceed 100')
 });
 
 const FinancialYears = () => {
@@ -30,7 +31,8 @@ const FinancialYears = () => {
       startDate: null,
       endDate: null,
       stcgRate: '',
-      ltcgRate: ''
+      ltcgRate: '',
+      intradayRate: ''
     },
     validationSchema: ratesValidationSchema,
     enableReinitialize: true,
@@ -47,7 +49,8 @@ const FinancialYears = () => {
           startDate: formik.values.startDate?.format('YYYY-MM-DD'),
           endDate: formik.values.endDate?.format('YYYY-MM-DD'),
           stcgRate: parseFloat(values.stcgRate),
-          ltcgRate: parseFloat(values.ltcgRate)
+          ltcgRate: parseFloat(values.ltcgRate),
+          intradayRate: parseFloat(values.intradayRate)
         };
 
         await put(`/financial-year/update/${financialYear._id}`, payload);
@@ -80,7 +83,8 @@ const FinancialYears = () => {
               startDate: dayjs(selectedYear.startDate.split('T')[0]),
               endDate: dayjs(selectedYear.endDate.split('T')[0]),
               stcgRate: selectedYear.stcgRate * 100 || '',
-              ltcgRate: selectedYear.ltcgRate * 100 || ''
+              ltcgRate: selectedYear.ltcgRate * 100 || '',
+              intradayRate: selectedYear.intradayRate * 100 || ''
             });
             formik.setTouched({}, false);
             formik.setErrors({});
@@ -93,7 +97,8 @@ const FinancialYears = () => {
           startDate: dayjs(firstYear.startDate.split('T')[0]),
           endDate: dayjs(firstYear.endDate.split('T')[0]),
           stcgRate: firstYear.stcgRate * 100 || '',
-          ltcgRate: firstYear.ltcgRate * 100 || ''
+          ltcgRate: firstYear.ltcgRate * 100 || '',
+          intradayRate: firstYear.intradayRate * 100 || ''
         });
         formik.setTouched({}, false);
         formik.setErrors({});
@@ -116,7 +121,8 @@ const FinancialYears = () => {
         startDate: dayjs(selectedYear.startDate.split('T')[0]),
         endDate: dayjs(selectedYear.endDate.split('T')[0]),
         stcgRate: selectedYear.stcgRate * 100 || '',
-        ltcgRate: selectedYear.ltcgRate * 100 || ''
+        ltcgRate: selectedYear.ltcgRate * 100 || '',
+        intradayRate: selectedYear.intradayRate * 100 || ''
       });
       formik.setTouched({}, false);
       formik.setErrors({});
@@ -226,6 +232,23 @@ const FinancialYears = () => {
               onBlur={formik.handleBlur}
               error={formik.touched.ltcgRate && Boolean(formik.errors.ltcgRate)}
               helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
+              slotProps={{
+                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                htmlInput: { min: 0, max: 100 }
+              }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <TextField
+              fullWidth
+              name="intradayRate"
+              label="Intraday Rate"
+              type="number"
+              value={formik.values.intradayRate}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.intradayRate && Boolean(formik.errors.intradayRate)}
+              helperText={formik.touched.intradayRate && formik.errors.intradayRate}
               slotProps={{
                 input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
                 htmlInput: { min: 0, max: 100 }

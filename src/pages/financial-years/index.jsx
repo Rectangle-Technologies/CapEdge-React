@@ -160,100 +160,104 @@ const FinancialYears = () => {
           </Box>
         </Grid>
         <form onSubmit={formik.handleSubmit} style={{ display: 'contents' }}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Grid container size={12} columnSpacing={3}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <DatePicker
+                  label="Start Date"
+                  value={formik.values.startDate}
+                  format="DD/MM/YYYY"
+                  onChange={(newValue) => {
+                    formik.setFieldValue('startDate', newValue);
+                    formik.setFieldTouched('startDate', true, false);
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      error: formik.touched.startDate && Boolean(formik.errors.startDate),
+                      helperText: formik.touched.startDate && formik.errors.startDate,
+                      onBlur: () => formik.setFieldTouched('startDate', true),
+                      name: 'startDate'
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <DatePicker
+                  label="End Date"
+                  value={formik.values.endDate}
+                  format="DD/MM/YYYY"
+                  onChange={(newValue) => {
+                    formik.setFieldValue('endDate', newValue);
+                    formik.setFieldTouched('endDate', true, false);
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                      error: formik.touched.endDate && Boolean(formik.errors.endDate),
+                      helperText: formik.touched.endDate && formik.errors.endDate,
+                      onBlur: () => formik.setFieldTouched('endDate', true),
+                      name: 'endDate'
+                    }
+                  }}
+                />
+              </Grid>
+            </LocalizationProvider>
+          </Grid>
+          <Grid container size={12} columnSpacing={3}>
             <Grid size={{ xs: 12, md: 3 }}>
-              <DatePicker
-                label="Start Date"
-                value={formik.values.startDate}
-                format="DD/MM/YYYY"
-                onChange={(newValue) => {
-                  formik.setFieldValue('startDate', newValue);
-                  formik.setFieldTouched('startDate', true, false);
-                }}
+              <TextField
+                fullWidth
+                name="stcgRate"
+                label="STCG Rate"
+                type="number"
+                value={formik.values.stcgRate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.stcgRate && Boolean(formik.errors.stcgRate)}
+                helperText={formik.touched.stcgRate && formik.errors.stcgRate}
                 slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                    error: formik.touched.startDate && Boolean(formik.errors.startDate),
-                    helperText: formik.touched.startDate && formik.errors.startDate,
-                    onBlur: () => formik.setFieldTouched('startDate', true),
-                    name: 'startDate'
-                  }
+                  input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                  htmlInput: { min: 0, max: 100 }
                 }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 3 }}>
-              <DatePicker
-                label="End Date"
-                value={formik.values.endDate}
-                format="DD/MM/YYYY"
-                onChange={(newValue) => {
-                  formik.setFieldValue('endDate', newValue);
-                  formik.setFieldTouched('endDate', true, false);
-                }}
+              <TextField
+                fullWidth
+                name="ltcgRate"
+                label="LTCG Rate"
+                type="number"
+                value={formik.values.ltcgRate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.ltcgRate && Boolean(formik.errors.ltcgRate)}
+                helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
                 slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                    error: formik.touched.endDate && Boolean(formik.errors.endDate),
-                    helperText: formik.touched.endDate && formik.errors.endDate,
-                    onBlur: () => formik.setFieldTouched('endDate', true),
-                    name: 'endDate'
-                  }
+                  input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                  htmlInput: { min: 0, max: 100 }
                 }}
               />
             </Grid>
-          </LocalizationProvider>
-          <Grid size={{ xs: 12, md: 3 }}>
-            <TextField
-              fullWidth
-              name="stcgRate"
-              label="STCG Rate"
-              type="number"
-              value={formik.values.stcgRate}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.stcgRate && Boolean(formik.errors.stcgRate)}
-              helperText={formik.touched.stcgRate && formik.errors.stcgRate}
-              slotProps={{
-                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                htmlInput: { min: 0, max: 100 }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
-            <TextField
-              fullWidth
-              name="ltcgRate"
-              label="LTCG Rate"
-              type="number"
-              value={formik.values.ltcgRate}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.ltcgRate && Boolean(formik.errors.ltcgRate)}
-              helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
-              slotProps={{
-                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                htmlInput: { min: 0, max: 100 }
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
-            <TextField
-              fullWidth
-              name="intradayRate"
-              label="Intraday Rate"
-              type="number"
-              value={formik.values.intradayRate}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              error={formik.touched.intradayRate && Boolean(formik.errors.intradayRate)}
-              helperText={formik.touched.intradayRate && formik.errors.intradayRate}
-              slotProps={{
-                input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                htmlInput: { min: 0, max: 100 }
-              }}
-            />
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                fullWidth
+                name="intradayRate"
+                label="Intraday Rate"
+                type="number"
+                value={formik.values.intradayRate}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.intradayRate && Boolean(formik.errors.intradayRate)}
+                helperText={formik.touched.intradayRate && formik.errors.intradayRate}
+                slotProps={{
+                  input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
+                  htmlInput: { min: 0, max: 100 }
+                }}
+              />
+            </Grid>
           </Grid>
           <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <Button type="submit" variant="contained" disabled={formik.isSubmitting}>

@@ -220,7 +220,7 @@ const FinancialYears = () => {
                 helperText={formik.touched.stcgRate && formik.errors.stcgRate}
                 slotProps={{
                   input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                  htmlInput: { min: 0, max: 100 }
+                  htmlInput: { min: 0, max: 100, step: 'any' }
                 }}
               />
             </Grid>
@@ -237,7 +237,7 @@ const FinancialYears = () => {
                 helperText={formik.touched.ltcgRate && formik.errors.ltcgRate}
                 slotProps={{
                   input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                  htmlInput: { min: 0, max: 100 }
+                  htmlInput: { min: 0, max: 100, step: 'any' }
                 }}
               />
             </Grid>
@@ -254,7 +254,7 @@ const FinancialYears = () => {
                 helperText={formik.touched.intradayRate && formik.errors.intradayRate}
                 slotProps={{
                   input: { endAdornment: <InputAdornment position="end">%</InputAdornment> },
-                  htmlInput: { min: 0, max: 100 }
+                  htmlInput: { min: 0, max: 100, step: 'any' }
                 }}
               />
             </Grid>

@@ -37,14 +37,15 @@ const computeRow = (tx) => {
   const charges = tx.transactionCost || 0;
   const isGain = tx.resultType === 'gain';
   const isLT = tx.gainType === 'LTCG';
+  const isIntraday = tx.gainType === 'Intraday';
   const gainLossAmt = isGain ? sellAmt - buyAmt : buyAmt - sellAmt;
   const taxableAmt = isGain ? gainLossAmt - charges : -(gainLossAmt + charges);
-  return { buyAmt, sellAmt, charges, isGain, isLT, gainLossAmt, taxableAmt };
+  return { buyAmt, sellAmt, charges, isGain, isLT, isIntraday, gainLossAmt, taxableAmt };
 };
 
 const computeSecTotals = (transactions) => {
-  let buyAmt = 0, sellAmt = 0, gainLT = 0, gainST = 0, lossLT = 0, lossST = 0;
-  let charges = 0, taxableAmt = 0, taxLT = 0, taxST = 0;
+  let buyAmt = 0, sellAmt = 0, gainLT = 0, gainST = 0, gainIntraday = 0, lossLT = 0, lossST = 0, lossIntraday = 0;
+  let charges = 0, taxableAmt = 0, taxLT = 0, taxST = 0, taxIntraday = 0;
   transactions.forEach((tx) => {
     const r = computeRow(tx);
     buyAmt += r.buyAmt;
@@ -53,17 +54,19 @@ const computeSecTotals = (transactions) => {
     taxableAmt += r.taxableAmt;
     if (r.isGain) {
       if (r.isLT) { gainLT += r.gainLossAmt; taxLT += tx.calculatedTax || 0; }
+      else if (r.isIntraday) { gainIntraday += r.gainLossAmt; taxIntraday += tx.calculatedTax || 0; }
       else { gainST += r.gainLossAmt; taxST += tx.calculatedTax || 0; }
     } else {
       if (r.isLT) { lossLT += r.gainLossAmt; taxLT += tx.calculatedTax || 0; }
+      else if (r.isIntraday) { lossIntraday += r.gainLossAmt; taxIntraday += tx.calculatedTax || 0; }
       else { lossST += r.gainLossAmt; taxST += tx.calculatedTax || 0; }
     }
   });
-  return { buyAmt, sellAmt, gainLT, gainST, lossLT, lossST, charges, taxableAmt, taxLT, taxST };
+  return { buyAmt, sellAmt, gainLT, gainST, gainIntraday, lossLT, lossST, lossIntraday, charges, taxableAmt, taxLT, taxST, taxIntraday };
 };
 
 const computeGrandTotals = (securities) => {
-  const zero = { buyAmt: 0, sellAmt: 0, gainLT: 0, gainST: 0, lossLT: 0, lossST: 0, charges: 0, taxableAmt: 0, taxLT: 0, taxST: 0 };
+  const zero = { buyAmt: 0, sellAmt: 0, gainLT: 0, gainST: 0, gainIntraday: 0, lossLT: 0, lossST: 0, lossIntraday: 0, charges: 0, taxableAmt: 0, taxLT: 0, taxST: 0, taxIntraday: 0 };
   return securities.reduce((acc, { transactions }) => {
     const t = computeSecTotals(transactions);
     Object.keys(zero).forEach((k) => { acc[k] += t[k]; });
@@ -188,8 +191,8 @@ const ProfitAndLoss = () => {
       {/* Report output */}
       {pnlData && (() => {
         const grand = computeGrandTotals(pnlData.securities);
-        const netPnL = (grand.gainLT + grand.gainST) - (grand.lossLT + grand.lossST);
-        const totalTax = grand.taxLT + grand.taxST;
+        const netPnL = (grand.gainLT + grand.gainST + grand.gainIntraday) - (grand.lossLT + grand.lossST + grand.lossIntraday);
+        const totalTax = grand.taxLT + grand.taxST + grand.taxIntraday;
 
         return (
           <>
@@ -203,9 +206,9 @@ const ProfitAndLoss = () => {
                 <Card sx={{ bgcolor: 'success.lighter' }}>
                   <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                     <Typography variant="caption" color="success.dark" display="block">Total Gain</Typography>
-                    <Typography variant="h5" color="success.dark">{formatCurrency(grand.gainLT + grand.gainST)}</Typography>
+                    <Typography variant="h5" color="success.dark">{formatCurrency(grand.gainLT + grand.gainST + grand.gainIntraday)}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      LT: {formatCurrency(grand.gainLT)} | ST: {formatCurrency(grand.gainST)}
+                      LT: {formatCurrency(grand.gainLT)} | ST: {formatCurrency(grand.gainST)} | Intraday: {formatCurrency(grand.gainIntraday)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -214,9 +217,9 @@ const ProfitAndLoss = () => {
                 <Card sx={{ bgcolor: 'error.lighter' }}>
                   <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                     <Typography variant="caption" color="error.dark" display="block">Total Loss</Typography>
-                    <Typography variant="h5" color="error.dark">{formatCurrency(grand.lossLT + grand.lossST)}</Typography>
+                    <Typography variant="h5" color="error.dark">{formatCurrency(grand.lossLT + grand.lossST + grand.lossIntraday)}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      LT: {formatCurrency(grand.lossLT)} | ST: {formatCurrency(grand.lossST)}
+                      LT: {formatCurrency(grand.lossLT)} | ST: {formatCurrency(grand.lossST)} | Intraday: {formatCurrency(grand.lossIntraday)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -242,7 +245,7 @@ const ProfitAndLoss = () => {
                     <Typography variant="caption" color="warning.dark" display="block">Estimated Tax</Typography>
                     <Typography variant="h5" color="warning.dark">{formatCurrency(totalTax)}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      LT: {formatCurrency(grand.taxLT)} | ST: {formatCurrency(grand.taxST)}
+                      LT: {formatCurrency(grand.taxLT)} | ST: {formatCurrency(grand.taxST)} | Intraday: {formatCurrency(grand.taxIntraday)}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -256,18 +259,18 @@ const ProfitAndLoss = () => {
               </Typography>
             ) : (
               <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
-                <Table size="small" sx={{ minWidth: 1600 }}>
+                <Table size="small" sx={{ minWidth: 1900 }}>
                   <TableHead>
                     {/* Group header row */}
                     <TableRow sx={{ bgcolor: 'primary.lighter' }}>
                       <TableCell rowSpan={2} sx={{ fontWeight: 'bold', minWidth: 140, ...br }}>Stock</TableCell>
                       <TableCell colSpan={4} align="center" sx={{ fontWeight: 'bold', ...br, borderBottom: 'none', pb: 0 }}>Buy</TableCell>
                       <TableCell colSpan={4} align="center" sx={{ fontWeight: 'bold', ...br, borderBottom: 'none', pb: 0 }}>Sell</TableCell>
-                      <TableCell colSpan={2} align="center" sx={{ fontWeight: 'bold', color: 'success.dark', ...br, borderBottom: 'none', pb: 0 }}>Gain</TableCell>
-                      <TableCell colSpan={2} align="center" sx={{ fontWeight: 'bold', color: 'error.dark', ...br, borderBottom: 'none', pb: 0 }}>Loss</TableCell>
+                      <TableCell colSpan={3} align="center" sx={{ fontWeight: 'bold', color: 'success.dark', ...br, borderBottom: 'none', pb: 0 }}>Gain</TableCell>
+                      <TableCell colSpan={3} align="center" sx={{ fontWeight: 'bold', color: 'error.dark', ...br, borderBottom: 'none', pb: 0 }}>Loss</TableCell>
                       <TableCell rowSpan={2} align="right" sx={{ fontWeight: 'bold', minWidth: 90, ...br }}>Charges</TableCell>
                       <TableCell rowSpan={2} align="right" sx={{ fontWeight: 'bold', minWidth: 110, ...br }}>Taxable Amt</TableCell>
-                      <TableCell colSpan={2} align="center" sx={{ fontWeight: 'bold', color: 'warning.dark', borderBottom: 'none', pb: 0 }}>Tax</TableCell>
+                      <TableCell colSpan={3} align="center" sx={{ fontWeight: 'bold', color: 'warning.dark', borderBottom: 'none', pb: 0 }}>Tax</TableCell>
                     </TableRow>
                     {/* Sub-column header row */}
                     <TableRow sx={{ bgcolor: 'primary.lighter' }}>
@@ -280,11 +283,14 @@ const ProfitAndLoss = () => {
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem' }}>Price</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', ...br }}>Amount</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'success.dark' }}>Long Term</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'success.dark', ...br }}>Short Term</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'success.dark' }}>Short Term</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'success.dark', ...br }}>Intraday</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'error.dark' }}>Long Term</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'error.dark', ...br }}>Short Term</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'error.dark' }}>Short Term</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'error.dark', ...br }}>Intraday</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'warning.dark' }}>Long Term</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'warning.dark' }}>Short Term</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.72rem', color: 'warning.dark' }}>Intraday</TableCell>
                     </TableRow>
                   </TableHead>
 
@@ -321,14 +327,20 @@ const ProfitAndLoss = () => {
                                 <TableCell align="right" sx={{ ...cs, color: 'success.dark' }}>
                                   {r.isGain && r.isLT ? formatCurrency(r.gainLossAmt) : '-'}
                                 </TableCell>
+                                <TableCell align="right" sx={{ ...cs, color: 'success.dark' }}>
+                                  {r.isGain && !r.isLT && !r.isIntraday ? formatCurrency(r.gainLossAmt) : '-'}
+                                </TableCell>
                                 <TableCell align="right" sx={{ ...cs, color: 'success.dark', ...br }}>
-                                  {r.isGain && !r.isLT ? formatCurrency(r.gainLossAmt) : '-'}
+                                  {r.isGain && r.isIntraday ? formatCurrency(r.gainLossAmt) : '-'}
                                 </TableCell>
                                 <TableCell align="right" sx={{ ...cs, color: 'error.dark' }}>
                                   {!r.isGain && r.isLT ? formatCurrency(r.gainLossAmt) : '-'}
                                 </TableCell>
+                                <TableCell align="right" sx={{ ...cs, color: 'error.dark' }}>
+                                  {!r.isGain && !r.isLT && !r.isIntraday ? formatCurrency(r.gainLossAmt) : '-'}
+                                </TableCell>
                                 <TableCell align="right" sx={{ ...cs, color: 'error.dark', ...br }}>
-                                  {!r.isGain && !r.isLT ? formatCurrency(r.gainLossAmt) : '-'}
+                                  {!r.isGain && r.isIntraday ? formatCurrency(r.gainLossAmt) : '-'}
                                 </TableCell>
                                 <TableCell align="right" sx={{ ...cs, ...br }}>{formatCurrency(r.charges)}</TableCell>
                                 <TableCell align="right" sx={{ ...cs, color: r.taxableAmt >= 0 ? 'success.dark' : 'error.dark', ...br }}>
@@ -338,7 +350,10 @@ const ProfitAndLoss = () => {
                                   {r.isLT ? formatCurrency(tx.calculatedTax || 0) : '-'}
                                 </TableCell>
                                 <TableCell align="right" sx={{ ...cs, color: 'warning.dark' }}>
-                                  {!r.isLT ? formatCurrency(tx.calculatedTax || 0) : '-'}
+                                  {!r.isLT && !r.isIntraday ? formatCurrency(tx.calculatedTax || 0) : '-'}
+                                </TableCell>
+                                <TableCell align="right" sx={{ ...cs, color: 'warning.dark' }}>
+                                  {r.isIntraday ? formatCurrency(tx.calculatedTax || 0) : '-'}
                                 </TableCell>
                               </TableRow>
                             );
@@ -358,14 +373,20 @@ const ProfitAndLoss = () => {
                             <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 600 }}>
                               {sec.gainLT ? formatCurrency(sec.gainLT) : '-'}
                             </TableCell>
-                            <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 600, ...br }}>
+                            <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 600 }}>
                               {sec.gainST ? formatCurrency(sec.gainST) : '-'}
+                            </TableCell>
+                            <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 600, ...br }}>
+                              {sec.gainIntraday ? formatCurrency(sec.gainIntraday) : '-'}
                             </TableCell>
                             <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 600 }}>
                               {sec.lossLT ? formatCurrency(sec.lossLT) : '-'}
                             </TableCell>
-                            <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 600, ...br }}>
+                            <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 600 }}>
                               {sec.lossST ? formatCurrency(sec.lossST) : '-'}
+                            </TableCell>
+                            <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 600, ...br }}>
+                              {sec.lossIntraday ? formatCurrency(sec.lossIntraday) : '-'}
                             </TableCell>
                             <TableCell align="right" sx={{ ...cs, fontWeight: 600, ...br }}>{formatCurrency(sec.charges)}</TableCell>
                             <TableCell align="right" sx={{ ...cs, fontWeight: 600, color: sec.taxableAmt >= 0 ? 'success.dark' : 'error.dark', ...br }}>
@@ -376,6 +397,9 @@ const ProfitAndLoss = () => {
                             </TableCell>
                             <TableCell align="right" sx={{ ...cs, color: 'warning.dark', fontWeight: 600 }}>
                               {sec.taxST ? formatCurrency(sec.taxST) : '-'}
+                            </TableCell>
+                            <TableCell align="right" sx={{ ...cs, color: 'warning.dark', fontWeight: 600 }}>
+                              {sec.taxIntraday ? formatCurrency(sec.taxIntraday) : '-'}
                             </TableCell>
                           </TableRow>
                         </React.Fragment>
@@ -392,14 +416,20 @@ const ProfitAndLoss = () => {
                       <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 'bold' }}>
                         {grand.gainLT ? formatCurrency(grand.gainLT) : '-'}
                       </TableCell>
-                      <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 'bold', ...br }}>
+                      <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 'bold' }}>
                         {grand.gainST ? formatCurrency(grand.gainST) : '-'}
+                      </TableCell>
+                      <TableCell align="right" sx={{ ...cs, color: 'success.dark', fontWeight: 'bold', ...br }}>
+                        {grand.gainIntraday ? formatCurrency(grand.gainIntraday) : '-'}
                       </TableCell>
                       <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 'bold' }}>
                         {grand.lossLT ? formatCurrency(grand.lossLT) : '-'}
                       </TableCell>
-                      <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 'bold', ...br }}>
+                      <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 'bold' }}>
                         {grand.lossST ? formatCurrency(grand.lossST) : '-'}
+                      </TableCell>
+                      <TableCell align="right" sx={{ ...cs, color: 'error.dark', fontWeight: 'bold', ...br }}>
+                        {grand.lossIntraday ? formatCurrency(grand.lossIntraday) : '-'}
                       </TableCell>
                       <TableCell align="right" sx={{ ...cs, fontWeight: 'bold', ...br }}>{formatCurrency(grand.charges)}</TableCell>
                       <TableCell align="right" sx={{ ...cs, fontWeight: 'bold', color: grand.taxableAmt >= 0 ? 'success.dark' : 'error.dark', ...br }}>
@@ -410,6 +440,9 @@ const ProfitAndLoss = () => {
                       </TableCell>
                       <TableCell align="right" sx={{ ...cs, color: 'warning.dark', fontWeight: 'bold' }}>
                         {grand.taxST ? formatCurrency(grand.taxST) : '-'}
+                      </TableCell>
+                      <TableCell align="right" sx={{ ...cs, color: 'warning.dark', fontWeight: 'bold' }}>
+                        {grand.taxIntraday ? formatCurrency(grand.taxIntraday) : '-'}
                       </TableCell>
                     </TableRow>
                   </TableBody>

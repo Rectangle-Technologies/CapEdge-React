@@ -32,12 +32,12 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
           <Chip label={entry.type} size="small" color={getTransactionColor(entry.type)} />
         </TableCell>
         <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'text.disabled' }}>
             {entry.transactionAmount >= 0 ? `+${formatCurrency(entry.transactionAmount)}` : '-'}
           </Typography>
         </TableCell>
         <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount < 0 ? 'error.main' : 'success.main' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount < 0 ? 'error.main' : 'text.disabled' }}>
             {entry.transactionAmount < 0 ? `-${formatCurrency(Math.abs(entry.transactionAmount))}` : '-'}
           </Typography>
         </TableCell>

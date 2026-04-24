@@ -71,7 +71,7 @@ const UserAccount = () => {
   const dematFormik = useFormik({
     initialValues: {
       brokerId: '',
-      balance: ''
+      balance: 0
     },
     validationSchema: dematAccountValidationSchema,
     enableReinitialize: true,

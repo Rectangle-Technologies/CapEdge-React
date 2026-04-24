@@ -15,7 +15,7 @@ export const exportToExcel = async (filteredEntries) => {
     Type: entry.transactionType,
     Quantity: entry.quantity,
     Amount: formatCurrency(entry.transactionAmount),
-    Balance: formatCurrency(entry.balance),
+    Balance: entry.balanceAfterEntry != null ? formatCurrency(entry.balanceAfterEntry) : '-',
     Remarks: entry.remarks
   }));
 

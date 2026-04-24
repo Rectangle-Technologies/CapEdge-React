@@ -37,8 +37,13 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
           </Typography>
         </TableCell>
         <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount < 0 ? 'error.main' : 'success.main' }}>
             {entry.transactionAmount < 0 ? `-${formatCurrency(Math.abs(entry.transactionAmount))}` : '-'}
+          </Typography>
+        </TableCell>
+        <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
+          <Typography variant="body2" sx={{ color: entry.balanceAfterEntry != null && entry.balanceAfterEntry < 0 ? 'error.main' : 'success.main' }}>
+            {entry.balanceAfterEntry != null ? formatCurrency(entry.balanceAfterEntry) : '-'}
           </Typography>
         </TableCell>
         <TableCell align={entry.remarks ? 'left' : 'center'} sx={{ padding: '8px 16px 8px 16px' }}>
@@ -63,7 +68,7 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
       </TableRow>
       {hasTradeTransaction && (
         <TableRow>
-          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
               <Box sx={{ margin: 2 }}>
                 <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>

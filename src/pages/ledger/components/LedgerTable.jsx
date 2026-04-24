@@ -347,6 +347,9 @@ const LedgerTable = ({
                 <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Debit</strong>
                 </TableCell>
+                <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
+                  <strong>Balance</strong>
+                </TableCell>
                 <TableCell align="center" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Remarks</strong>
                 </TableCell>
@@ -371,7 +374,7 @@ const LedgerTable = ({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No ledger entries found. Adjust filters or check back later.
                     </Typography>

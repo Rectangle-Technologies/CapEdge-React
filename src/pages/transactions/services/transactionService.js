@@ -10,7 +10,7 @@ import { get } from '../../../utils/apiUtil';
  */
 export const getAllTransactions = async (limit = 50, pageNo = 0, dematAccountId = null, securityId = null, financialYear) => {
   try {
-    let url = `/transaction/get-all?limit=${limit}&pageNo=${pageNo}&financialYearId=${financialYear?._id}`;
+    let url = `/transaction/get-all?limit=${limit}&pageNo=${pageNo}`;
     if (dematAccountId) {
       url += `&dematAccountId=${dematAccountId}`;
     }

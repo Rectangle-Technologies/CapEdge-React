@@ -21,6 +21,7 @@ const Ledger = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState(null);
   const [dematAccounts, setDematAccounts] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
+  const [openingBalance, setOpeningBalance] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const ROWS_PER_PAGE = 50;
@@ -88,6 +89,7 @@ const Ledger = () => {
         `/ledger/get/${selectedDematAccount._id}?pageNo=${page}&limit=${ROWS_PER_PAGE}&startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`
       );
       setLedgerEntries(data.entries || []);
+      setOpeningBalance(data.openingBalance || 0);
       setTotalPages(Math.ceil(data.pagination.total / ROWS_PER_PAGE));
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
@@ -129,6 +131,28 @@ const Ledger = () => {
                     </Typography>
                   </Box>
                   <AccountBalance sx={{ fontSize: 40, color: selectedDematAccount.balance >= 0 ? 'primary.dark' : 'warning.dark' }} />
+                </Stack>
+              </Box>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Card sx={{ bgcolor: openingBalance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
+              <Box sx={{ p: 2 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h6" color={openingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      Opening Balance
+                    </Typography>
+                    <Typography variant="h4" color={openingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      {formatCurrency(openingBalance)}
+                    </Typography>
+                    {startDate && startDate.isValid && startDate.isValid() && (
+                      <Typography variant="caption" color={openingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                        as of {startDate.format('DD/MM/YYYY')}
+                      </Typography>
+                    )}
+                  </Box>
+                  <AccountBalance sx={{ fontSize: 40, color: openingBalance >= 0 ? 'primary.dark' : 'warning.dark' }} />
                 </Stack>
               </Box>
             </Card>

@@ -171,8 +171,8 @@ const LedgerTable = ({
         event.preventDefault();
         if (activeRowIndex !== -1 && ledgerEntries.length > 0) {
           const entry = ledgerEntries[activeRowIndex];
-          const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
-          if (hasTradeTransaction) {
+          const hasTrades = entry.trades && entry.trades.length > 0;
+          if (hasTrades) {
             handleRowToggle(entry._id);
           }
         }

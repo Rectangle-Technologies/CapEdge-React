@@ -4,8 +4,11 @@ import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 
 function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef, onDelete }) {
-  const hasTradeTransaction = !!(entry.tradeTransactionId && entry.tradeTransactionId._id);
-  const isDeletable = !hasTradeTransaction;
+  const trades = entry.trades || [];
+  const tradeCount = trades.length;
+  const hasTrades = tradeCount > 0;
+  const isDeletable = !hasTrades;
+  const chipLabel = tradeCount >= 2 ? `${tradeCount} trades` : entry.type;
 
   return (
     <>
@@ -21,7 +24,7 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
         onClick={onClick}
       >
         <TableCell sx={{ width: 60, padding: '8px 16px 8px 16px' }}>
-          {hasTradeTransaction && (
+          {hasTrades && (
             <IconButton aria-label="expand row" size="small" onClick={() => onToggleExpand(entry._id)}>
               {isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
@@ -29,15 +32,15 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
         </TableCell>
         <TableCell sx={{ padding: '8px 16px 8px 16px' }}>{formatDate(entry.date)}</TableCell>
         <TableCell sx={{ padding: '8px 16px 8px 16px' }}>
-          <Chip label={entry.type} size="small" color={getTransactionColor(entry.type)} />
+          <Chip label={chipLabel} size="small" color={getTransactionColor(entry.type)} />
         </TableCell>
         <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'error.main' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount >= 0 ? 'success.main' : 'text.disabled' }}>
             {entry.transactionAmount >= 0 ? `+${formatCurrency(entry.transactionAmount)}` : '-'}
           </Typography>
         </TableCell>
         <TableCell align="right" sx={{ padding: '8px 16px 8px 16px' }}>
-          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount < 0 ? 'error.main' : 'success.main' }}>
+          <Typography variant="body2" fontWeight="bold" sx={{ color: entry.transactionAmount < 0 ? 'error.main' : 'text.disabled' }}>
             {entry.transactionAmount < 0 ? `-${formatCurrency(Math.abs(entry.transactionAmount))}` : '-'}
           </Typography>
         </TableCell>
@@ -66,7 +69,7 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
           )}
         </TableCell>
       </TableRow>
-      {hasTradeTransaction && (
+      {hasTrades && (
         <TableRow>
           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
             <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -81,6 +84,9 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
                         <strong>Reference</strong>
                       </TableCell>
                       <TableCell sx={{ padding: '8px 16px' }}>
+                        <strong>Type</strong>
+                      </TableCell>
+                      <TableCell sx={{ padding: '8px 16px' }}>
                         <strong>Security</strong>
                       </TableCell>
                       <TableCell align="right" sx={{ padding: '8px 16px' }}>
@@ -92,18 +98,23 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    <TableRow>
-                      <TableCell sx={{ padding: '8px 16px' }}>
-                        <Typography variant="body2">{entry.tradeTransactionId?.referenceNumber || '-'}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ padding: '8px 16px' }}>{entry.tradeTransactionId?.securityName || '-'}</TableCell>
-                      <TableCell align="right" sx={{ padding: '8px 16px' }}>
-                        {entry.tradeTransactionId?.quantity || '-'}
-                      </TableCell>
-                      <TableCell align="right" sx={{ padding: '8px 16px' }}>
-                        {entry.tradeTransactionId?.price ? formatCurrency(entry.tradeTransactionId.price) : '-'}
-                      </TableCell>
-                    </TableRow>
+                    {trades.map((trade) => (
+                      <TableRow key={trade._id}>
+                        <TableCell sx={{ padding: '8px 16px' }}>
+                          <Typography variant="body2">{trade.referenceNumber || '-'}</Typography>
+                        </TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>
+                          <Chip label={trade.type} size="small" color={getTransactionColor(trade.type)} />
+                        </TableCell>
+                        <TableCell sx={{ padding: '8px 16px' }}>{trade.securityName || '-'}</TableCell>
+                        <TableCell align="right" sx={{ padding: '8px 16px' }}>
+                          {trade.quantity ?? '-'}
+                        </TableCell>
+                        <TableCell align="right" sx={{ padding: '8px 16px' }}>
+                          {trade.price != null ? formatCurrency(trade.price) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </Box>

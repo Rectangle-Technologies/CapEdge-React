@@ -24,7 +24,7 @@ const transactions = {
     },
     {
       id: 'transactions',
-      title: 'All Transactions',
+      title: 'Transactions',
       type: 'item',
       url: 'transactions',
       icon: icons.TransactionOutlined,

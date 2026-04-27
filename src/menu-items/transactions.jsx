@@ -1,9 +1,10 @@
 // assets
-import { TransactionOutlined } from '@ant-design/icons';
+import { TransactionOutlined, FileTextOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  TransactionOutlined
+  TransactionOutlined,
+  FileTextOutlined
 };
 
 // ==============================|| MENU ITEMS - TRANSACTIONS ||============================== //
@@ -13,6 +14,14 @@ const transactions = {
   title: 'Transactions',
   type: 'group',
   children: [
+    {
+      id: 'contracts',
+      title: 'Contracts',
+      type: 'item',
+      url: 'contracts',
+      icon: icons.FileTextOutlined,
+      breadcrumbs: false
+    },
     {
       id: 'transactions',
       title: 'All Transactions',

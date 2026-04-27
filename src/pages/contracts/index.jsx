@@ -313,7 +313,7 @@ const Contracts = () => {
                   <strong>Broker</strong>
                 </TableCell>
                 <TableCell align="right">
-                  <strong># Trades</strong>
+                  <strong>Entries</strong>
                 </TableCell>
                 <TableCell align="right">
                   <strong>Securities</strong>
@@ -327,12 +327,15 @@ const Contracts = () => {
                 <TableCell align="right">
                   <strong>Total Cost</strong>
                 </TableCell>
+                <TableCell align="right">
+                  <strong>Total Amount</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {contracts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No contracts found.
                     </Typography>
@@ -373,10 +376,11 @@ const Contracts = () => {
                         <TableCell align="right">{formatCurrency(contract.netBuyAmount)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.netSellAmount)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.totalCost)}</TableCell>
+                        <TableCell align="right">{formatCurrency(contract.netBuyAmount - contract.netSellAmount + contract.totalCost)}</TableCell>
                       </TableRow>
 
                       <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
                           <Collapse in={expandedKey === key} timeout="auto" unmountOnExit>
                             <Box sx={{ margin: 2 }}>
                               <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>
@@ -388,7 +392,7 @@ const Contracts = () => {
                                     <TableCell>Date</TableCell>
                                     <TableCell>Security</TableCell>
                                     <TableCell align="center">Type</TableCell>
-                                    <TableCell align="center">Delivery</TableCell>
+                                    <TableCell align="center">Delivery Type</TableCell>
                                     <TableCell align="right">Quantity</TableCell>
                                     <TableCell align="right">Price</TableCell>
                                     <TableCell align="right">Amount</TableCell>

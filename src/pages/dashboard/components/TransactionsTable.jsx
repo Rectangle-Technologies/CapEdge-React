@@ -248,27 +248,43 @@ const TransactionsTable = () => {
 
   return (
     <Grid size={12}>
+      {/* Always-visible top bar: security selector + action buttons */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <Box sx={{ maxWidth: 400, flexGrow: 1 }}>
+          <SecurityAutocomplete
+            value={selectedSecurity}
+            onChange={(newValue) => {
+              setSelectedSecurity(newValue);
+              setPage(1);
+            }}
+            label="Select Security"
+            size="small"
+            required={false}
+            fullWidth
+          />
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
+            onClick={() => navigate('/ipo')}
+            startIcon={<Add />}
+          >
+            IPO
+          </Button>
+          <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
+            <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/add-transaction')}>
+              Add Transaction
+            </Button>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {selectedSecurity && (
       <Card>
         <CardHeader
           title="All Transactions"
-          subheader="View and filter all transactions across demat accounts"
-          action={
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
-                sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
-                onClick={() => navigate('/ipo')}
-                startIcon={<Add />}
-              >
-                IPO
-              </Button>
-              <Tooltip title={`Add Transaction (${shortcutHint})`} arrow>
-                <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/add-transaction')}>
-                  Add Transaction
-                </Button>
-              </Tooltip>
-            </Box>
-          }
+          subheader={`Transactions for ${selectedSecurity.name || selectedSecurity.symbol}`}
         />
         <Divider />
 
@@ -294,69 +310,54 @@ const TransactionsTable = () => {
                 ))}
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <SecurityAutocomplete
-                value={selectedSecurity}
-                onChange={(newValue) => {
-                  setSelectedSecurity(newValue);
-                  setPage(1); // Reset to first page when changing security
-                }}
-                label="Security (Optional)"
-                size="small"
-                required={false}
-                fullWidth
-              />
+            <Grid size={{ xs: 12, md: 9 }}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={filterDelivery}
+                      onChange={(e) => {
+                        setFilterDelivery(e.target.checked);
+                      }}
+                    />
+                  }
+                  label="Delivery"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={filterIntraday}
+                      onChange={(e) => {
+                        setFilterIntraday(e.target.checked);
+                      }}
+                    />
+                  }
+                  label="Intraday"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={filterBuy}
+                      onChange={(e) => {
+                        setFilterBuy(e.target.checked);
+                      }}
+                    />
+                  }
+                  label="BUY"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={filterSell}
+                      onChange={(e) => {
+                        setFilterSell(e.target.checked);
+                      }}
+                    />
+                  }
+                  label="SELL"
+                />
+              </Box>
             </Grid>
-            {selectedSecurity && (
-              <Grid size={{ xs: 12, md: 5 }}>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={filterDelivery}
-                        onChange={(e) => {
-                          setFilterDelivery(e.target.checked);
-                        }}
-                      />
-                    }
-                    label="Delivery"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={filterIntraday}
-                        onChange={(e) => {
-                          setFilterIntraday(e.target.checked);
-                        }}
-                      />
-                    }
-                    label="Intraday"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={filterBuy}
-                        onChange={(e) => {
-                          setFilterBuy(e.target.checked);
-                        }}
-                      />
-                    }
-                    label="BUY"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={filterSell}
-                        onChange={(e) => {
-                          setFilterSell(e.target.checked);
-                        }}
-                      />
-                    }
-                    label="SELL"
-                  />
-                </Box>
-              </Grid>
-            )}
           </Grid>
         </Box>
 
@@ -447,6 +448,8 @@ const TransactionsTable = () => {
           </TableContainer>
         </Box>
       </Card>
+      )}
+      {selectedSecurity && (
       <Box
         width="100%"
         sx={{
@@ -464,6 +467,7 @@ const TransactionsTable = () => {
           }}
         />
       </Box>
+      )}
     </Grid>
   );
 };

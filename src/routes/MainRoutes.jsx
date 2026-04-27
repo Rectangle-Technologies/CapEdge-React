@@ -31,6 +31,9 @@ const SecurityManagement = Loadable(lazy(() => import('pages/securities')));
 const ProfitAndLoss = Loadable(lazy(() => import('pages/reports/pnl')));
 const Holdings = Loadable(lazy(() => import('pages/holdings')));
 
+// render - contracts
+const Contracts = Loadable(lazy(() => import('pages/contracts')));
+
 // render - ledger
 const Ledger = Loadable(lazy(() => import('pages/ledger')));
 
@@ -43,6 +46,10 @@ const MainRoutes = {
     {
       path: 'transactions',
       element: <DashboardDefault />
+    },
+    {
+      path: 'contracts',
+      element: <Contracts />
     },
     {
       path: 'master-data/user-account',

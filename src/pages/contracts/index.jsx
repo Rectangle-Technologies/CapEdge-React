@@ -18,15 +18,17 @@ import {
   Grid,
   Collapse,
   IconButton,
-  Pagination
+  Pagination,
+  Tooltip
 } from '@mui/material';
 import {
   ReceiptLong as ReceiptLongIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import { get } from 'utils/apiUtil';
+import { get, del } from 'utils/apiUtil';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
@@ -150,6 +152,21 @@ const Contracts = () => {
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
       showErrorSnackbar('Failed to fetch demat accounts');
+    }
+  };
+
+  const onDeleteTransaction = async (transactionId) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      dispatch(showLoader());
+      try {
+        await del(`/transaction/delete/${transactionId}`);
+        loadContracts();
+      } catch (error) {
+        console.error('Error deleting transaction:', error);
+        showErrorSnackbar(error.message || 'Failed to delete transaction');
+      } finally {
+        dispatch(hideLoader());
+      }
     }
   };
 
@@ -397,6 +414,7 @@ const Contracts = () => {
                                     <TableCell align="right">Price</TableCell>
                                     <TableCell align="right">Amount</TableCell>
                                     <TableCell align="right">Cost</TableCell>
+                                    <TableCell align="center">Actions</TableCell>
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -422,6 +440,19 @@ const Contracts = () => {
                                         <TableCell align="right">{formatCurrency(price)}</TableCell>
                                         <TableCell align="right">{formatCurrency(amount)}</TableCell>
                                         <TableCell align="right">{formatCurrency(trade.transactionCost || 0)}</TableCell>
+                                        <TableCell align="center">
+                                          <Tooltip title="Delete transaction" arrow>
+                                            <IconButton
+                                              size="small"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                onDeleteTransaction(trade._id);
+                                              }}
+                                            >
+                                              <DeleteIcon fontSize="small" color="error" />
+                                            </IconButton>
+                                          </Tooltip>
+                                        </TableCell>
                                       </TableRow>
                                     );
                                   })}

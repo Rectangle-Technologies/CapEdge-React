@@ -16,7 +16,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-const LedgerEntryDialog = ({ open, formik, onClose }) => {
+const LedgerEntryDialog = ({ open, formik, onClose, editEntry }) => {
   return (
     <Dialog
       open={open}
@@ -33,7 +33,7 @@ const LedgerEntryDialog = ({ open, formik, onClose }) => {
         }
       }}
     >
-      <DialogTitle>Add Ledger Entry</DialogTitle>
+      <DialogTitle>{editEntry ? 'Edit Ledger Entry' : 'Add Ledger Entry'}</DialogTitle>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Grid container flexDirection="column" spacing={2} sx={{ mt: 2 }}>
@@ -110,7 +110,7 @@ const LedgerEntryDialog = ({ open, formik, onClose }) => {
         <DialogActions sx={{ mt: 2 }}>
           <Button onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="contained">
-            Add
+            {editEntry ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </form>

@@ -1,9 +1,9 @@
-import { DeleteOutline, KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
+import { DeleteOutline, EditOutlined, KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
 import { Box, Chip, Collapse, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Tooltip, Typography } from '@mui/material';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
 
-function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef, onDelete }) {
+function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionColor, isActive, onClick, rowRef, onDelete, onEdit }) {
   const trades = entry.trades || [];
   const tradeCount = trades.length;
   const hasTrades = tradeCount > 0;
@@ -52,20 +52,34 @@ function LedgerRow({ entry, index, isExpanded, onToggleExpand, getTransactionCol
         <TableCell align={entry.remarks ? 'left' : 'center'} sx={{ padding: '8px 16px 8px 16px' }}>
           {entry.remarks || '-'}
         </TableCell>
-        <TableCell align="center" sx={{ padding: '8px 4px 8px 4px', width: 48 }}>
+        <TableCell align="center" sx={{ padding: '8px 4px 8px 4px', width: 96 }}>
           {isDeletable && (
-            <Tooltip title="Delete entry">
-              <IconButton
-                size="small"
-                color="error"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(entry._id);
-                }}
-              >
-                <DeleteOutline fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+              <Tooltip title="Edit entry">
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(entry);
+                  }}
+                >
+                  <EditOutlined fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete entry">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(entry._id);
+                  }}
+                >
+                  <DeleteOutline fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
           )}
         </TableCell>
       </TableRow>

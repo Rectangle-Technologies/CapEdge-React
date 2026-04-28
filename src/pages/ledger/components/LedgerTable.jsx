@@ -34,7 +34,7 @@ import { useState, useEffect, useRef } from 'react';
 import LedgerEntryDialog from './LedgerEntryDialog';
 import LedgerRow from './LedgerRow';
 import * as yup from 'yup';
-import { del, post } from '../../../utils/apiUtil';
+import { del, post, put } from '../../../utils/apiUtil';
 import { showErrorSnackbar, showSuccessSnackbar } from '../../../store/utils';
 import { useDispatch } from 'react-redux';
 import { showLoader, hideLoader } from '../../../store/slices/loaderSlice';
@@ -56,6 +56,7 @@ const LedgerTable = ({
 }) => {
   const [expandedRowId, setExpandedRowId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [editEntry, setEditEntry] = useState(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const tableContainerRef = useRef(null);
@@ -87,24 +88,36 @@ const LedgerTable = ({
       try {
         const transactionAmount = values.entryType === 'DEBIT' ? -Math.abs(values.transactionAmount) : values.transactionAmount;
 
-        const data = await post('/ledger/add', {
-          date: values.date.format('YYYY-MM-DD'),
-          transactionAmount: transactionAmount,
-          dematAccountId: selectedDematAccount._id,
-          remarks: values.remarks
-        });
+        let data;
+        if (editEntry) {
+          data = await put(`/ledger/edit/${editEntry._id}`, {
+            date: values.date.format('YYYY-MM-DD'),
+            transactionAmount: transactionAmount,
+            dematAccountId: selectedDematAccount._id,
+            remarks: values.remarks
+          });
+          showSuccessSnackbar('Ledger entry updated successfully.');
+        } else {
+          data = await post('/ledger/add', {
+            date: values.date.format('YYYY-MM-DD'),
+            transactionAmount: transactionAmount,
+            dematAccountId: selectedDematAccount._id,
+            remarks: values.remarks
+          });
+          showSuccessSnackbar('Ledger entry added successfully.');
+        }
         // After successful submission:
         resetForm();
         setOpenDialog(false);
+        setEditEntry(null);
         fetchLedgerEntries();
-        showSuccessSnackbar('Ledger entry added successfully.');
         setSelectedDematAccount({
           ...selectedDematAccount,
           balance: data.latestBalance
         });
       } catch (error) {
-        console.error('Error adding ledger entry:', error);
-        showErrorSnackbar(error.message || 'Failed to add ledger entry. Please try again.');
+        console.error('Error saving ledger entry:', error);
+        showErrorSnackbar(error.message || 'Failed to save ledger entry. Please try again.');
       } finally {
         dispatch(hideLoader());
       }
@@ -113,12 +126,25 @@ const LedgerTable = ({
 
   const handleAddLedgerEntry = () => {
     formik.resetForm();
+    setEditEntry(null);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     formik.resetForm();
     setOpenDialog(false);
+    setEditEntry(null);
+  };
+
+  const handleEditRequest = (entry) => {
+    setEditEntry(entry);
+    formik.setValues({
+      date: dayjs(entry.date),
+      entryType: entry.transactionAmount >= 0 ? 'CREDIT' : 'DEBIT',
+      transactionAmount: Math.abs(entry.transactionAmount),
+      remarks: entry.remarks || ''
+    });
+    setOpenDialog(true);
   };
 
   const handleDeleteRequest = (entryId) => {
@@ -353,7 +379,7 @@ const LedgerTable = ({
                 <TableCell align="center" sx={{ padding: '8px 16px 8px 16px' }}>
                   <strong>Remarks</strong>
                 </TableCell>
-                <TableCell sx={{ width: 48, padding: '8px 4px 8px 4px' }} />
+                <TableCell sx={{ width: 96, padding: '8px 4px 8px 4px' }} />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -370,6 +396,7 @@ const LedgerTable = ({
                     onClick={() => setActiveRowIndex(index)}
                     rowRef={(el) => (rowRefs.current[index] = el)}
                     onDelete={handleDeleteRequest}
+                    onEdit={handleEditRequest}
                   />
                 ))
               ) : (
@@ -385,7 +412,7 @@ const LedgerTable = ({
           </Table>
         </TableContainer>
       </Card>
-      <LedgerEntryDialog open={openDialog} formik={formik} onClose={handleCloseDialog} />
+      <LedgerEntryDialog open={openDialog} formik={formik} onClose={handleCloseDialog} editEntry={editEntry} />
 
       <Dialog open={!!deleteConfirmId} onClose={() => setDeleteConfirmId(null)}>
         <DialogTitle>Delete Ledger Entry</DialogTitle>

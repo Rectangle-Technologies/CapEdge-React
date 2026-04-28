@@ -29,7 +29,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
-import { get, post } from 'utils/apiUtil';
+import { get, post, put } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -43,7 +43,11 @@ const AddTransaction = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
-  const isIpoMode = location.pathname === '/ipo';
+
+  const editData = location.state?.editTransaction;
+  const isEditMode = !!editData;
+  const editTransactionId = editData?._id;
+  const isIpoMode = isEditMode ? (editData?.isIpo || false) : location.pathname === '/ipo';
 
   const [transactionDate, setTransactionDate] = useState(dayjs());
   const [referenceNumber, setReferenceNumber] = useState('');
@@ -70,7 +74,8 @@ const AddTransaction = () => {
       dispatch(showLoader());
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       setDematAccounts(response.dematAccounts || []);
-      if (response.dematAccounts && response.dematAccounts.length > 0) {
+      // In edit mode, the demat account is pre-filled from the transaction data.
+      if (!isEditMode && response.dematAccounts && response.dematAccounts.length > 0) {
         setSelectedDematAccount(response.dematAccounts[0]._id);
       }
     } catch (error) {
@@ -88,8 +93,46 @@ const AddTransaction = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAccount]);
 
-  // Restore state when navigating back from Security component
+  // Pre-fill form fields when in edit mode.
   useEffect(() => {
+    if (isEditMode && editData) {
+      setTransactionDate(dayjs(editData.date));
+      setReferenceNumber(editData.referenceNumber || '');
+      const dematId = editData.dematAccountId?._id || editData.dematAccountId;
+      setSelectedDematAccount(dematId);
+      const security = editData.securityId;
+      if (editData.deliveryType === 'Intraday') {
+        // transactionCost is stored halved (split between BUY+SELL); restore the total.
+        setTransactions([{
+          id: 1,
+          type: 'BUY',
+          quantity: editData.quantity,
+          buyPrice: editData.price,
+          sellPrice: location.state?.editSellPrice ?? '',
+          transactionCost: (editData.transactionCost || 0) * 2,
+          security,
+          deliveryType: 'Intraday'
+        }]);
+      } else {
+        const isBuy = editData.type === 'BUY';
+        setTransactions([{
+          id: 1,
+          type: editData.type,
+          quantity: editData.quantity,
+          buyPrice: isBuy ? editData.price : '',
+          sellPrice: !isBuy ? editData.price : '',
+          transactionCost: editData.transactionCost || 0,
+          security,
+          deliveryType: 'Delivery'
+        }]);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Restore state when navigating back from Security component (create mode only).
+  useEffect(() => {
+    if (isEditMode) return;
     const savedState = sessionStorage.getItem('addTransactionState');
     if (savedState) {
       try {
@@ -104,6 +147,7 @@ const AddTransaction = () => {
         console.error('Error restoring state:', error);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -239,7 +283,9 @@ const AddTransaction = () => {
     try {
       dispatch(showLoader());
 
-      const payload = transactions.map((t) => {
+      if (isEditMode) {
+        // Edit mode: single transaction, use PUT.
+        const t = transactions[0];
         const basePayload = {
           date: transactionDate.format('YYYY-MM-DD'),
           type: t.type,
@@ -251,41 +297,62 @@ const AddTransaction = () => {
           transactionCost: t.transactionCost ? Number(t.transactionCost) : 0,
           isIpo: isIpoMode
         };
+        const editPayload = t.deliveryType === 'Intraday'
+          ? { ...basePayload, buyPrice: Number(t.buyPrice), sellPrice: Number(t.sellPrice) }
+          : { ...basePayload, price: t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice) };
 
-        if (t.deliveryType === 'Intraday') {
-          return {
-            ...basePayload,
-            buyPrice: Number(t.buyPrice),
-            sellPrice: Number(t.sellPrice)
+        await put(`/transaction/edit/${editTransactionId}`, editPayload);
+        showSuccessSnackbar('Transaction updated successfully');
+        navigate(-1);
+      } else {
+        // Create mode: one or more transactions, use POST.
+        const payload = transactions.map((t) => {
+          const basePayload = {
+            date: transactionDate.format('YYYY-MM-DD'),
+            type: t.type,
+            quantity: Number(t.quantity),
+            securityId: t.security._id,
+            deliveryType: t.deliveryType,
+            referenceNumber: referenceNumber,
+            dematAccountId: selectedDematAccount,
+            transactionCost: t.transactionCost ? Number(t.transactionCost) : 0,
+            isIpo: isIpoMode
           };
-        } else {
-          const price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
-          return {
-            ...basePayload,
-            price: price
-          };
-        }
-      });
 
-      const response = await post('/transaction/create', payload);
+          if (t.deliveryType === 'Intraday') {
+            return {
+              ...basePayload,
+              buyPrice: Number(t.buyPrice),
+              sellPrice: Number(t.sellPrice)
+            };
+          } else {
+            const price = t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice);
+            return {
+              ...basePayload,
+              price: price
+            };
+          }
+        });
 
-      showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
+        const response = await post('/transaction/create', payload);
+        showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
 
-      setReferenceNumber('');
-      setTransactionDate(dayjs());
-      setTransactions([
-        {
-          id: 1,
-          type: 'BUY',
-          quantity: '',
-          buyPrice: '',
-          sellPrice: '',
-          transactionCost: '',
-          security: null,
-          deliveryType: 'Delivery'
-        }
-      ]);
-      setNextId(2);
+        setReferenceNumber('');
+        setTransactionDate(dayjs());
+        setTransactions([
+          {
+            id: 1,
+            type: 'BUY',
+            quantity: '',
+            buyPrice: '',
+            sellPrice: '',
+            transactionCost: '',
+            security: null,
+            deliveryType: 'Delivery'
+          }
+        ]);
+        setNextId(2);
+      }
     } catch (error) {
       console.error('Error saving transactions:', error);
       showErrorSnackbar(error.message || 'Failed to save transactions');
@@ -299,7 +366,7 @@ const AddTransaction = () => {
       <CardHeader
         title={
           <Typography variant="h5" component="div">
-            Add {isIpoMode ? 'IPO ' : ''} Transactions
+            {isEditMode ? 'Edit Transaction' : `Add ${isIpoMode ? 'IPO ' : ''}Transactions`}
           </Typography>
         }
         action={
@@ -537,11 +604,13 @@ const AddTransaction = () => {
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <Typography variant="h4">Total amount: {formatCurrency(totalAmount)}</Typography>
             </div>
-            <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
-              Add Transaction
-            </Button>
+            {!isEditMode && (
+              <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
+                Add Transaction
+              </Button>
+            )}
             <Button type="submit" variant="contained" color="primary" startIcon={<SaveIcon />} size="large" fullWidth>
-              Save All Transactions ({transactions.length})
+              {isEditMode ? 'Update Transaction' : `Save All Transactions (${transactions.length})`}
             </Button>
           </Box>
         </form>

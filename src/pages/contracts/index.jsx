@@ -27,6 +27,7 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
   Delete as DeleteIcon,
+  Edit as EditIcon,
   Add
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -172,6 +173,20 @@ const Contracts = () => {
         dispatch(hideLoader());
       }
     }
+  };
+
+  const onEditTransaction = (trade, trades) => {
+    // For Intraday BUY, find the paired SELL within this contract to pre-fill its price.
+    let editSellPrice;
+    if (trade.deliveryType === 'Intraday' && trade.type === 'BUY') {
+      const pairedSell = trades.find(
+        (t) => t.buyTransactionId?.toString() === trade._id?.toString()
+      );
+      editSellPrice = pairedSell?.price;
+    }
+    navigate(`/edit-transaction/${trade._id}`, {
+      state: { editTransaction: trade, editSellPrice }
+    });
   };
 
   const loadContracts = async () => {
@@ -461,6 +476,19 @@ const Contracts = () => {
                                         <TableCell align="right">{formatCurrency(amount)}</TableCell>
                                         <TableCell align="right">{formatCurrency(trade.transactionCost || 0)}</TableCell>
                                         <TableCell align="center">
+                                          {!(trade.deliveryType === 'Intraday' && trade.type === 'SELL') && (
+                                            <Tooltip title="Edit transaction" arrow>
+                                              <IconButton
+                                                size="small"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  onEditTransaction(trade, contract.trades);
+                                                }}
+                                              >
+                                                <EditIcon fontSize="small" color="primary" />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
                                           <Tooltip title="Delete transaction" arrow>
                                             <IconButton
                                               size="small"

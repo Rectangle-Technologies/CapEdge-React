@@ -1,4 +1,4 @@
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, Edit } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -177,6 +177,20 @@ const TransactionsTable = () => {
         dispatch(hideLoader());
       }
     }
+  };
+
+  const onEditTransaction = (transaction) => {
+    // For Intraday BUY, find the paired SELL to pass its price for pre-filling.
+    let editSellPrice;
+    if (transaction.deliveryType === 'Intraday' && transaction.type === 'BUY') {
+      const pairedSell = transactions.find(
+        (t) => t.buyTransactionId?.toString() === transaction._id?.toString()
+      );
+      editSellPrice = pairedSell?.price;
+    }
+    navigate(`/edit-transaction/${transaction._id}`, {
+      state: { editTransaction: transaction, editSellPrice }
+    });
   };
 
   useEffect(() => {
@@ -418,9 +432,16 @@ const TransactionsTable = () => {
                         <TableCell align="right">{formatCurrency(amount)}</TableCell>
                         <TableCell align="right">{formatCurrency(transaction.transactionCost || 0)}</TableCell>
                         <TableCell align="center">
+                          {!(transaction.deliveryType === 'Intraday' && transaction.type === 'SELL') && (
+                            <Tooltip title="Edit transaction" arrow>
+                              <IconButton onClick={() => onEditTransaction(transaction)}>
+                                <Edit fontSize="small" color="primary" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           <Tooltip title="Delete transaction" arrow>
                             <IconButton onClick={() => onDeleteTransaction(transaction._id)}>
-                              <Delete size="small" color="error" />
+                              <Delete fontSize="small" color="error" />
                             </IconButton>
                           </Tooltip>
                         </TableCell>

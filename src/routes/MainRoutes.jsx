@@ -100,6 +100,10 @@ const MainRoutes = {
       element: <AddTransaction />
     },
     {
+      path: 'edit-transaction/:id',
+      element: <AddTransaction />
+    },
+    {
       path: 'ipo',
       element: <AddTransaction />
     }

@@ -47,7 +47,7 @@ export default function DashboardLayout() {
       }
       var currentPath = window.location.pathname;
       if (currentPath === '/') {
-        currentPath = '/transactions';
+        currentPath = '/contracts';
       }
       navigate(currentPath);
       dispatch(hideLoader());

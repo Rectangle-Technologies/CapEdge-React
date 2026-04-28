@@ -46,7 +46,7 @@ export default function AuthLogin({ isDemo = false }) {
     try {
       // Dispatch login action
       await dispatch(login({ username: values.username, password: values.password })).unwrap();
-      navigate('/transactions');
+      navigate('/contracts');
     } catch (error) {
       showErrorSnackbar(error || 'Login failed. Please try again.');
     } finally {

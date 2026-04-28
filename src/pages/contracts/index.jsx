@@ -19,15 +19,18 @@ import {
   Collapse,
   IconButton,
   Pagination,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material';
 import {
   ReceiptLong as ReceiptLongIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
   KeyboardArrowUp as KeyboardArrowUpIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Add
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { get, del } from 'utils/apiUtil';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
@@ -42,6 +45,7 @@ const REF_DEBOUNCE_MS = 350;
 
 const Contracts = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
   const financialYear = useSelector((state) => state.app.financialYear);
 
@@ -263,6 +267,22 @@ const Contracts = () => {
           </Card>
         </Grid>
       </Grid>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
+        <Button
+          variant="contained"
+          sx={{ bgcolor: '#FFD700', color: '#000', '&:hover': { bgcolor: '#FFC700' } }}
+          onClick={() => navigate('/ipo')}
+          startIcon={<Add />}
+        >
+          IPO
+        </Button>
+        <Tooltip title="Add Transaction (⌥N)" arrow>
+          <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/add-transaction')}>
+            Add Transaction
+          </Button>
+        </Tooltip>
+      </Box>
 
       <Card>
         <CardHeader title="Contracts" subheader="Trades grouped by reference number" />

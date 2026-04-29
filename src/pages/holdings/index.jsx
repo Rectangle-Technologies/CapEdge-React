@@ -34,8 +34,6 @@ import { fetchHoldings, transformHoldingData } from './services/holdingsService'
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import ExportToExcelButton from 'components/ExportToExcelButton';
 
-const HOLDINGS_LIMIT = 50;
-
 const Holdings = () => {
   const dispatch = useDispatch();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
@@ -47,6 +45,8 @@ const Holdings = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const [totalHoldingValue, setTotalHoldingValue] = useState(0);
+  const [totalSecurities, setTotalSecurities] = useState(0);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
 
@@ -170,11 +170,13 @@ const Holdings = () => {
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId, financialYear?._id);
+      const data = await fetchHoldings(null, 1, selectedDematAccount, securityId, financialYear?._id);
 
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
         setHoldings(transformedHoldings);
+        setTotalHoldingValue(data.totalHoldingValue || 0);
+        setTotalSecurities(data.totalSecurities || 0);
       }
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
@@ -223,7 +225,7 @@ const Holdings = () => {
                   <Typography variant="h6" color="text.secondary">
                     Total Investment
                   </Typography>
-                  <Typography variant="h4">{formatCurrency(summary.totalInvestment)}</Typography>
+                  <Typography variant="h4">{formatCurrency(totalHoldingValue)}</Typography>
                 </Box>
                 <ShowChartIcon sx={{ fontSize: 40, color: 'primary.main' }} />
               </Box>
@@ -235,9 +237,9 @@ const Holdings = () => {
           <Card>
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" color="text.secondary">
-                Total Holdings
+                Total Securities
               </Typography>
-              <Typography variant="h4">{summary.totalHoldings}</Typography>
+              <Typography variant="h4">{totalSecurities}</Typography>
             </Box>
           </Card>
         </Grid>
@@ -292,7 +294,7 @@ const Holdings = () => {
 
         <Divider />
 
-        <TableContainer component={Paper} sx={{ maxHeight: 600 }} ref={tableContainerRef}>
+        <TableContainer component={Paper} ref={tableContainerRef}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>

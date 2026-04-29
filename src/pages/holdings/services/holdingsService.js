@@ -3,14 +3,17 @@ import { get } from '../../../utils/apiUtil';
 /**
  * Fetch all holdings with pagination
  * @param {number} limit - Number of records per page
- * @param {number} offset - Offset for pagination
+ * @param {number} pageNo - Page number (1-indexed)
  * @param {string} dematAccountId - Demat account ID to filter holdings
  * @param {string} securityId - Optional security ID to filter holdings
  * @returns {Promise} Holdings data with pagination info
  */
-export const fetchHoldings = async (limit = 50, offset = 0, dematAccountId = '', securityId = null, financialYearId = '') => {
+export const fetchHoldings = async (limit = null, pageNo = 1, dematAccountId = '', securityId = null, financialYearId = '') => {
   try {
-    let url = `/holdings/get-all?limit=${limit}&offset=${offset}&financialYearId=${financialYearId}`;
+    let url = `/holdings/get-all?pageNo=${pageNo}&financialYearId=${financialYearId}`;
+    if (limit) {
+      url += `&limit=${limit}`;
+    }
     if (dematAccountId) {
       url += `&dematAccountId=${dematAccountId}`;
     }

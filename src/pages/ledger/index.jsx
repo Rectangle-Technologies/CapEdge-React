@@ -22,6 +22,7 @@ const Ledger = () => {
   const [dematAccounts, setDematAccounts] = useState([]);
   const [ledgerEntries, setLedgerEntries] = useState([]);
   const [openingBalance, setOpeningBalance] = useState(0);
+  const [closingBalance, setClosingBalance] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const ROWS_PER_PAGE = 50;
@@ -90,6 +91,7 @@ const Ledger = () => {
       );
       setLedgerEntries(data.entries || []);
       setOpeningBalance(data.openingBalance || 0);
+      setClosingBalance(data.closingBalance || 0);
       setTotalPages(Math.ceil(data.pagination.total / ROWS_PER_PAGE));
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to fetch ledger entries. Please try again.');
@@ -119,23 +121,6 @@ const Ledger = () => {
       {selectedDematAccount && (
         <Grid container spacing={2} sx={{ mt: 3 }}>
           <Grid size={{ xs: 12, md: 3 }}>
-            <Card sx={{ bgcolor: selectedDematAccount.balance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
-              <Box sx={{ p: 2 }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box>
-                    <Typography variant="h6" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
-                      Balance
-                    </Typography>
-                    <Typography variant="h4" color={selectedDematAccount.balance >= 0 ? 'primary.darker' : 'warning.darker'}>
-                      {formatCurrency(selectedDematAccount.balance)}
-                    </Typography>
-                  </Box>
-                  <AccountBalance sx={{ fontSize: 40, color: selectedDematAccount.balance >= 0 ? 'primary.dark' : 'warning.dark' }} />
-                </Stack>
-              </Box>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
             <Card sx={{ bgcolor: openingBalance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
               <Box sx={{ p: 2 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -153,6 +138,28 @@ const Ledger = () => {
                     )}
                   </Box>
                   <AccountBalance sx={{ fontSize: 40, color: openingBalance >= 0 ? 'primary.dark' : 'warning.dark' }} />
+                </Stack>
+              </Box>
+            </Card>
+          </Grid>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Card sx={{ bgcolor: closingBalance >= 0 ? 'primary.lighter' : 'warning.lighter' }}>
+              <Box sx={{ p: 2 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h6" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      Closing Balance
+                    </Typography>
+                    <Typography variant="h4" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                      {formatCurrency(closingBalance)}
+                    </Typography>
+                    {endDate && endDate.isValid && endDate.isValid() && (
+                      <Typography variant="caption" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                        as of {endDate.format('DD/MM/YYYY')}
+                      </Typography>
+                    )}
+                  </Box>
+                  <AccountBalance sx={{ fontSize: 40, color: closingBalance >= 0 ? 'primary.dark' : 'warning.dark' }} />
                 </Stack>
               </Box>
             </Card>

@@ -8,9 +8,12 @@ import { get } from '../../../utils/apiUtil';
  * @param {string} securityId - Optional security ID to filter holdings
  * @returns {Promise} Holdings data with pagination info
  */
-export const fetchHoldings = async (limit = 50, pageNo = 1, dematAccountId = '', securityId = null, financialYearId = '') => {
+export const fetchHoldings = async (limit = null, pageNo = 1, dematAccountId = '', securityId = null, financialYearId = '') => {
   try {
-    let url = `/holdings/get-all?limit=${limit}&pageNo=${pageNo}&financialYearId=${financialYearId}`;
+    let url = `/holdings/get-all?pageNo=${pageNo}&financialYearId=${financialYearId}`;
+    if (limit) {
+      url += `&limit=${limit}`;
+    }
     if (dematAccountId) {
       url += `&dematAccountId=${dematAccountId}`;
     }

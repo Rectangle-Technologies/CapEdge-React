@@ -17,8 +17,7 @@ import {
   Chip,
   Grid,
   Collapse,
-  IconButton,
-  Pagination
+  IconButton
 } from '@mui/material';
 import {
   ShowChart as ShowChartIcon,
@@ -35,8 +34,6 @@ import { fetchHoldings, transformHoldingData } from './services/holdingsService'
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import ExportToExcelButton from 'components/ExportToExcelButton';
 
-const HOLDINGS_LIMIT = 50;
-
 const Holdings = () => {
   const dispatch = useDispatch();
   const userAccount = useSelector((state) => state.app.currentUserAccount);
@@ -48,9 +45,8 @@ const Holdings = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [totalHoldingValue, setTotalHoldingValue] = useState(0);
+  const [totalSecurities, setTotalSecurities] = useState(0);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
 
@@ -174,13 +170,13 @@ const Holdings = () => {
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await fetchHoldings(HOLDINGS_LIMIT, page, selectedDematAccount, securityId, financialYear?._id);
+      const data = await fetchHoldings(null, 1, selectedDematAccount, securityId, financialYear?._id);
 
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
         setHoldings(transformedHoldings);
-        setTotalPages(Math.ceil((data.pagination?.total || 0) / HOLDINGS_LIMIT) || 1);
         setTotalHoldingValue(data.totalHoldingValue || 0);
+        setTotalSecurities(data.totalSecurities || 0);
       }
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
@@ -198,21 +194,10 @@ const Holdings = () => {
 
   useEffect(() => {
     if (selectedDematAccount) {
-      setPage(1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity, financialYear]);
-
-  useEffect(() => {
-    if (selectedDematAccount) {
       loadHoldings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity, financialYear, page]);
-
-  const handlePageChange = (event, value) => {
-    setPage(value);
-  };
+  }, [selectedDematAccount, selectedSecurity, financialYear]);
 
   const getExportData = () => {
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
@@ -254,7 +239,7 @@ const Holdings = () => {
               <Typography variant="h6" color="text.secondary">
                 Total Securities
               </Typography>
-              <Typography variant="h4">{groupedHoldings.length}</Typography>
+              <Typography variant="h4">{totalSecurities}</Typography>
             </Box>
           </Card>
         </Grid>
@@ -422,18 +407,6 @@ const Holdings = () => {
           </Table>
         </TableContainer>
       </Card>
-
-      <Box
-        width="100%"
-        sx={{
-          mt: 4,
-          display: { xs: 'none', md: 'flex' },
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Pagination count={totalPages} page={page} onChange={handlePageChange} />
-      </Box>
     </Box>
   );
 };

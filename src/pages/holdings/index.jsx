@@ -17,7 +17,8 @@ import {
   Chip,
   Grid,
   Collapse,
-  IconButton
+  IconButton,
+  Pagination
 } from '@mui/material';
 import {
   ShowChart as ShowChartIcon,
@@ -47,6 +48,9 @@ const Holdings = () => {
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalHoldingValue, setTotalHoldingValue] = useState(0);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
 
@@ -170,11 +174,13 @@ const Holdings = () => {
     dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
-      const data = await fetchHoldings(HOLDINGS_LIMIT, 0, selectedDematAccount, securityId, financialYear?._id);
+      const data = await fetchHoldings(HOLDINGS_LIMIT, page, selectedDematAccount, securityId, financialYear?._id);
 
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
         setHoldings(transformedHoldings);
+        setTotalPages(Math.ceil((data.pagination?.total || 0) / HOLDINGS_LIMIT) || 1);
+        setTotalHoldingValue(data.totalHoldingValue || 0);
       }
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
@@ -192,10 +198,21 @@ const Holdings = () => {
 
   useEffect(() => {
     if (selectedDematAccount) {
-      loadHoldings();
+      setPage(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDematAccount, selectedSecurity, financialYear]);
+
+  useEffect(() => {
+    if (selectedDematAccount) {
+      loadHoldings();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDematAccount, selectedSecurity, financialYear, page]);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
 
   const getExportData = () => {
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
@@ -223,7 +240,7 @@ const Holdings = () => {
                   <Typography variant="h6" color="text.secondary">
                     Total Investment
                   </Typography>
-                  <Typography variant="h4">{formatCurrency(summary.totalInvestment)}</Typography>
+                  <Typography variant="h4">{formatCurrency(totalHoldingValue)}</Typography>
                 </Box>
                 <ShowChartIcon sx={{ fontSize: 40, color: 'primary.main' }} />
               </Box>
@@ -235,9 +252,9 @@ const Holdings = () => {
           <Card>
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" color="text.secondary">
-                Total Holdings
+                Total Securities
               </Typography>
-              <Typography variant="h4">{summary.totalHoldings}</Typography>
+              <Typography variant="h4">{groupedHoldings.length}</Typography>
             </Box>
           </Card>
         </Grid>
@@ -292,7 +309,7 @@ const Holdings = () => {
 
         <Divider />
 
-        <TableContainer component={Paper} sx={{ maxHeight: 600 }} ref={tableContainerRef}>
+        <TableContainer component={Paper} ref={tableContainerRef}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -405,6 +422,18 @@ const Holdings = () => {
           </Table>
         </TableContainer>
       </Card>
+
+      <Box
+        width="100%"
+        sx={{
+          mt: 4,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Pagination count={totalPages} page={page} onChange={handlePageChange} />
+      </Box>
     </Box>
   );
 };

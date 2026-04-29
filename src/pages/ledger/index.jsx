@@ -153,11 +153,15 @@ const Ledger = () => {
                     <Typography variant="h4" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
                       {formatCurrency(closingBalance)}
                     </Typography>
-                    {endDate && endDate.isValid && endDate.isValid() && (
-                      <Typography variant="caption" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
-                        as of {endDate.format('DD/MM/YYYY')}
-                      </Typography>
-                    )}
+                    {endDate && endDate.isValid && endDate.isValid() && (() => {
+                      const today = dayjs();
+                      const displayDate = today.isBefore(endDate) ? today : endDate;
+                      return (
+                        <Typography variant="caption" color={closingBalance >= 0 ? 'primary.darker' : 'warning.darker'}>
+                          as of {displayDate.format('DD/MM/YYYY')}
+                        </Typography>
+                      );
+                    })()}
                   </Box>
                   <AccountBalance sx={{ fontSize: 40, color: closingBalance >= 0 ? 'primary.dark' : 'warning.dark' }} />
                 </Stack>

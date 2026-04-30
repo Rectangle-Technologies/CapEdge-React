@@ -61,12 +61,34 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
     }
   };
 
+  const handleDownloadSummary = async () => {
+    dispatch(showLoader());
+    try {
+      const response = await get(`/report/holdings/export/summary?financialYearId=${financialYear?._id}`, true, { responseType: 'arraybuffer' });
+      const filename = `Holdings_Summary_${financialYear?.title || ''}.xlsx`;
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      showErrorSnackbar(err.message || 'Download summary failed. Please try again.');
+      console.error('Download summary error:', err);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
   const handleDownloadAll = async () => {
     dispatch(showLoader());
     try {
       const response = await get(`/report/holdings/export?financialYearId=${financialYear?._id}`, true, { responseType: 'arraybuffer' });
-      // Today's date in DD/MM/YYYY format
-      const today = new Date();
       const filename = `Holdings_${financialYear?.title || ''}.xlsx`;
       // Create Blob and trigger download
       const blob = new Blob([response.data], {
@@ -90,8 +112,11 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
 
   return (
     <>
+      <Button variant="outlined" onClick={handleDownloadSummary} sx={{ mr: 1 }}>
+        Download Summary
+      </Button>
       <Button variant="contained" onClick={handleDownloadAll}>
-        Download all
+        Download Lot-wise
       </Button>
       {/* <IconButton
       onClick={handleExport}

@@ -19,7 +19,10 @@ import {
   Paper,
   Box,
   TextField,
-  Button
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Alert
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -37,6 +40,7 @@ const SplitSecurity = () => {
   const [splitTo, setSplitTo] = useState('');
   const [splitDate, setSplitDate] = useState(dayjs());
   const [newQuantities, setNewQuantities] = useState({});
+  const [selectedAccounts, setSelectedAccounts] = useState({});
 
   const handleNewQuantityChange = (holdingIndex, entryIndex, value) => {
     setNewQuantities((prev) => ({
@@ -65,6 +69,14 @@ const SplitSecurity = () => {
   }, [securityId, splitDate, dispatch]);
 
   useEffect(() => {
+    if (data?.holdings) {
+      const initial = {};
+      data.holdings.forEach((_, i) => { initial[i] = true; });
+      setSelectedAccounts(initial);
+    }
+  }, [data]);
+
+  useEffect(() => {
     if (splitFrom && splitTo && data?.holdings) {
       const from = parseFloat(splitFrom);
       const to = parseFloat(splitTo);
@@ -88,6 +100,7 @@ const SplitSecurity = () => {
       const transactions = [];
 
       data.holdings.forEach((holding, holdingIndex) => {
+        if (!selectedAccounts[holdingIndex]) return;
         holding.entries.forEach((entry, entryIndex) => {
           const key = `${holdingIndex}-${entryIndex}`;
           const newQty = parseFloat(newQuantities[key]) || 0;
@@ -139,6 +152,14 @@ const SplitSecurity = () => {
         </Box>
       ) : (
         <>
+          {data?.splitHistory?.some(
+            (s) => new Date(s.splitDate).toISOString().split('T')[0] === splitDate?.format('YYYY-MM-DD')
+          ) && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              A split has already been recorded for this date. Only check accounts that were <strong>not</strong> split yet.
+            </Alert>
+          )}
+
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 3, gap: 5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography mr={2} variant="h5">
@@ -168,7 +189,21 @@ const SplitSecurity = () => {
             {data?.holdings?.map((holding, index) => (
               <Grid item size={12} key={index}>
                 <Card>
-                  <CardHeader title={holding.title} titleTypographyProps={{ variant: 'h5' }} />
+                  <CardHeader
+                    title={holding.title}
+                    titleTypographyProps={{ variant: 'h5' }}
+                    action={
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={selectedAccounts[index] !== false}
+                            onChange={(e) => setSelectedAccounts((prev) => ({ ...prev, [index]: e.target.checked }))}
+                          />
+                        }
+                        label="Include in split"
+                      />
+                    }
+                  />
                   <CardContent>
                     <TableContainer component={Paper} variant="outlined">
                       <Table size="small">
@@ -242,7 +277,7 @@ const SplitSecurity = () => {
           </Grid>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo} onClick={handleSplitSecurity}>
+            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo || !Object.values(selectedAccounts).some(Boolean)} onClick={handleSplitSecurity}>
               Split
             </Button>
           </Box>

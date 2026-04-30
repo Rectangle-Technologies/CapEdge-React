@@ -566,7 +566,7 @@ const AddTransaction = () => {
                         value={transaction.transactionCost}
                         onChange={(e) => handleTransactionChange(transaction.id, 'transactionCost', e.target.value)}
                         fullWidth
-                        slotProps={{ htmlInput: { min: 0, step: "any" } }}
+                        slotProps={{ htmlInput: { step: "any" } }}
                         disabled={isIpoMode}
                       />
                     </TableCell>

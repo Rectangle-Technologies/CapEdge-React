@@ -439,11 +439,13 @@ const TransactionsTable = () => {
                               </IconButton>
                             </Tooltip>
                           )}
-                          <Tooltip title="Delete transaction" arrow>
-                            <IconButton onClick={() => onDeleteTransaction(transaction._id)}>
-                              <Delete fontSize="small" color="error" />
-                            </IconButton>
-                          </Tooltip>
+                          {!(transaction.deliveryType === 'Intraday' && transaction.type === 'SELL') && (
+                            <Tooltip title="Delete transaction" arrow>
+                              <IconButton onClick={() => onDeleteTransaction(transaction._id)}>
+                                <Delete fontSize="small" color="error" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

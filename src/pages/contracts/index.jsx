@@ -489,17 +489,19 @@ const Contracts = () => {
                                               </IconButton>
                                             </Tooltip>
                                           )}
-                                          <Tooltip title="Delete transaction" arrow>
-                                            <IconButton
-                                              size="small"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDeleteTransaction(trade._id);
-                                              }}
-                                            >
-                                              <DeleteIcon fontSize="small" color="error" />
-                                            </IconButton>
-                                          </Tooltip>
+                                          {!(trade.deliveryType === 'Intraday' && trade.type === 'SELL') && (
+                                            <Tooltip title="Delete transaction" arrow>
+                                              <IconButton
+                                                size="small"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  onDeleteTransaction(trade._id);
+                                                }}
+                                              >
+                                                <DeleteIcon fontSize="small" color="error" />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
                                         </TableCell>
                                       </TableRow>
                                     );

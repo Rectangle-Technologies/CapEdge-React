@@ -32,6 +32,10 @@ import {
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import { get, del } from 'utils/apiUtil';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDate } from 'utils/formatDate';
@@ -41,7 +45,7 @@ import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { getTransactionTypeColor } from '../securities/utils/helpers';
 import { fetchContracts } from './services/contractsService';
 
-const CONTRACTS_LIMIT = 50;
+const CONTRACTS_LIMIT = 20;
 const REF_DEBOUNCE_MS = 350;
 
 const Contracts = () => {
@@ -59,6 +63,7 @@ const Contracts = () => {
   const [selectedSecurity, setSelectedSecurity] = useState(null);
   const [refNumberInput, setRefNumberInput] = useState('');
   const [refNumberQuery, setRefNumberQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState(null);
 
   const [expandedKey, setExpandedKey] = useState(null);
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
@@ -200,7 +205,8 @@ const Contracts = () => {
         dematAccountId: selectedDematAccount,
         securityId: selectedSecurity?._id || null,
         referenceNumber: refNumberQuery,
-        financialYearId: financialYear?._id || ''
+        financialYearId: financialYear?._id || '',
+        date: dateFilter ? dayjs(dateFilter).format('YYYY-MM-DD') : ''
       });
 
       setContracts(data?.contracts || []);
@@ -224,14 +230,14 @@ const Contracts = () => {
   useEffect(() => {
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity, financialYear]);
+  }, [selectedDematAccount, selectedSecurity, financialYear, dateFilter]);
 
   useEffect(() => {
     if (selectedDematAccount) {
       loadContracts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDematAccount, selectedSecurity, refNumberQuery, financialYear, page]);
+  }, [selectedDematAccount, selectedSecurity, refNumberQuery, financialYear, dateFilter, page]);
 
   return (
     <Box sx={{ width: '100%', p: 3 }}>
@@ -326,14 +332,18 @@ const Contracts = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 3 }}>
-              <SecurityAutocomplete
-                value={selectedSecurity}
-                onChange={setSelectedSecurity}
-                label="Security (Optional)"
-                size="small"
-                required={false}
-                fullWidth
-              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Date"
+                  value={dateFilter}
+                  format="DD/MM/YYYY"
+                  onChange={(newValue) => { setDateFilter(newValue); setPage(1); }}
+                  slotProps={{
+                    textField: { fullWidth: true, size: 'small' },
+                    field: { clearable: true, onClear: () => { setDateFilter(null); setPage(1); } }
+                  }}
+                />
+              </LocalizationProvider>
             </Grid>
 
             <Grid size={{ xs: 12, md: 3 }}>
@@ -343,6 +353,17 @@ const Contracts = () => {
                 value={refNumberInput}
                 onChange={(e) => setRefNumberInput(e.target.value)}
                 placeholder="Search by reference number"
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 3 }}>
+              <SecurityAutocomplete
+                value={selectedSecurity}
+                onChange={setSelectedSecurity}
+                label="Security (Optional)"
+                size="small"
+                required={false}
+                fullWidth
               />
             </Grid>
           </Grid>

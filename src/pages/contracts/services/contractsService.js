@@ -6,7 +6,8 @@ export const fetchContracts = async ({
   dematAccountId = '',
   securityId = null,
   referenceNumber = '',
-  financialYearId = ''
+  financialYearId = '',
+  date = ''
 } = {}) => {
   const params = new URLSearchParams();
   params.append('limit', limit);
@@ -15,6 +16,7 @@ export const fetchContracts = async ({
   if (dematAccountId) params.append('dematAccountId', dematAccountId);
   if (securityId) params.append('securityId', securityId);
   if (referenceNumber) params.append('referenceNumber', referenceNumber);
+  if (date) params.append('date', date);
 
   return get(`/transaction/get-contracts?${params.toString()}`);
 };

@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
+import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
@@ -34,6 +35,7 @@ import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { Add } from '@mui/icons-material';
+import { saveDraft, getDraft, deleteDraft } from 'utils/transactionDrafts';
 
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
@@ -68,6 +70,7 @@ const AddTransaction = () => {
   const [nextId, setNextId] = useState(2);
   const [totalAmount, setTotalAmount] = useState(0);
   const [addSecurityDialogOpen, setAddSecurityDialogOpen] = useState(false);
+  const [loadedDraftId, setLoadedDraftId] = useState(null);
 
   const fetchDematAccounts = async () => {
     try {
@@ -149,6 +152,22 @@ const AddTransaction = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Load draft when navigated from drafts list (overrides edit/sessionStorage pre-fill).
+  useEffect(() => {
+    const draftId = location.state?.draftId;
+    if (!draftId || !userAccount?._id || loadedDraftId === draftId) return;
+    const draft = getDraft(userAccount._id, draftId);
+    if (!draft) return;
+    if (draft.transactionDate) setTransactionDate(dayjs(draft.transactionDate));
+    setReferenceNumber(draft.referenceNumber || '');
+    if (draft.selectedDematAccount) setSelectedDematAccount(draft.selectedDematAccount);
+    if (Array.isArray(draft.transactions) && draft.transactions.length > 0) {
+      setTransactions(draft.transactions);
+      setNextId(Math.max(...draft.transactions.map((t) => t.id || 0)) + 1);
+    }
+    setLoadedDraftId(draftId);
+  }, [location.state, userAccount, loadedDraftId]);
 
   useEffect(() => {
     const total = transactions.reduce((sum, transaction) => {
@@ -275,6 +294,26 @@ const AddTransaction = () => {
     return true;
   };
 
+  const handleSaveDraft = () => {
+    if (!userAccount?._id) {
+      showErrorSnackbar('User account not loaded — cannot save draft');
+      return;
+    }
+    const draftPayload = {
+      transactionDate: transactionDate ? transactionDate.toISOString() : null,
+      referenceNumber,
+      selectedDematAccount,
+      transactions,
+      isEditMode,
+      editSnapshot: isEditMode ? editData : null
+    };
+    const stored = saveDraft(userAccount._id, draftPayload, { replaceId: loadedDraftId });
+    if (stored) {
+      setLoadedDraftId(stored.id);
+      showSuccessSnackbar('Draft saved');
+    }
+  };
+
   const handleSaveTransactions = async () => {
     if (!validateTransactions()) {
       return;
@@ -302,6 +341,10 @@ const AddTransaction = () => {
           : { ...basePayload, price: t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice) };
 
         await put(`/transaction/edit/${editTransactionId}`, editPayload);
+        if (loadedDraftId && userAccount?._id) {
+          deleteDraft(userAccount._id, loadedDraftId);
+          setLoadedDraftId(null);
+        }
         showSuccessSnackbar('Transaction updated successfully');
         navigate(-1);
       } else {
@@ -335,6 +378,10 @@ const AddTransaction = () => {
         });
 
         const response = await post('/transaction/create', payload);
+        if (loadedDraftId && userAccount?._id) {
+          deleteDraft(userAccount._id, loadedDraftId);
+          setLoadedDraftId(null);
+        }
         showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
 
         setReferenceNumber('');
@@ -607,6 +654,18 @@ const AddTransaction = () => {
             {!isEditMode && (
               <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
                 Add Transaction
+              </Button>
+            )}
+            {!isIpoMode && (
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<BookmarkAddOutlinedIcon />}
+                onClick={handleSaveDraft}
+                size="medium"
+                fullWidth
+              >
+                {loadedDraftId ? 'Update Draft' : 'Save as Draft'}
               </Button>
             )}
             <Button type="submit" variant="contained" color="primary" startIcon={<SaveIcon />} size="large" fullWidth>

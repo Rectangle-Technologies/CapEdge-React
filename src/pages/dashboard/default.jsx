@@ -31,6 +31,7 @@ import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
 import avatar4 from 'assets/images/users/avatar-4.png';
 import TransactionsTable from './components/TransactionsTable';
+import TransactionDraftsCard from './components/TransactionDraftsCard';
 
 // avatar style
 const avatarSX = {
@@ -54,6 +55,7 @@ const actionSX = {
 export default function DashboardDefault() {
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2} sx={{ mt: 4 }}>
+      <TransactionDraftsCard />
       <TransactionsTable />
 
       {/* <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>

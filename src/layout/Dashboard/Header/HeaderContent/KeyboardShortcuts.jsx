@@ -26,6 +26,12 @@ const KeyboardShortcuts = () => {
 
   const shortcuts = [
     {
+      section: 'Global',
+      items: [
+        { keys: ['Alt', 'A'], description: 'Focus the User Account dropdown' }
+      ]
+    },
+    {
       section: 'Security Master',
       items: [
         { keys: ['Alt', 'N'], description: 'Add new security' },

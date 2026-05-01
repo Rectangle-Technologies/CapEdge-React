@@ -350,7 +350,7 @@ const Contracts = () => {
 
         <Divider />
 
-        <TableContainer component={Paper} sx={{ maxHeight: 600 }} ref={tableContainerRef}>
+        <TableContainer component={Paper} ref={tableContainerRef}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>

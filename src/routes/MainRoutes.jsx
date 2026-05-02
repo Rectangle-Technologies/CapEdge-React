@@ -36,6 +36,7 @@ const Contracts = Loadable(lazy(() => import('pages/contracts')));
 
 // render - ledger
 const Ledger = Loadable(lazy(() => import('pages/ledger')));
+const AllBalances = Loadable(lazy(() => import('pages/ledger/AllBalances')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -82,6 +83,10 @@ const MainRoutes = {
     {
       path: 'ledger',
       element: <Ledger />
+    },
+    {
+      path: 'all-balances',
+      element: <AllBalances />
     },
     {
       path: 'typography',

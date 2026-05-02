@@ -205,6 +205,23 @@ const Contracts = () => {
     navigate('/edit-contract', { state: { contractData: contract } });
   };
 
+  const onDeleteContract = async (contract) => {
+    const count = contract.totalTrades;
+    if (window.confirm(`Are you sure you want to delete this contract and all ${count} transaction(s) in it? This cannot be undone.`)) {
+      dispatch(showLoader());
+      try {
+        const dematAccountId = contract.dematAccountId?._id || contract.dematAccountId;
+        await del(`/transaction/delete-contract?referenceNumber=${encodeURIComponent(contract.referenceNumber)}&dematAccountId=${dematAccountId}`);
+        loadContracts();
+      } catch (error) {
+        console.error('Error deleting contract:', error);
+        showErrorSnackbar(error.message || 'Failed to delete contract');
+      } finally {
+        dispatch(hideLoader());
+      }
+    }
+  };
+
   const loadContracts = async () => {
     if (!selectedDematAccount) return;
 
@@ -474,6 +491,17 @@ const Contracts = () => {
                               }}
                             >
                               <EditIcon fontSize="small" color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete contract" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteContract(contract);
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" color="error" />
                             </IconButton>
                           </Tooltip>
                         </TableCell>

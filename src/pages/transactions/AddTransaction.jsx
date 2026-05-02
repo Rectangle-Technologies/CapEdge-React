@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -16,7 +16,8 @@ import {
   Typography,
   CardContent,
   CardHeader,
-  Divider
+  Divider,
+  Stack
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -26,16 +27,23 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SaveIcon from '@mui/icons-material/Save';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import store from 'store';
 import { showLoader, hideLoader } from 'store/slices/loaderSlice';
 import { showErrorSnackbar, showSuccessSnackbar } from 'store/utils';
 import { get, post, put } from 'utils/apiUtil';
 import MainCard from 'components/MainCard';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
+import QuickCreateSecurityDialog from 'components/QuickCreateSecurityDialog';
+import ContractPickerDialog from 'components/ContractPickerDialog';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { Add } from '@mui/icons-material';
 import { saveDraft, getDraft, deleteDraft } from 'utils/transactionDrafts';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 const transactionTypes = ['BUY', 'SELL'];
 const deliveryTypes = ['Delivery', 'Intraday'];
@@ -71,6 +79,12 @@ const AddTransaction = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [addSecurityDialogOpen, setAddSecurityDialogOpen] = useState(false);
   const [loadedDraftId, setLoadedDraftId] = useState(null);
+
+  // Contract upload state
+  const fileInputRef = useRef(null);
+  const [pendingContracts, setPendingContracts] = useState([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [quickCreateForRow, setQuickCreateForRow] = useState(null);
 
   const fetchDematAccounts = async () => {
     try {
@@ -294,6 +308,95 @@ const AddTransaction = () => {
     return true;
   };
 
+  /**
+   * Pre-fill the form with a parsed contract. Charges always default to 0
+   * (per product decision — no proration). User can edit before saving.
+   */
+  const prefillFromContract = (contract) => {
+    if (contract.tradeDate) setTransactionDate(dayjs(contract.tradeDate));
+    setReferenceNumber(contract.contractNoteNo || '');
+    if (contract.matchedDematAccount?._id) {
+      setSelectedDematAccount(contract.matchedDematAccount._id);
+    }
+
+    const newRows = (contract.lines || []).map((line, idx) => {
+      const security = line.matchedSecurityId
+        ? { _id: line.matchedSecurityId, name: line.matchedSecurityName || '(matched)' }
+        : null;
+      const isIntraday = line.deliveryType === 'Intraday';
+      return {
+        id: idx + 1,
+        type: line.type || (isIntraday ? 'BUY' : 'BUY'),
+        quantity: line.quantity || '',
+        buyPrice: isIntraday
+          ? (line.buyPrice ?? '')
+          : (line.type === 'BUY' ? (line.price ?? '') : ''),
+        sellPrice: isIntraday
+          ? (line.sellPrice ?? '')
+          : (line.type === 'SELL' ? (line.price ?? '') : ''),
+        transactionCost: 0,
+        security,
+        deliveryType: line.deliveryType || 'Delivery'
+      };
+    });
+
+    if (newRows.length > 0) {
+      setTransactions(newRows);
+      setNextId(newRows.length + 1);
+    }
+
+    if (contract.warnings?.length) {
+      contract.warnings.forEach((w) => showErrorSnackbar(w));
+    }
+  };
+
+  const handleUploadContract = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    try {
+      dispatch(showLoader());
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = store.getState().auth?.token;
+      const response = await axios.post(`${API_BASE}/transaction/upload-contract`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        timeout: 30000
+      });
+      const data = response.data?.data;
+      const contracts = data?.contracts || [];
+      if (contracts.length === 0) {
+        showErrorSnackbar('No contracts could be parsed from this PDF');
+        return;
+      }
+      if (contracts.length === 1) {
+        prefillFromContract(contracts[0]);
+        showSuccessSnackbar('Contract loaded — review and save');
+      } else {
+        // Multi-client PDF: queue them and let the user pick
+        setPendingContracts(contracts);
+        setPickerOpen(true);
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to parse contract';
+      showErrorSnackbar(msg);
+    } finally {
+      dispatch(hideLoader());
+    }
+  };
+
+  const handlePickContract = (contract, idx) => {
+    prefillFromContract(contract);
+    setPendingContracts((prev) => prev.filter((_, i) => i !== idx));
+    setPickerOpen(false);
+  };
+
   const handleSaveDraft = () => {
     if (!userAccount?._id) {
       showErrorSnackbar('User account not loaded — cannot save draft');
@@ -399,6 +502,12 @@ const AddTransaction = () => {
           }
         ]);
         setNextId(2);
+
+        // If more parsed contracts are queued from a multi-client upload,
+        // re-open the picker so the user can load the next one.
+        if (pendingContracts.length > 0) {
+          setPickerOpen(true);
+        }
       }
     } catch (error) {
       console.error('Error saving transactions:', error);
@@ -417,29 +526,47 @@ const AddTransaction = () => {
           </Typography>
         }
         action={
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => {
-              // Save current state to sessionStorage
-              sessionStorage.setItem(
-                'addTransactionState',
-                JSON.stringify({
-                  transactionDate: transactionDate.toISOString(),
-                  referenceNumber,
-                  selectedDematAccount,
-                  transactions,
-                  nextId
-                })
-              );
-              // Navigate to security page with state to auto-open dialog
-              navigate('/master-data/security', { state: { openDialog: true, returnTo: location.pathname } });
-            }}
-            color="secondary"
-          >
-            Add Security
-          </Button>
+          <Stack direction="row" spacing={1}>
+            {!isEditMode && !isIpoMode && (
+              <Button
+                variant="outlined"
+                startIcon={<CloudUploadIcon />}
+                onClick={handleUploadContract}
+              >
+                Upload Contract
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => {
+                // Save current state to sessionStorage
+                sessionStorage.setItem(
+                  'addTransactionState',
+                  JSON.stringify({
+                    transactionDate: transactionDate.toISOString(),
+                    referenceNumber,
+                    selectedDematAccount,
+                    transactions,
+                    nextId
+                  })
+                );
+                // Navigate to security page with state to auto-open dialog
+                navigate('/master-data/security', { state: { openDialog: true, returnTo: location.pathname } });
+              }}
+              color="secondary"
+            >
+              Add Security
+            </Button>
+          </Stack>
         }
+      />
+      <input
+        type="file"
+        accept="application/pdf,.pdf"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
       />
       <Divider />
       <CardContent>
@@ -560,15 +687,26 @@ const AddTransaction = () => {
                       </TextField>
                     </TableCell>
                     <TableCell sx={{ width: '22%' }}>
-                      <SecurityAutocomplete
-                        value={transaction.security}
-                        onChange={(newValue) => {
-                          handleTransactionChange(transaction.id, 'security', newValue);
-                        }}
-                        size="small"
-                        required={true}
-                        fullWidth={true}
-                      />
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Box sx={{ flex: 1 }}>
+                          <SecurityAutocomplete
+                            value={transaction.security}
+                            onChange={(newValue) => {
+                              handleTransactionChange(transaction.id, 'security', newValue);
+                            }}
+                            size="small"
+                            required={true}
+                            fullWidth={true}
+                          />
+                        </Box>
+                        <IconButton
+                          size="small"
+                          title="Create new security"
+                          onClick={() => setQuickCreateForRow(transaction.id)}
+                        >
+                          <AddCircleOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
                     </TableCell>
                     <TableCell sx={{ width: '10%' }}>
                       <TextField
@@ -674,6 +812,30 @@ const AddTransaction = () => {
           </Box>
         </form>
       </CardContent>
+
+      <ContractPickerDialog
+        open={pickerOpen && pendingContracts.length > 0}
+        contracts={pendingContracts}
+        onPick={handlePickContract}
+        onClose={() => setPickerOpen(false)}
+        title={
+          pendingContracts.length === 1
+            ? 'Load the next contract from the upload?'
+            : `Pick a contract to load (${pendingContracts.length} remaining)`
+        }
+      />
+
+      <QuickCreateSecurityDialog
+        open={quickCreateForRow !== null}
+        initialName=""
+        initialIsin=""
+        onClose={() => setQuickCreateForRow(null)}
+        onCreated={(sec) => {
+          if (quickCreateForRow !== null) {
+            handleTransactionChange(quickCreateForRow, 'security', sec);
+          }
+        }}
+      />
     </MainCard>
   );
 };

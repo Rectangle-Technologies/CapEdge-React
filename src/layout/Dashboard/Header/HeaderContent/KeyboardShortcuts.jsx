@@ -71,7 +71,17 @@ const KeyboardShortcuts = () => {
       ]
     },
     {
-      section: 'Dashboard Transactions',
+      section: 'Contracts',
+      items: [
+        { keys: ['Alt', 'N'], description: 'Add a new transaction' },
+        { keys: ['Alt', '←'], description: 'Previous page' },
+        { keys: ['Alt', '→'], description: 'Next page' },
+        { keys: ['Alt', '↓'], description: 'Navigate to next row' },
+        { keys: ['Alt', '↑'], description: 'Navigate to previous row' },
+        { keys: ['Enter'], description: 'Expand/collapse selected contract' }
+      ]
+    },
+    {
       items: [
         { keys: ['Alt', 'N'], description: 'Add a new transaction' },
         { keys: ['Alt', 'E'], description: 'Edit selected transaction' },

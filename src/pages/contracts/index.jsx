@@ -103,6 +103,12 @@ const Contracts = () => {
   // Alt+ArrowLeft/Right paginate.
   useEffect(() => {
     const handleKeyDown = (event) => {
+      if (event.altKey && event.code === 'KeyN' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        navigate('/add-transaction');
+        return;
+      }
+
       if (event.key === 'Enter') {
         event.preventDefault();
         if (activeRowIndex !== -1 && contracts.length > 0) {
@@ -143,7 +149,7 @@ const Contracts = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [contracts, activeRowIndex, page, totalPages, toggleExpand]);
+  }, [contracts, activeRowIndex, page, totalPages, toggleExpand, navigate]);
 
   // Reset row tracking on data change
   useEffect(() => {

@@ -194,6 +194,17 @@ const Contracts = () => {
     });
   };
 
+  const onEditContract = (contract) => {
+    const trades = contract.trades || [];
+    const hasIpo = trades.some((t) => t.isIpo);
+    const hasNonIpo = trades.some((t) => !t.isIpo);
+    if (hasIpo && hasNonIpo) {
+      showErrorSnackbar('Cannot edit a contract that mixes IPO and non-IPO transactions');
+      return;
+    }
+    navigate('/edit-contract', { state: { contractData: contract } });
+  };
+
   const loadContracts = async () => {
     if (!selectedDematAccount) return;
 
@@ -403,12 +414,15 @@ const Contracts = () => {
                 <TableCell align="right">
                   <strong>Total Amount</strong>
                 </TableCell>
+                <TableCell align="center">
+                  <strong>Actions</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {contracts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={11} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No contracts found.
                     </Typography>
@@ -450,10 +464,23 @@ const Contracts = () => {
                         <TableCell align="right">{formatCurrency(contract.netSellAmount)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.totalCost)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.netBuyAmount - contract.netSellAmount + contract.totalCost)}</TableCell>
+                        <TableCell align="center">
+                          <Tooltip title="Edit contract" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditContract(contract);
+                              }}
+                            >
+                              <EditIcon fontSize="small" color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
                       </TableRow>
 
                       <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
                           <Collapse in={expandedKey === key} timeout="auto" unmountOnExit>
                             <Box sx={{ margin: 2 }}>
                               <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>

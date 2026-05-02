@@ -104,6 +104,10 @@ const MainRoutes = {
       element: <AddTransaction />
     },
     {
+      path: 'edit-contract',
+      element: <AddTransaction />
+    },
+    {
       path: 'ipo',
       element: <AddTransaction />
     }

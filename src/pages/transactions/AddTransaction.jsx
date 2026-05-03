@@ -56,7 +56,13 @@ const AddTransaction = () => {
   const editData = location.state?.editTransaction;
   const isEditMode = !!editData;
   const editTransactionId = editData?._id;
-  const isIpoMode = isEditMode ? (editData?.isIpo || false) : location.pathname === '/ipo';
+  const isEditContractMode = location.pathname === '/edit-contract';
+  const contractData = location.state?.contractData;
+  const isIpoMode = isEditMode
+    ? (editData?.isIpo || false)
+    : isEditContractMode
+      ? (contractData?.trades?.every((t) => t.isIpo) || false)
+      : location.pathname === '/ipo';
 
   const [transactionDate, setTransactionDate] = useState(dayjs());
   const [referenceNumber, setReferenceNumber] = useState('');
@@ -95,7 +101,7 @@ const AddTransaction = () => {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       setDematAccounts(response.dematAccounts || []);
       // In edit mode, the demat account is pre-filled from the transaction data.
-      if (!isEditMode && response.dematAccounts && response.dematAccounts.length > 0) {
+      if (!isEditMode && !isEditContractMode && response.dematAccounts && response.dematAccounts.length > 0) {
         setSelectedDematAccount(response.dematAccounts[0]._id);
       }
     } catch (error) {
@@ -145,6 +151,88 @@ const AddTransaction = () => {
           security,
           deliveryType: 'Delivery'
         }]);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pre-fill form fields when in edit-contract mode.
+  useEffect(() => {
+    if (!isEditContractMode || !contractData) return;
+
+    const trades = contractData.trades || [];
+    setReferenceNumber(contractData.referenceNumber || '');
+    const dematId = contractData.dematAccountId?._id || contractData.dematAccountId;
+    setSelectedDematAccount(dematId);
+
+    // Use the first (earliest) trade's date as the global date.
+    const sortedDates = trades
+      .map((t) => t.date)
+      .filter(Boolean)
+      .sort((a, b) => new Date(a) - new Date(b));
+    if (sortedDates.length > 0) {
+      setTransactionDate(dayjs(sortedDates[0]));
+    }
+
+    // Map trades into form rows. Skip Intraday SELL — they are represented by
+    // their paired BUY row (same as the single-edit flow).
+    let idCounter = 1;
+    const rows = [];
+    for (const trade of trades) {
+      if (trade.deliveryType === 'Intraday' && trade.type === 'SELL') continue;
+
+      if (trade.deliveryType === 'Intraday') {
+        // Find the paired SELL to get its price.
+        const pairedSell = trades.find(
+          (t) => t.buyTransactionId?.toString() === trade._id?.toString()
+        );
+        rows.push({
+          id: idCounter++,
+          type: 'BUY',
+          quantity: trade.quantity,
+          buyPrice: trade.price,
+          sellPrice: pairedSell?.price ?? '',
+          // transactionCost is stored halved in DB; restore the full value.
+          transactionCost: (trade.transactionCost || 0) * 2,
+          security: trade.securityId,
+          deliveryType: 'Intraday'
+        });
+      } else {
+        const isBuy = trade.type === 'BUY';
+        rows.push({
+          id: idCounter++,
+          type: trade.type,
+          quantity: trade.quantity,
+          buyPrice: isBuy ? trade.price : '',
+          sellPrice: !isBuy ? trade.price : '',
+          transactionCost: trade.transactionCost || 0,
+          security: trade.securityId,
+          deliveryType: 'Delivery'
+        });
+      }
+    }
+
+    setTransactions(rows.length > 0 ? rows : [{
+      id: 1, type: 'BUY', quantity: '', buyPrice: '', sellPrice: '',
+      transactionCost: '', security: null, deliveryType: 'Delivery'
+    }]);
+    setNextId(idCounter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (isEditMode) return;
+    const savedState = sessionStorage.getItem('addTransactionState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setTransactionDate(dayjs(parsed.transactionDate));
+        setReferenceNumber(parsed.referenceNumber);
+        setSelectedDematAccount(parsed.selectedDematAccount);
+        setTransactions(parsed.transactions);
+        setNextId(parsed.nextId);
+        sessionStorage.removeItem('addTransactionState');
+      } catch (error) {
+        console.error('Error restoring state:', error);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -430,6 +518,33 @@ const AddTransaction = () => {
         }
         showSuccessSnackbar('Transaction updated successfully');
         navigate(-1);
+      } else if (isEditContractMode) {
+        // Edit-contract mode: replace all transactions in the contract atomically.
+        const txPayload = transactions.map((t) => {
+          const basePayload = {
+            date: transactionDate.format('YYYY-MM-DD'),
+            type: t.type,
+            quantity: Number(t.quantity),
+            securityId: t.security._id,
+            deliveryType: t.deliveryType,
+            referenceNumber: referenceNumber,
+            dematAccountId: selectedDematAccount,
+            transactionCost: t.transactionCost ? Number(t.transactionCost) : 0,
+            isIpo: isIpoMode
+          };
+          if (t.deliveryType === 'Intraday') {
+            return { ...basePayload, buyPrice: Number(t.buyPrice), sellPrice: Number(t.sellPrice) };
+          }
+          return { ...basePayload, price: t.type === 'BUY' ? Number(t.buyPrice) : Number(t.sellPrice) };
+        });
+
+        await put('/transaction/edit-contract', {
+          referenceNumber,
+          dematAccountId: selectedDematAccount,
+          transactions: txPayload
+        });
+        showSuccessSnackbar(`Contract updated successfully`);
+        navigate('/contracts');
       } else {
         // Create mode: one or more transactions, use POST.
         const payload = transactions.map((t) => {
@@ -502,7 +617,7 @@ const AddTransaction = () => {
       <CardHeader
         title={
           <Typography variant="h5" component="div">
-            {isEditMode ? 'Edit Transaction' : `Add ${isIpoMode ? 'IPO ' : ''}Transactions`}
+            {isEditContractMode ? 'Edit Contract' : isEditMode ? 'Edit Transaction' : `Add ${isIpoMode ? 'IPO ' : ''}Transactions`}
           </Typography>
         }
         action={
@@ -578,6 +693,7 @@ const AddTransaction = () => {
                   onChange={(e) => setReferenceNumber(e.target.value)}
                   required
                   autoFocus
+                  disabled={isEditMode || isEditContractMode}
                 />
               </Grid>
             </Grid>
@@ -763,8 +879,7 @@ const AddTransaction = () => {
               <Button variant="outlined" startIcon={<AddCircleOutlineIcon />} onClick={handleAddTransaction} size="medium" fullWidth>
                 Add Transaction
               </Button>
-            )}
-            {!isIpoMode && (
+            )}            {!isIpoMode && (
               <Button
                 variant="outlined"
                 color="secondary"
@@ -777,7 +892,7 @@ const AddTransaction = () => {
               </Button>
             )}
             <Button type="submit" variant="contained" color="primary" startIcon={<SaveIcon />} size="large" fullWidth>
-              {isEditMode ? 'Update Transaction' : `Save All Transactions (${transactions.length})`}
+              {isEditContractMode ? 'Update Contract' : isEditMode ? 'Update Transaction' : `Save All Transactions (${transactions.length})`}
             </Button>
           </Box>
         </form>

@@ -1,5 +1,5 @@
 import { Autocomplete, Box, TextField } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentUserAccount } from '../../../../store/slices/appSlice';
 import { get } from '../../../../utils/apiUtil';
@@ -10,6 +10,7 @@ const UserAccountDropwdown = () => {
   const dispatch = useDispatch();
   const [userAccounts, setUserAccounts] = useState([]);
   const selectedAccount = useSelector((state) => state.app.currentUserAccount);
+  const inputRef = useRef(null);
 
   // Function to fetch user accounts
   const fetchUserAccounts = useCallback(async () => {
@@ -24,6 +25,22 @@ const UserAccountDropwdown = () => {
       dispatch(hideLoader());
     }
   }, [dispatch]);
+
+  // Keyboard shortcut: Alt+A / Option+A to focus the dropdown
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.altKey && event.code === 'KeyA' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Listen for custom events to refresh user accounts
   useEffect(() => {
@@ -81,13 +98,28 @@ const UserAccountDropwdown = () => {
   const currentValue = selectedAccount?.name || '';
 
   return (
-    <Box sx={{ width: 300, m: 2 }}>
+    <Box
+      sx={{ width: 300, m: 2 }}
+      onKeyDownCapture={(e) => {
+        if (e.altKey && e.code === 'KeyA' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          inputRef.current?.focus();
+          inputRef.current?.select();
+        }
+      }}
+    >
       <Autocomplete
         size="small"
         disablePortal
         disableClearable
         options={userAccounts.map((account) => account.name)}
-        renderInput={(params) => <TextField {...params} label="User Account" />}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="User Account"
+            inputRef={inputRef}
+          />
+        )}
         value={currentValue}
         onChange={(event, newValue) => {
           const selected = userAccounts.find((account) => account.name === newValue);
@@ -98,6 +130,7 @@ const UserAccountDropwdown = () => {
                 name: selected.name
               })
             );
+            inputRef.current?.blur();
           }
         }}
       />

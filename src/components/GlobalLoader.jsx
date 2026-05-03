@@ -4,7 +4,7 @@ import { useAppSelector } from 'store/hooks';
 // ==============================|| GLOBAL LOADER ||============================== //
 
 const GlobalLoader = () => {
-  const isLoading = useAppSelector((state) => state.loader.isLoading);
+  const isLoading = useAppSelector((state) => state.loader.loadingCount > 0);
 
   return (
     <Backdrop

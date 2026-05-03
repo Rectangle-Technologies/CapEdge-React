@@ -1,9 +1,10 @@
 // assets
-import { AccountBookOutlined } from '@ant-design/icons';
+import { AccountBookOutlined, BankOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  AccountBookOutlined
+  AccountBookOutlined,
+  BankOutlined
 };
 
 // ==============================|| MENU ITEMS - LEDGER ||============================== //
@@ -19,6 +20,14 @@ const ledger = {
       type: 'item',
       url: '/ledger',
       icon: icons.AccountBookOutlined,
+      breadcrumbs: false
+    },
+    {
+      id: 'all-balances',
+      title: 'All Balances',
+      type: 'item',
+      url: '/all-balances',
+      icon: icons.BankOutlined,
       breadcrumbs: false
     }
   ]

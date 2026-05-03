@@ -76,7 +76,6 @@ const AddTransaction = () => {
   ]);
   const [nextId, setNextId] = useState(2);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [addSecurityDialogOpen, setAddSecurityDialogOpen] = useState(false);
   const [loadedDraftId, setLoadedDraftId] = useState(null);
 
   // Contract upload state
@@ -84,6 +83,11 @@ const AddTransaction = () => {
   const [pendingContracts, setPendingContracts] = useState([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [quickCreateForRow, setQuickCreateForRow] = useState(null);
+
+  // Show "Parsed Name" column only when at least one row carries parsed
+  // PDF metadata — keeps the table tight for purely-manual entry.
+  const hasParsedRows = transactions.some((t) => t.parsedName);
+  const quickCreateRowRef = transactions.find((t) => t.id === quickCreateForRow);
 
   const fetchDematAccounts = async () => {
     try {
@@ -315,7 +319,10 @@ const AddTransaction = () => {
           : (line.type === 'SELL' ? (line.price ?? '') : ''),
         transactionCost: 0,
         security,
-        deliveryType: line.deliveryType || 'Delivery'
+        deliveryType: line.deliveryType || 'Delivery',
+        // Reference name from the PDF — surfaces in the "Parsed Name" column
+        // so the user can see which contract row maps to which form row.
+        parsedName: line.rawSymbol || ''
       };
     });
 
@@ -593,6 +600,9 @@ const AddTransaction = () => {
                   <TableCell sx={{ fontWeight: 'bold', width: '12%' }}>Delivery Type *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '8%' }}>Type *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '22%' }}>Security *</TableCell>
+                  {hasParsedRows && (
+                    <TableCell sx={{ fontWeight: 'bold', width: '14%' }}>Parsed Name</TableCell>
+                  )}
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Quantity *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Buy Price *</TableCell>
                   <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Sell Price *</TableCell>
@@ -656,13 +666,24 @@ const AddTransaction = () => {
                         </Box>
                         <IconButton
                           size="small"
-                          title="Create new security"
+                          title={transaction.parsedName ? `Create "${transaction.parsedName}"` : 'Create new security'}
                           onClick={() => setQuickCreateForRow(transaction.id)}
                         >
                           <AddCircleOutlineIcon fontSize="small" />
                         </IconButton>
                       </Stack>
                     </TableCell>
+                    {hasParsedRows && (
+                      <TableCell sx={{ width: '14%' }}>
+                        <Typography
+                          variant="body2"
+                          color={transaction.parsedName ? 'text.primary' : 'text.disabled'}
+                          sx={{ wordBreak: 'break-word' }}
+                        >
+                          {transaction.parsedName || '—'}
+                        </Typography>
+                      </TableCell>
+                    )}
                     <TableCell sx={{ width: '10%' }}>
                       <TextField
                         size="small"
@@ -782,7 +803,7 @@ const AddTransaction = () => {
 
       <QuickCreateSecurityDialog
         open={quickCreateForRow !== null}
-        initialName=""
+        initialName={quickCreateRowRef?.parsedName || ''}
         initialIsin=""
         onClose={() => setQuickCreateForRow(null)}
         onCreated={(sec) => {

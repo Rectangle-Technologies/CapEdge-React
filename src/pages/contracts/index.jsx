@@ -158,6 +158,7 @@ const Contracts = () => {
   }, [contracts]);
 
   const fetchDematAccounts = async () => {
+    dispatch(showLoader());
     try {
       const response = await get(`/demat-account/get-all?userAccountId=${userAccount._id}`);
       const accounts = response.dematAccounts || [];
@@ -168,6 +169,8 @@ const Contracts = () => {
     } catch (error) {
       console.error('Error fetching demat accounts:', error);
       showErrorSnackbar('Failed to fetch demat accounts');
+    } finally {
+      dispatch(hideLoader());
     }
   };
 

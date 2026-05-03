@@ -103,6 +103,12 @@ const Contracts = () => {
   // Alt+ArrowLeft/Right paginate.
   useEffect(() => {
     const handleKeyDown = (event) => {
+      if (event.altKey && event.code === 'KeyN' && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        navigate('/add-transaction');
+        return;
+      }
+
       if (event.key === 'Enter') {
         event.preventDefault();
         if (activeRowIndex !== -1 && contracts.length > 0) {
@@ -143,7 +149,7 @@ const Contracts = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [contracts, activeRowIndex, page, totalPages, toggleExpand]);
+  }, [contracts, activeRowIndex, page, totalPages, toggleExpand, navigate]);
 
   // Reset row tracking on data change
   useEffect(() => {
@@ -192,6 +198,34 @@ const Contracts = () => {
     navigate(`/edit-transaction/${trade._id}`, {
       state: { editTransaction: trade, editSellPrice }
     });
+  };
+
+  const onEditContract = (contract) => {
+    const trades = contract.trades || [];
+    const hasIpo = trades.some((t) => t.isIpo);
+    const hasNonIpo = trades.some((t) => !t.isIpo);
+    if (hasIpo && hasNonIpo) {
+      showErrorSnackbar('Cannot edit a contract that mixes IPO and non-IPO transactions');
+      return;
+    }
+    navigate('/edit-contract', { state: { contractData: contract } });
+  };
+
+  const onDeleteContract = async (contract) => {
+    const count = contract.totalTrades;
+    if (window.confirm(`Are you sure you want to delete this contract and all ${count} transaction(s) in it? This cannot be undone.`)) {
+      dispatch(showLoader());
+      try {
+        const dematAccountId = contract.dematAccountId?._id || contract.dematAccountId;
+        await del(`/transaction/delete-contract?referenceNumber=${encodeURIComponent(contract.referenceNumber)}&dematAccountId=${dematAccountId}`);
+        loadContracts();
+      } catch (error) {
+        console.error('Error deleting contract:', error);
+        showErrorSnackbar(error.message || 'Failed to delete contract');
+      } finally {
+        dispatch(hideLoader());
+      }
+    }
   };
 
   const loadContracts = async () => {
@@ -403,12 +437,15 @@ const Contracts = () => {
                 <TableCell align="right">
                   <strong>Total Amount</strong>
                 </TableCell>
+                <TableCell align="center">
+                  <strong>Actions</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {contracts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={11} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No contracts found.
                     </Typography>
@@ -450,10 +487,34 @@ const Contracts = () => {
                         <TableCell align="right">{formatCurrency(contract.netSellAmount)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.totalCost)}</TableCell>
                         <TableCell align="right">{formatCurrency(contract.netBuyAmount - contract.netSellAmount + contract.totalCost)}</TableCell>
+                        <TableCell align="center">
+                          <Tooltip title="Edit contract" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEditContract(contract);
+                              }}
+                            >
+                              <EditIcon fontSize="small" color="primary" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete contract" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteContract(contract);
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" color="error" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
                       </TableRow>
 
                       <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
                           <Collapse in={expandedKey === key} timeout="auto" unmountOnExit>
                             <Box sx={{ margin: 2 }}>
                               <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>

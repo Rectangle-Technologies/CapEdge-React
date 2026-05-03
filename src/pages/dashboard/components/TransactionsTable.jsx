@@ -63,6 +63,27 @@ const TransactionsTable = () => {
         return;
       }
 
+      // Handle Alt+E / Option+E for editing when a row is selected
+      if (event.altKey && event.code === 'KeyE' && !event.ctrlKey && !event.metaKey) {
+        if (selectedRow && transactions.length > 0) {
+          const transaction = transactions.find((t) => t._id === selectedRow);
+          if (transaction) {
+            event.preventDefault();
+            let editSellPrice;
+            if (transaction.deliveryType === 'Intraday' && transaction.type === 'BUY') {
+              const pairedSell = transactions.find(
+                (t) => t.buyTransactionId?.toString() === transaction._id?.toString()
+              );
+              editSellPrice = pairedSell?.price;
+            }
+            navigate(`/edit-transaction/${transaction._id}`, {
+              state: { editTransaction: transaction, editSellPrice }
+            });
+          }
+        }
+        return;
+      }
+
       // Handle Alt+Delete / Option+Delete for deleting when a row is selected
       // On Mac, Option+Delete sends 'Backspace', on Windows/Linux it's 'Delete'
       if (

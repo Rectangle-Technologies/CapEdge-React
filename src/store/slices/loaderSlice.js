@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 // ==============================|| LOADER SLICE ||============================== //
 
 const initialState = {
-  isLoading: false
+  loadingCount: 0
 };
 
 const loaderSlice = createSlice({
@@ -11,10 +11,10 @@ const loaderSlice = createSlice({
   initialState,
   reducers: {
     showLoader: (state) => {
-      state.isLoading = true;
+      state.loadingCount += 1;
     },
     hideLoader: (state) => {
-      state.isLoading = false;
+      state.loadingCount = Math.max(0, state.loadingCount - 1);
     }
   }
 });

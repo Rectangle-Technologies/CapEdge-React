@@ -18,6 +18,8 @@ import {
 } from '@mui/material';
 import { HelpOutline as HelpIcon, Close as CloseIcon } from '@mui/icons-material';
 
+const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+
 const KeyboardShortcuts = () => {
   const [open, setOpen] = useState(false);
 
@@ -25,6 +27,12 @@ const KeyboardShortcuts = () => {
   const handleClose = () => setOpen(false);
 
   const shortcuts = [
+    {
+      section: 'Global',
+      items: [
+        { keys: ['Alt', 'A'], description: 'Focus the User Account dropdown' }
+      ]
+    },
     {
       section: 'Security Master',
       items: [
@@ -63,9 +71,20 @@ const KeyboardShortcuts = () => {
       ]
     },
     {
-      section: 'Dashboard Transactions',
+      section: 'Contracts',
       items: [
         { keys: ['Alt', 'N'], description: 'Add a new transaction' },
+        { keys: ['Alt', '←'], description: 'Previous page' },
+        { keys: ['Alt', '→'], description: 'Next page' },
+        { keys: ['Alt', '↓'], description: 'Navigate to next row' },
+        { keys: ['Alt', '↑'], description: 'Navigate to previous row' },
+        { keys: ['Enter'], description: 'Expand/collapse selected contract' }
+      ]
+    },
+    {
+      items: [
+        { keys: ['Alt', 'N'], description: 'Add a new transaction' },
+        { keys: ['Alt', 'E'], description: 'Edit selected transaction' },
         { keys: ['Alt', 'Delete'], description: 'Delete selected transaction' },
         { keys: ['Alt', '←'], description: 'Previous page' },
         { keys: ['Alt', '→'], description: 'Next page' },
@@ -93,9 +112,11 @@ const KeyboardShortcuts = () => {
     }
   ];
 
+  const resolveKey = (key) => (isMac && key === 'Alt' ? '⌥ Option' : key);
+
   const KeyChip = ({ keyLabel }) => (
     <Chip
-      label={keyLabel}
+      label={resolveKey(keyLabel)}
       size="small"
       sx={{
         fontFamily: 'monospace',
@@ -134,7 +155,7 @@ const KeyboardShortcuts = () => {
             </IconButton>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            All shortcuts use <strong>Alt</strong> on Windows/Linux and <strong>Option</strong> on Mac
+            All shortcuts use <strong>{isMac ? '⌥ Option' : 'Alt'}</strong> as the modifier key
           </Typography>
         </DialogTitle>
         <DialogContent dividers>

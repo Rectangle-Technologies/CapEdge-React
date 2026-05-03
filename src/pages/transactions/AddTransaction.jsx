@@ -40,7 +40,6 @@ import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import QuickCreateSecurityDialog from 'components/QuickCreateSecurityDialog';
 import ContractPickerDialog from 'components/ContractPickerDialog';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { Add } from '@mui/icons-material';
 import { saveDraft, getDraft, deleteDraft } from 'utils/transactionDrafts';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -147,27 +146,7 @@ const AddTransaction = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Restore state when navigating back from Security component (create mode only).
-  useEffect(() => {
-    if (isEditMode) return;
-    const savedState = sessionStorage.getItem('addTransactionState');
-    if (savedState) {
-      try {
-        const parsed = JSON.parse(savedState);
-        setTransactionDate(dayjs(parsed.transactionDate));
-        setReferenceNumber(parsed.referenceNumber);
-        setSelectedDematAccount(parsed.selectedDematAccount);
-        setTransactions(parsed.transactions);
-        setNextId(parsed.nextId);
-        sessionStorage.removeItem('addTransactionState');
-      } catch (error) {
-        console.error('Error restoring state:', error);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Load draft when navigated from drafts list (overrides edit/sessionStorage pre-fill).
+// Load draft when navigated from drafts list (overrides edit/sessionStorage pre-fill).
   useEffect(() => {
     const draftId = location.state?.draftId;
     if (!draftId || !userAccount?._id || loadedDraftId === draftId) return;
@@ -526,39 +505,15 @@ const AddTransaction = () => {
           </Typography>
         }
         action={
-          <Stack direction="row" spacing={1}>
-            {!isEditMode && !isIpoMode && (
-              <Button
-                variant="outlined"
-                startIcon={<CloudUploadIcon />}
-                onClick={handleUploadContract}
-              >
-                Upload Contract
-              </Button>
-            )}
+          !isEditMode && !isIpoMode ? (
             <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => {
-                // Save current state to sessionStorage
-                sessionStorage.setItem(
-                  'addTransactionState',
-                  JSON.stringify({
-                    transactionDate: transactionDate.toISOString(),
-                    referenceNumber,
-                    selectedDematAccount,
-                    transactions,
-                    nextId
-                  })
-                );
-                // Navigate to security page with state to auto-open dialog
-                navigate('/master-data/security', { state: { openDialog: true, returnTo: location.pathname } });
-              }}
-              color="secondary"
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={handleUploadContract}
             >
-              Add Security
+              Upload Contract
             </Button>
-          </Stack>
+          ) : null
         }
       />
       <input

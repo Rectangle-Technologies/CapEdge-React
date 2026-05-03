@@ -331,9 +331,6 @@ const AddTransaction = () => {
       setNextId(newRows.length + 1);
     }
 
-    if (contract.warnings?.length) {
-      contract.warnings.forEach((w) => showErrorSnackbar(w));
-    }
   };
 
   const handleUploadContract = () => fileInputRef.current?.click();
@@ -358,20 +355,17 @@ const AddTransaction = () => {
       const data = response.data?.data;
       const contracts = data?.contracts || [];
       if (contracts.length === 0) {
-        showErrorSnackbar('No contracts could be parsed from this PDF');
         return;
       }
       if (contracts.length === 1) {
         prefillFromContract(contracts[0]);
-        showSuccessSnackbar('Contract loaded — review and save');
       } else {
         // Multi-client PDF: queue them and let the user pick
         setPendingContracts(contracts);
         setPickerOpen(true);
       }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to parse contract';
-      showErrorSnackbar(msg);
+      // silent — no snackbar on upload errors
     } finally {
       dispatch(hideLoader());
     }

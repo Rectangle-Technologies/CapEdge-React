@@ -3,6 +3,7 @@ import { showErrorSnackbar } from '../../../../store/utils';
 import { get } from '../../../../utils/apiUtil';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFinancialYear } from '../../../../store/slices/appSlice';
+import { hideLoader, showLoader } from '../../../../store/slices/loaderSlice';
 import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 const FinancialYearDropdown = () => {
@@ -26,6 +27,7 @@ const FinancialYearDropdown = () => {
 
   useEffect(() => {
     const fetchFinancialYears = async () => {
+      dispatch(showLoader());
       try {
         const data = await get('/financial-year/get-all');
         const years = data.financialYears || [];
@@ -46,6 +48,8 @@ const FinancialYearDropdown = () => {
       } catch (error) {
         console.error('Failed to fetch financial years:', error);
         showErrorSnackbar(error.message || 'Failed to fetch financial years');
+      } finally {
+        dispatch(hideLoader());
       }
     };
     fetchFinancialYears();

@@ -432,6 +432,9 @@ const AddTransaction = () => {
       dispatch(showLoader());
       const formData = new FormData();
       formData.append('file', file);
+      if (userAccount?._id) {
+        formData.append('userAccountId', userAccount._id);
+      }
       const token = store.getState().auth?.token;
       const response = await axios.post(`${API_BASE}/transaction/upload-contract`, formData, {
         headers: {

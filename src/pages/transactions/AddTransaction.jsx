@@ -456,7 +456,8 @@ const AddTransaction = () => {
         setPickerOpen(true);
       }
     } catch (err) {
-      // silent — no snackbar on upload errors
+      const message = err?.response?.data?.message || err?.message || 'Failed to parse contract';
+      showErrorSnackbar(message);
     } finally {
       dispatch(hideLoader());
     }

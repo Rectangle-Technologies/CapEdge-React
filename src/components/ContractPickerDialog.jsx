@@ -37,15 +37,16 @@ const ContractPickerDialog = ({ open, contracts, onPick, onClose, title = 'Selec
                       <Chip label="Already imported" size="small" color="warning" />
                     )}
                   </Stack>
-                  <Typography variant="body2" color="text.secondary">
-                    Trade Date: {c.tradeDate} · Client: {c.detectedClient?.name || '—'}
+                  <Typography variant="body1" fontWeight={500}>
+                    {c.detectedClient?.name || '—'}
                     {c.detectedClient?.ucc ? ` (UCC ${c.detectedClient.ucc})` : ''}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {c.lines?.length || 0} line(s)
+                  <Typography variant="body2" color="text.secondary">
+                    Trade Date: {c.tradeDate}
                     {c.matchedDematAccount?.brokerName
                       ? ` · Demat: ${c.matchedDematAccount.brokerName}`
                       : ' · No demat matched'}
+                    {` · ${c.lines?.length || 0} entries`}
                   </Typography>
                 </Box>
               </CardActionArea>

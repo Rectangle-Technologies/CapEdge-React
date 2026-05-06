@@ -1,5 +1,6 @@
 import axios from 'axios';
 import store from '../store';
+import { logout } from '../store/slices/authSlice';
 
 // Base URL configuration
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -92,9 +93,10 @@ const handleApiError = (error) => {
     // Handle specific error cases
     switch (status) {
       case 401:
-        // Unauthorized - token might be expired
-        // You might want to dispatch a logout action here
-        return new Error(data?.message || 'Unauthorized access. Please login again.');
+        // Unauthorized - token expired or invalid, auto-logout
+        store.dispatch(logout());
+        window.location.href = '/login';
+        return new Error(data?.message || 'Session expired. Please login again.');
       case 403:
         return new Error(data?.message || 'Access forbidden.');
       case 404:

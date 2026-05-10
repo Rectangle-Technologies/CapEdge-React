@@ -31,15 +31,17 @@ const fmtDate = (date) => (date ? dayjs(date).format('DD/MM/YYYY') : '-');
 const cs = { fontSize: '0.75rem', py: 0.75 };
 const br = { borderRight: '1px solid rgba(224,224,224,1)' };
 
+const r2 = (n) => parseFloat(n.toFixed(2));
+
 const computeRow = (tx) => {
-  const buyAmt = tx.quantity * tx.buyPrice;
-  const sellAmt = tx.quantity * tx.sellPrice;
+  const buyAmt = r2(tx.quantity * tx.buyPrice);
+  const sellAmt = r2(tx.quantity * tx.sellPrice);
   const charges = tx.transactionCost || 0;
   const isGain = tx.resultType === 'gain';
   const isLT = tx.gainType === 'LTCG';
   const isIntraday = tx.gainType === 'Intraday';
-  const gainLossAmt = isGain ? sellAmt - buyAmt : buyAmt - sellAmt;
-  const taxableAmt = isGain ? gainLossAmt - charges : -(gainLossAmt + charges);
+  const gainLossAmt = r2(isGain ? sellAmt - buyAmt : buyAmt - sellAmt);
+  const taxableAmt = r2(isGain ? gainLossAmt - charges : -(gainLossAmt + charges));
   return { buyAmt, sellAmt, charges, isGain, isLT, isIntraday, gainLossAmt, taxableAmt };
 };
 
@@ -62,7 +64,13 @@ const computeSecTotals = (transactions) => {
       else { lossST += r.gainLossAmt; taxST += tx.calculatedTax || 0; }
     }
   });
-  return { buyAmt, sellAmt, gainLT, gainST, gainIntraday, lossLT, lossST, lossIntraday, charges, taxableAmt, taxLT, taxST, taxIntraday };
+  return {
+    buyAmt: r2(buyAmt), sellAmt: r2(sellAmt),
+    gainLT: r2(gainLT), gainST: r2(gainST), gainIntraday: r2(gainIntraday),
+    lossLT: r2(lossLT), lossST: r2(lossST), lossIntraday: r2(lossIntraday),
+    charges: r2(charges), taxableAmt: r2(taxableAmt),
+    taxLT: r2(taxLT), taxST: r2(taxST), taxIntraday: r2(taxIntraday)
+  };
 };
 
 const computeGrandTotals = (securities) => {

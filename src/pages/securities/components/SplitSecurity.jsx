@@ -41,6 +41,7 @@ const SplitSecurity = () => {
   const [splitDate, setSplitDate] = useState(dayjs());
   const [newQuantities, setNewQuantities] = useState({});
   const [selectedAccounts, setSelectedAccounts] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   const handleNewQuantityChange = (holdingIndex, entryIndex, value) => {
     setNewQuantities((prev) => ({
@@ -95,6 +96,7 @@ const SplitSecurity = () => {
   }, [splitFrom, splitTo, data]);
 
   const handleSplitSecurity = async () => {
+    if (submitting) return;
     if (window.confirm('Are you sure you want to split this security? This action cannot be undone.')) {
       // get data to submit
       const transactions = [];
@@ -124,6 +126,7 @@ const SplitSecurity = () => {
         transactions
       };
 
+      setSubmitting(true);
       dispatch(showLoader());
       try {
         await post('/security/split', splitData);
@@ -134,6 +137,7 @@ const SplitSecurity = () => {
         showErrorSnackbar(error.message || 'Failed to split security.');
       } finally {
         dispatch(hideLoader());
+        setSubmitting(false);
       }
     }
   };
@@ -277,7 +281,7 @@ const SplitSecurity = () => {
           </Grid>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo || !Object.values(selectedAccounts).some(Boolean)} onClick={handleSplitSecurity}>
+            <Button variant="contained" size="large" disabled={!splitFrom || !splitTo || !Object.values(selectedAccounts).some(Boolean) || submitting} onClick={handleSplitSecurity}>
               Split
             </Button>
           </Box>

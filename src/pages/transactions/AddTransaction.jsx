@@ -64,7 +64,7 @@ const AddTransaction = () => {
       ? (contractData?.trades?.every((t) => t.isIpo) || false)
       : location.pathname === '/ipo';
 
-  const [transactionDate, setTransactionDate] = useState(dayjs());
+  const [transactionDate, setTransactionDate] = useState(dayjs().startOf('day'));
   const [referenceNumber, setReferenceNumber] = useState('');
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [dematAccounts, setDematAccounts] = useState([]);
@@ -475,7 +475,7 @@ const AddTransaction = () => {
       return;
     }
     const draftPayload = {
-      transactionDate: transactionDate ? transactionDate.toISOString() : null,
+      transactionDate: transactionDate ? transactionDate.format('YYYY-MM-DD') : null, // date-only draft key
       referenceNumber,
       selectedDematAccount,
       transactions,
@@ -587,7 +587,7 @@ const AddTransaction = () => {
         showSuccessSnackbar(response.message || `${transactions.length} transaction(s) added successfully`);
 
         setReferenceNumber('');
-        setTransactionDate(dayjs());
+        setTransactionDate(dayjs().startOf('day'));
         setTransactions([
           {
             id: 1,
@@ -678,6 +678,7 @@ const AddTransaction = () => {
                     label="Transaction Date"
                     value={transactionDate}
                     format="DD/MM/YYYY"
+                    maxDate={dayjs()} // no future-dated transactions (mirrors backend guard)
                     onChange={(newValue) => setTransactionDate(newValue)}
                     slotProps={{
                       textField: {

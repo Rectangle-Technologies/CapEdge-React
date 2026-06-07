@@ -1,5 +1,6 @@
 import { Dialog, DialogTitle, DialogContent, Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper, IconButton } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
+import { formatDate } from '../../../utils/formatDate'
 
 const SplitHistoryModal = ({ open, onClose, security }) => {
     return (
@@ -40,7 +41,7 @@ const SplitHistoryModal = ({ open, onClose, security }) => {
                                 security.splitHistory.map((split) => (
                                     <TableRow key={split._id}>
                                         <TableCell align="center">
-                                            {new Date(split.splitDate).toLocaleDateString('en-GB')}
+                                            {formatDate(split.splitDate)}
                                         </TableCell>
                                         <TableCell align="center">{split.splitRatio}</TableCell>
                                     </TableRow>

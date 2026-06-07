@@ -19,12 +19,12 @@ export const formatDate = (date, format = 'display') => {
     return dateObj.toISOString().split('T')[0];
   }
 
-  // For display (DD/MM/YYYY format)
-  return dateObj.toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  // For display (DD/MM/YYYY) — UTC parts so the stored calendar day shows
+  // identically in any timezone (dates are stored at UTC midnight).
+  const dd = String(dateObj.getUTCDate()).padStart(2, '0');
+  const mm = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+  const yyyy = dateObj.getUTCFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 };
 
 /**

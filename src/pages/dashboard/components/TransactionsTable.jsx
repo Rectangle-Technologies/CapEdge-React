@@ -1,4 +1,5 @@
 import { Add, Delete, Edit } from '@mui/icons-material';
+import { formatDate } from '../../../utils/formatDate';
 import {
   Box,
   Button,
@@ -425,7 +426,7 @@ const TransactionsTable = () => {
                     const quantity = transaction.quantity || 0;
                     const price = transaction.price || 0;
                     const amount = quantity * price;
-                    const formattedDate = transaction.date ? new Date(transaction.date).toLocaleDateString('en-GB') : '-';
+                    const formattedDate = formatDate(transaction.date);
                     const type = transaction.isIpo ? 'IPO' : transaction.type?.toUpperCase();
 
                     return (

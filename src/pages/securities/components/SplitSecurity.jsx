@@ -38,7 +38,7 @@ const SplitSecurity = () => {
   const [data, setData] = useState(null);
   const [splitFrom, setSplitFrom] = useState('');
   const [splitTo, setSplitTo] = useState('');
-  const [splitDate, setSplitDate] = useState(dayjs());
+  const [splitDate, setSplitDate] = useState(dayjs().startOf('day'));
   const [newQuantities, setNewQuantities] = useState({});
   const [selectedAccounts, setSelectedAccounts] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -121,7 +121,7 @@ const SplitSecurity = () => {
 
       const splitData = {
         securityId,
-        splitDate: splitDate.toDate(),
+        splitDate: splitDate.format('YYYY-MM-DD'), // date-only; backend stores at UTC midnight
         splitRatio: `${splitFrom}:${splitTo}`,
         transactions
       };
@@ -157,10 +157,13 @@ const SplitSecurity = () => {
       ) : (
         <>
           {data?.splitHistory?.some(
-            (s) => new Date(s.splitDate).toISOString().split('T')[0] === splitDate?.format('YYYY-MM-DD')
+            (s) =>
+              s.splitRatio === `${splitFrom}:${splitTo}` &&
+              new Date(s.splitDate).toISOString().split('T')[0] === splitDate?.format('YYYY-MM-DD')
           ) && (
             <Alert severity="warning" sx={{ mb: 2 }}>
-              A split has already been recorded for this date. Only check accounts that were <strong>not</strong> split yet.
+              A <strong>{splitFrom}:{splitTo}</strong> split on this date has already been recorded. Select <strong>only</strong> the
+              accounts that weren&rsquo;t part of it — re-selecting an already-split account will be rejected as a duplicate.
             </Alert>
           )}
 
@@ -178,6 +181,7 @@ const SplitSecurity = () => {
                 label="Split Date"
                 value={splitDate}
                 format="DD/MM/YYYY"
+                maxDate={dayjs()} // no future-dated splits (mirrors backend guard)
                 onChange={(newValue) => setSplitDate(newValue)}
                 slotProps={{
                   textField: {

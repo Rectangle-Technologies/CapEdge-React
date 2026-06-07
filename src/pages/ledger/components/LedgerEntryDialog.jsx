@@ -15,6 +15,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const LedgerEntryDialog = ({ open, formik, onClose, editEntry }) => {
   return (
@@ -44,6 +45,7 @@ const LedgerEntryDialog = ({ open, formik, onClose, editEntry }) => {
                   label="Date"
                   value={formik.values.date}
                   format="DD/MM/YYYY"
+                  maxDate={dayjs()} // no future-dated ledger entries (mirrors backend guard)
                   onChange={(value) => formik.setFieldValue('date', value)}
                   slotProps={{
                     textField: {

@@ -77,7 +77,7 @@ const LedgerTable = ({
 
   const formik = useFormik({
     initialValues: {
-      date: dayjs(),
+      date: dayjs().startOf('day'),
       entryType: '',
       transactionAmount: '',
       remarks: ''

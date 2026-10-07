@@ -12,8 +12,18 @@ import { get, post } from '../utils/apiUtil';
  * @param {string} props.filename - Name of the file to be downloaded (without extension)
  * @param {Object} props.sx - Additional styling
  * @param {string} props.title - Tooltip text
+ * @param {string} props.dematAccountId - Selected demat account id; enables the per-demat download
+ * @param {string} props.dematAccountLabel - Label used in the per-demat file name
  */
-const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 'Export to Excel', ...otherProps }) => {
+const ExportToExcelButton = ({
+  data = [],
+  filename = 'export',
+  sx = {},
+  title = 'Export to Excel',
+  dematAccountId = '',
+  dematAccountLabel = '',
+  ...otherProps
+}) => {
   const dispatch = useDispatch();
   const financialYear = useSelector((state) => state.app.financialYear);
 
@@ -61,53 +71,50 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
     }
   };
 
-  const handleDownloadSummary = async () => {
+  const downloadReport = async (url, filename, errorMessage) => {
     dispatch(showLoader());
     try {
-      const response = await get(`/report/holdings/export/summary?financialYearId=${financialYear?._id}`, true, { responseType: 'arraybuffer' });
-      const filename = `Holdings_Summary_${financialYear?.title || ''}.xlsx`;
+      const response = await get(url, true, { responseType: 'arraybuffer' });
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      const url = window.URL.createObjectURL(blob);
+      const objectUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = objectUrl;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(objectUrl);
     } catch (err) {
-      showErrorSnackbar(err.message || 'Download summary failed. Please try again.');
-      console.error('Download summary error:', err);
+      showErrorSnackbar(err.message || errorMessage);
+      console.error(errorMessage, err);
     } finally {
       dispatch(hideLoader());
     }
   };
 
-  const handleDownloadAll = async () => {
-    dispatch(showLoader());
-    try {
-      const response = await get(`/report/holdings/export?financialYearId=${financialYear?._id}`, true, { responseType: 'arraybuffer' });
-      const filename = `Holdings_${financialYear?.title || ''}.xlsx`;
-      // Create Blob and trigger download
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      showErrorSnackbar(err.message || 'Download all failed. Please try again.');
-      console.error('Download all error:', err);
-    } finally {
-      dispatch(hideLoader());
-    }
+  const handleDownloadSummary = () =>
+    downloadReport(
+      `/report/holdings/export/summary?financialYearId=${financialYear?._id}`,
+      `Holdings_Summary_${financialYear?.title || ''}.xlsx`,
+      'Download summary failed. Please try again.'
+    );
+
+  const handleDownloadAll = () =>
+    downloadReport(
+      `/report/holdings/export?financialYearId=${financialYear?._id}`,
+      `Holdings_${financialYear?.title || ''}.xlsx`,
+      'Download all failed. Please try again.'
+    );
+
+  const handleDownloadDemat = () => {
+    const label = String(dematAccountLabel || 'Demat').replace(/[^\w-]+/g, '_');
+    return downloadReport(
+      `/report/holdings/export?financialYearId=${financialYear?._id}&dematAccountId=${dematAccountId}`,
+      `Holdings_${label}_${financialYear?.title || ''}.xlsx`,
+      'Download selected demat failed. Please try again.'
+    );
   };
 
   return (
@@ -115,8 +122,11 @@ const ExportToExcelButton = ({ data = [], filename = 'export', sx = {}, title = 
       <Button variant="outlined" onClick={handleDownloadSummary} sx={{ mr: 1 }}>
         Download Summary
       </Button>
-      <Button variant="contained" onClick={handleDownloadAll}>
+      <Button variant="contained" onClick={handleDownloadAll} sx={{ mr: 1 }}>
         Download Lot-wise
+      </Button>
+      <Button variant="contained" onClick={handleDownloadDemat} disabled={!dematAccountId}>
+        Download Selected Demat
       </Button>
       {/* <IconButton
       onClick={handleExport}

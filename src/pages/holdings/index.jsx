@@ -251,7 +251,16 @@ const Holdings = () => {
           title="Current Holdings"
           subheader="View all of your holdings as of now"
           action={
-            <ExportToExcelButton data={getExportData()} filename={`holdings_${formatDateForFileName()}`} title="Export Holdings to Excel" />
+            <ExportToExcelButton
+              data={getExportData()}
+              filename={`holdings_${formatDateForFileName()}`}
+              title="Export Holdings to Excel"
+              dematAccountId={selectedDematAccount}
+              dematAccountLabel={(() => {
+                const account = dematAccounts.find((a) => a._id === selectedDematAccount);
+                return account?.brokerId?.name || account?.accountNumber || '';
+              })()}
+            />
           }
         />
         <Divider />

@@ -17,12 +17,16 @@ import {
   Chip,
   Grid,
   Collapse,
-  IconButton
+  IconButton,
+  Button,
+  Tooltip
 } from '@mui/material';
 import {
   ShowChart as ShowChartIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  EditNote as EditNoteIcon,
+  EditOutlined as EditOutlinedIcon
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { get } from 'utils/apiUtil';
@@ -33,6 +37,8 @@ import { showErrorSnackbar } from 'store/utils';
 import { fetchHoldings, transformHoldingData } from './services/holdingsService';
 import SecurityAutocomplete from 'components/SecurityAutocomplete';
 import ExportToExcelButton from 'components/ExportToExcelButton';
+import ManageTransactionsPanel from './components/ManageTransactionsPanel';
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 const Holdings = () => {
   const dispatch = useDispatch();
@@ -47,8 +53,14 @@ const Holdings = () => {
   const [activeRowIndex, setActiveRowIndex] = useState(-1);
   const [totalHoldingValue, setTotalHoldingValue] = useState(0);
   const [totalSecurities, setTotalSecurities] = useState(0);
+  const [manageTarget, setManageTarget] = useState(null); // { securityId, securityName, highlightTransactionId } while the Manage transactions panel is open
+  const [panelBusy, setPanelBusy] = useState({ saving: false, formOpen: false }); // reported by the panel
+  const { menuMaster } = useGetMenuMaster();
+  const sidebarBeforeManage = useRef(null); // the left menu's state to restore when the panel closes
+  const [latestFinancialYearId, setLatestFinancialYearId] = useState(null);
   const tableContainerRef = useRef(null);
   const rowRefs = useRef([]);
+  const loadSeq = useRef(0);
 
   const toggleExpand = useCallback((securityId) => {
     setExpandedSecurity((prev) => (prev === securityId ? null : securityId));
@@ -97,6 +109,10 @@ const Holdings = () => {
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // The Manage transactions drawer has its own form and dialogs: these shortcuts must not touch them
+      if (manageTarget) return;
+      if (event.target?.closest?.('input, textarea, select, [contenteditable="true"], [role="dialog"]')) return;
+
       // Handle Enter key to expand/collapse active row
       if (event.key === 'Enter') {
         event.preventDefault();
@@ -141,7 +157,7 @@ const Holdings = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [groupedHoldings, activeRowIndex, toggleExpand]);
+  }, [groupedHoldings, activeRowIndex, toggleExpand, manageTarget]);
 
   // Reset active row when holdings change
   useEffect(() => {
@@ -164,26 +180,58 @@ const Holdings = () => {
     }
   };
 
-  const loadHoldings = async () => {
-    if (!selectedDematAccount) return;
+  // silent: refresh without the full-screen loader (used after a change made in the Manage transactions drawer)
+  const loadHoldings = async ({ silent = false } = {}) => {
+    if (!selectedDematAccount) return null;
 
-    dispatch(showLoader());
+    const seq = ++loadSeq.current;
+    if (!silent) dispatch(showLoader());
     try {
       const securityId = selectedSecurity?._id || null;
       const data = await fetchHoldings(null, 1, selectedDematAccount, securityId, financialYear?._id);
 
       if (data?.holdings) {
         const transformedHoldings = data.holdings.map(transformHoldingData);
-        setHoldings(transformedHoldings);
-        setTotalHoldingValue(data.totalHoldingValue || 0);
-        setTotalSecurities(data.totalSecurities || 0);
+        // a newer load has started: this answer is stale
+        if (seq === loadSeq.current) {
+          setHoldings(transformedHoldings);
+          setTotalHoldingValue(data.totalHoldingValue || 0);
+          setTotalSecurities(data.totalSecurities || 0);
+        }
+        return transformedHoldings;
       }
+      return null;
     } catch (error) {
       showErrorSnackbar(error.message || 'Failed to load holdings. Please try again.');
+      return null;
     } finally {
-      dispatch(hideLoader());
+      if (!silent) dispatch(hideLoader());
     }
   };
+
+  // After a transaction change: reload the holdings and report the security's new total quantity
+  // (a number, null = no shares left, undefined = the reload failed).
+  const reloadAfterChange = async () => {
+    const securityId = manageTarget?.securityId;
+    const reloaded = await loadHoldings({ silent: true });
+    if (!reloaded) return undefined;
+    const quantity = reloaded.filter((holding) => holding.securityId === securityId).reduce((sum, holding) => sum + holding.quantity, 0);
+    return quantity > 0 ? quantity : null;
+  };
+
+  // Transactions can only be changed while the newest financial year is selected: that is the year the live holdings belong to
+  // (the list is sorted newest first). In a past year the Holdings page shows a snapshot.
+  useEffect(() => {
+    const loadLatestFinancialYear = async () => {
+      try {
+        const data = await get('/financial-year/get-all');
+        setLatestFinancialYearId(data?.financialYears?.[0]?._id || null);
+      } catch (error) {
+        console.error('Error fetching financial years:', error); // managing transactions stays disabled
+      }
+    };
+    loadLatestFinancialYear();
+  }, []);
 
   useEffect(() => {
     if (userAccount?._id) {
@@ -198,6 +246,54 @@ const Holdings = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDematAccount, selectedSecurity, financialYear]);
+
+  const canManage = !!latestFinancialYearId && financialYear?._id === latestFinancialYearId;
+  const manageDisabledReason = 'Switch to the current financial year to edit transactions';
+  const selectedDematLabel = (() => {
+    const account = dematAccounts.find((a) => a._id === selectedDematAccount);
+    return account?.brokerId?.name || account?.accountNumber || '';
+  })();
+  const managing = !!manageTarget;
+  const openManage = (securityId, securityName, highlightTransactionId = null) => {
+    if (panelBusy.saving) return; // a save is running
+    if (
+      manageTarget &&
+      manageTarget.securityId !== securityId &&
+      panelBusy.formOpen &&
+      !window.confirm('Discard the transaction you are editing?')
+    )
+      return;
+    setManageTarget({ securityId, securityName, highlightTransactionId });
+  };
+
+  // While transactions are managed the left menu collapses to give the two sides room; it comes back as it was when the panel closes
+  useEffect(() => {
+    if (managing && sidebarBeforeManage.current === null) {
+      sidebarBeforeManage.current = menuMaster?.isDashboardDrawerOpened ?? false;
+      handlerDrawerOpen(false);
+    } else if (!managing && sidebarBeforeManage.current !== null) {
+      handlerDrawerOpen(sidebarBeforeManage.current);
+      sidebarBeforeManage.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [managing]);
+  useEffect(
+    () => () => {
+      if (sidebarBeforeManage.current !== null) handlerDrawerOpen(sidebarBeforeManage.current); // leaving the page with the panel open
+    },
+    []
+  );
+
+  // The panel belongs to one demat account and to the current financial year
+  useEffect(() => {
+    setManageTarget(null);
+  }, [selectedDematAccount]);
+  useEffect(() => {
+    if (manageTarget && !canManage && !panelBusy.saving) setManageTarget(null);
+  }, [canManage, panelBusy.saving, manageTarget]);
+
+  // While a save runs nothing on the holdings side can be clicked
+  const lockSx = panelBusy.saving ? { pointerEvents: 'none', opacity: 0.6 } : {};
 
   const getExportData = () => {
     const allHoldings = groupedHoldings.flatMap((group) => group.holdings);
@@ -214,10 +310,21 @@ const Holdings = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
+    <Box
+      sx={{
+        // While managing, the page claims the layout's own side padding (24px + 16px per side) so the two panels use the full width
+        width: { xs: '100%', md: managing ? 'auto' : '100%' },
+        mx: { md: managing ? -5 : 0 },
+        px: { xs: 3, md: managing ? 1 : 3 },
+        py: 3,
+        display: 'grid',
+        columnGap: managing ? 1.5 : 2,
+        gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: managing ? 'minmax(0, 2fr) minmax(0, 3fr)' : 'minmax(0, 1fr)' } // 40% | 60% while managing
+      }}
+    >
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+      <Grid container spacing={3} sx={{ mb: 3, gridColumn: 1, minWidth: 0, ...lockSx }}>
+        <Grid size={{ xs: 12, sm: 6, md: managing ? 12 : 6 }}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -233,7 +340,7 @@ const Holdings = () => {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+        <Grid size={{ xs: 12, sm: 6, md: managing ? 12 : 6 }}>
           <Card>
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" color="text.secondary">
@@ -246,21 +353,23 @@ const Holdings = () => {
       </Grid>
 
       {/* Main Table Card */}
-      <Card>
+      <Card sx={{ gridColumn: 1, minWidth: 0, ...lockSx }}>
         <CardHeader
           title="Current Holdings"
           subheader="View all of your holdings as of now"
           action={
-            <ExportToExcelButton
-              data={getExportData()}
-              filename={`holdings_${formatDateForFileName()}`}
-              title="Export Holdings to Excel"
-              dematAccountId={selectedDematAccount}
-              dematAccountLabel={(() => {
-                const account = dematAccounts.find((a) => a._id === selectedDematAccount);
-                return account?.brokerId?.name || account?.accountNumber || '';
-              })()}
-            />
+            !managing && (
+              <ExportToExcelButton
+                data={getExportData()}
+                filename={`holdings_${formatDateForFileName()}`}
+                title="Export Holdings to Excel"
+                dematAccountId={selectedDematAccount}
+                dematAccountLabel={(() => {
+                  const account = dematAccounts.find((a) => a._id === selectedDematAccount);
+                  return account?.brokerId?.name || account?.accountNumber || '';
+                })()}
+              />
+            )
           }
         />
         <Divider />
@@ -268,7 +377,7 @@ const Holdings = () => {
         {/* Filters */}
         <Box sx={{ p: 2, bgcolor: 'background.default' }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 12, md: managing ? 12 : 3 }}>
               <TextField
                 select
                 fullWidth
@@ -288,7 +397,7 @@ const Holdings = () => {
               </TextField>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 3 }}>
+            <Grid size={{ xs: 12, md: managing ? 12 : 3 }}>
               <SecurityAutocomplete
                 value={selectedSecurity}
                 onChange={setSelectedSecurity}
@@ -297,6 +406,21 @@ const Holdings = () => {
                 required={false}
                 fullWidth
               />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: managing ? 12 : 3 }}>
+              <Tooltip title={!canManage ? manageDisabledReason : !selectedSecurity ? 'Choose a security first' : ''}>
+                <span>
+                  <Button
+                    variant="outlined"
+                    startIcon={<EditNoteIcon />}
+                    disabled={!canManage || !selectedSecurity}
+                    onClick={() => openManage(selectedSecurity._id, selectedSecurity.name)}
+                  >
+                    Manage transactions
+                  </Button>
+                </span>
+              </Tooltip>
             </Grid>
           </Grid>
         </Box>
@@ -311,24 +435,29 @@ const Holdings = () => {
                 <TableCell>
                   <strong>Security</strong>
                 </TableCell>
-                <TableCell>
-                  <strong>Type</strong>
-                </TableCell>
+                {!managing && (
+                  <TableCell>
+                    <strong>Type</strong>
+                  </TableCell>
+                )}
                 <TableCell align="right">
                   <strong>Total Qty</strong>
                 </TableCell>
-                <TableCell align="right">
-                  <strong>Avg Buy Price</strong>
-                </TableCell>
+                {!managing && (
+                  <TableCell align="right">
+                    <strong>Avg Buy Price</strong>
+                  </TableCell>
+                )}
                 <TableCell align="right">
                   <strong>Total Investment</strong>
                 </TableCell>
+                <TableCell width={60} />
               </TableRow>
             </TableHead>
             <TableBody>
               {groupedHoldings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4 }}>
+                  <TableCell colSpan={managing ? 5 : 7} sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="textSecondary">
                       No holdings found. Buy securities to see them here.
                     </Typography>
@@ -340,7 +469,7 @@ const Holdings = () => {
                     {/* Main row - Aggregated by security */}
                     <TableRow
                       hover
-                      selected={activeRowIndex === index}
+                      selected={activeRowIndex === index || manageTarget?.securityId === group.securityId}
                       sx={{
                         '& > *': { borderBottom: 'unset' },
                         cursor: 'pointer',
@@ -359,25 +488,44 @@ const Holdings = () => {
                           {group.securityName}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip label={group.securityType} size="small" variant="outlined" color="primary" />
-                      </TableCell>
+                      {!managing && (
+                        <TableCell>
+                          <Chip label={group.securityType} size="small" variant="outlined" color="primary" />
+                        </TableCell>
+                      )}
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight="bold">
                           {group.totalQuantity}
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">{formatCurrency(group.avgBuyPrice)}</TableCell>
+                      {!managing && <TableCell align="right">{formatCurrency(group.avgBuyPrice)}</TableCell>}
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight="medium">
                           {formatCurrency(group.totalInvestment)}
                         </Typography>
                       </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title={canManage ? 'Manage transactions' : manageDisabledReason}>
+                          <span>
+                            <IconButton
+                              size="small"
+                              aria-label={`Manage transactions for ${group.securityName}`}
+                              disabled={!canManage}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openManage(group.securityId, group.securityName);
+                              }}
+                            >
+                              <EditNoteIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
                     </TableRow>
 
                     {/* Expanded rows - Individual holdings */}
                     <TableRow>
-                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={managing ? 5 : 7}>
                         <Collapse in={expandedSecurity === group.securityId} timeout="auto" unmountOnExit>
                           <Box sx={{ margin: 2 }}>
                             <Typography variant="h6" gutterBottom component="div" sx={{ mb: 2 }}>
@@ -391,16 +539,34 @@ const Holdings = () => {
                                   <TableCell align="right">Quantity</TableCell>
                                   <TableCell align="right">Buy Price</TableCell>
                                   <TableCell align="right">Investment</TableCell>
+                                  <TableCell width={50} />
                                 </TableRow>
                               </TableHead>
                               <TableBody>
                                 {group.holdings.map((holding, holdingIndex) => (
-                                  <TableRow key={holding.id} sx={{ backgroundColor: holdingIndex % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}>
+                                  <TableRow
+                                    key={holding.id}
+                                    sx={{ backgroundColor: holdingIndex % 2 === 1 ? 'rgba(0, 0, 0, 0.02)' : 'inherit' }}
+                                  >
                                     <TableCell>{formatDate(holding.buyDate)}</TableCell>
                                     <TableCell>{holding.broker || 'N/A'}</TableCell>
                                     <TableCell align="right">{holding.quantity}</TableCell>
                                     <TableCell align="right">{formatCurrency(holding.buyPrice)}</TableCell>
                                     <TableCell align="right">{formatCurrency(holding.totalInvestment)}</TableCell>
+                                    <TableCell align="right">
+                                      <Tooltip title={canManage ? 'Edit the transaction behind this lot' : manageDisabledReason}>
+                                        <span>
+                                          <IconButton
+                                            size="small"
+                                            aria-label="Edit the transaction behind this lot"
+                                            disabled={!canManage}
+                                            onClick={() => openManage(group.securityId, group.securityName, holding.transactionId)}
+                                          >
+                                            <EditOutlinedIcon fontSize="small" />
+                                          </IconButton>
+                                        </span>
+                                      </Tooltip>
+                                    </TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
@@ -416,6 +582,33 @@ const Holdings = () => {
           </Table>
         </TableContainer>
       </Card>
+
+      {managing && (
+        <Box
+          sx={{
+            order: { xs: -1, md: 0 }, // stacked above the table on a narrow screen
+            gridColumn: { md: 2 },
+            gridRow: { md: '1 / span 2' },
+            minWidth: 0,
+            position: { md: 'sticky' },
+            top: { md: 90 },
+            alignSelf: 'start'
+          }}
+        >
+          <ManageTransactionsPanel
+            key={manageTarget.securityId}
+            onClose={() => setManageTarget(null)}
+            onBusyChange={setPanelBusy}
+            security={{ _id: manageTarget.securityId, name: manageTarget.securityName }}
+            demat={{ _id: selectedDematAccount, label: selectedDematLabel }}
+            financialYearTitle={financialYear?.title}
+            currentQuantity={groupedHoldings.find((group) => group.securityId === manageTarget.securityId)?.totalQuantity ?? 0}
+            currentInvestment={groupedHoldings.find((group) => group.securityId === manageTarget.securityId)?.totalInvestment ?? 0}
+            highlightTransactionId={manageTarget.highlightTransactionId}
+            onChanged={reloadAfterChange}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

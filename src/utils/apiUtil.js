@@ -119,14 +119,18 @@ const handleApiError = (error) => {
     // may still have completed it, so do not tell the user it failed.
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       const isWrite = error.config?.method && error.config.method.toLowerCase() !== 'get';
-      return new Error(
+      const timeoutError = new Error(
         isWrite
           ? 'The server is taking longer than expected to respond. Your changes may still have been saved. Please check before submitting again.'
           : 'The request timed out. Please try again.'
       );
+      timeoutError.isTimeout = true; // lets callers tell "no answer" from "the server said no"
+      return timeoutError;
     }
     // Network error
-    return new Error('Network error. Please check your connection.');
+    const networkError = new Error('Network error. Please check your connection.');
+    networkError.isNetworkError = true;
+    return networkError;
   } else {
     // Other error
     return new Error(error.message || 'An unexpected error occurred.');

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -30,6 +30,10 @@ const fmtDate = (date) => (date ? dayjs(date).format('DD/MM/YYYY') : '-');
 // Shared cell style for table body
 const cs = { fontSize: '0.75rem', py: 0.75 };
 const br = { borderRight: '1px solid rgba(224,224,224,1)' };
+
+// The report table pins just under the app bar once the KPIs above it have scrolled away; BELOW_TABLE is the space the layout leaves under it
+const PIN_TOP = 96;
+const BELOW_TABLE = { xs: 40, sm: 48 }; // the layout's bottom padding differs on phones
 
 const r2 = (n) => parseFloat(n.toFixed(2));
 
@@ -90,6 +94,35 @@ const ProfitAndLoss = () => {
   const [dematAccounts, setDematAccounts] = useState([]);
   const [selectedDematAccount, setSelectedDematAccount] = useState('');
   const [pnlData, setPnlData] = useState(null);
+
+  // While the KPIs are in view the page scrolls and the table does not scroll on its own. Once the table has scrolled up to its pinned
+  // position it fills the screen and its rows scroll inside it, with the header and the Grand Total row fixed.
+  const hasRows = !!pnlData?.securities?.length;
+  const tableRef = useRef(null);
+  const headRowRef = useRef(null);
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const table = tableRef.current;
+    const sentinel = sentinelRef.current;
+    if (!table || !sentinel) return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const pinned = !entry.isIntersecting && entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0);
+        table.style.overflowY = pinned ? 'auto' : 'hidden';
+      },
+      { rootMargin: `-${PIN_TOP + 2}px 0px 0px 0px` }
+    );
+    observer.observe(sentinel);
+    // the second header row sticks right below the first one
+    const measure = () => headRowRef.current && table.style.setProperty('--pnl-head-row1', `${headRowRef.current.offsetHeight}px`);
+    measure();
+    const resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (resize && headRowRef.current) resize.observe(headRowRef.current);
+    return () => {
+      observer.disconnect();
+      resize?.disconnect();
+    };
+  }, [hasRows]);
 
   useEffect(() => {
     const fetchDematAccounts = async () => {
@@ -157,7 +190,8 @@ const ProfitAndLoss = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', p: 3 }}>
+    // the page claims the layout's own side padding (16px on phones, 24px + 16px from tablets up) and keeps a small margin of its own
+    <Box sx={{ width: 'auto', mx: { xs: -2, sm: -5 }, px: 2, py: 3 }}>
       {/* Filter bar */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -261,16 +295,29 @@ const ProfitAndLoss = () => {
             </Grid>
 
             {/* P&L Table */}
+            {hasRows && <Box ref={sentinelRef} sx={{ height: '1px', mb: '-1px' }} />}
             {pnlData.securities.length === 0 ? (
               <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ py: 4 }}>
                 No P&amp;L data found for the selected account and financial year.
               </Typography>
             ) : (
-              <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+              <TableContainer
+                ref={tableRef}
+                component={Paper}
+                variant="outlined"
+                sx={{ overflowX: 'auto', overflowY: 'hidden', position: 'sticky', top: PIN_TOP, maxHeight: { xs: `calc(100vh - ${PIN_TOP + BELOW_TABLE.xs}px)`, sm: `calc(100vh - ${PIN_TOP + BELOW_TABLE.sm}px)` } }}
+              >
                 <Table size="small" sx={{ minWidth: 1900 }}>
-                  <TableHead>
+                  <TableHead
+                    sx={{
+                      // && = more specific than the theme's own `position: relative` on table cells
+                      '&& .MuiTableCell-root': { position: 'sticky', zIndex: 3, bgcolor: 'primary.lighter', boxShadow: 'inset 0 -1px 0 rgba(224,224,224,1)' },
+                      '&& tr:first-of-type .MuiTableCell-root': { top: 0 },
+                      '&& tr:nth-of-type(2) .MuiTableCell-root': { top: 'var(--pnl-head-row1, 34px)' }
+                    }}
+                  >
                     {/* Group header row */}
-                    <TableRow sx={{ bgcolor: 'primary.lighter' }}>
+                    <TableRow ref={headRowRef} sx={{ bgcolor: 'primary.lighter' }}>
                       <TableCell rowSpan={2} sx={{ fontWeight: 'bold', minWidth: 140, ...br }}>Stock</TableCell>
                       <TableCell colSpan={4} align="center" sx={{ fontWeight: 'bold', ...br, borderBottom: 'none', pb: 0 }}>Buy</TableCell>
                       <TableCell colSpan={4} align="center" sx={{ fontWeight: 'bold', ...br, borderBottom: 'none', pb: 0 }}>Sell</TableCell>
@@ -415,7 +462,13 @@ const ProfitAndLoss = () => {
                     })}
 
                     {/* Grand total row */}
-                    <TableRow sx={{ bgcolor: 'primary.lighter', borderTop: '2px solid rgba(100,100,100,0.3)' }}>
+                    <TableRow
+                      sx={{
+                        bgcolor: 'primary.lighter',
+                        borderTop: '2px solid rgba(100,100,100,0.3)',
+                        '&& .MuiTableCell-root': { position: 'sticky', bottom: 0, zIndex: 2, bgcolor: 'primary.lighter', boxShadow: 'inset 0 2px 0 rgba(100,100,100,0.3)' }
+                      }}
+                    >
                       <TableCell sx={{ ...cs, fontWeight: 'bold', ...br }}>Grand Total</TableCell>
                       <TableCell colSpan={3} sx={cs} />
                       <TableCell align="right" sx={{ ...cs, fontWeight: 'bold', ...br }}>{formatCurrency(grand.buyAmt)}</TableCell>
